@@ -14,7 +14,7 @@ Linker script and memory map
 Address of section .text set to 0x1000
 LOAD target/kernel/kernel.o
 LOAD target/kernel/main.o
-LOAD target/kernel/kernel_386lib.o
+LOAD target/kernel/kernel_i386lib.o
                 0x08048000                PROVIDE (__executable_start, 0x8048000)
                 0x08048094                . = (0x8048000 + SIZEOF_HEADERS)
 
@@ -90,7 +90,7 @@ LOAD target/kernel/kernel_386lib.o
  .text          0x00001018       0x14 target/kernel/main.o
                 0x00001018                aos_main
  *fill*         0x0000102c        0x4 90909090
- .text          0x00001030       0x6d target/kernel/kernel_386lib.o
+ .text          0x00001030       0x6d target/kernel/kernel_i386lib.o
                 0x00001030                phys_copy
                 0x00001060                low_print
  *(.text.*personality*)
@@ -186,7 +186,7 @@ LOAD target/kernel/kernel_386lib.o
  .data          0x000020b8        0x1 target/kernel/kernel.o
  *fill*         0x000020b9        0x3 00
  .data          0x000020bc        0x4 target/kernel/main.o
-                0x000020bc                display_position
+                0x000020bc                DISPLAY_POSITION
  *(.gnu.linkonce.d.*personality*)
 
 .data1
@@ -230,7 +230,7 @@ LOAD target/kernel/kernel_386lib.o
  *(.comment)
  .comment       0x00000000       0x1f target/kernel/kernel.o
  .comment       0x0000001f       0x2e target/kernel/main.o
- .comment       0x0000004d       0x1f target/kernel/kernel_386lib.o
+ .comment       0x0000004d       0x1f target/kernel/kernel_i386lib.o
 
 .debug
  *(.debug)

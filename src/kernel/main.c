@@ -1,6 +1,6 @@
 
 
-int display_position = (80 * 6 + 0) * 2;
+int DISPLAY_POSITION = (80 * 6 + 0) * 2;
 
 void low_print(char *str);
 

@@ -39,19 +39,19 @@ bsFileSysType   DB 'FAT12   '       ; 文件系统类型, 必须 8个字节
 ; ----------------------------------------------------------------------------------------------------------------------
 FATSz			equ	9   ; 同bpbFATSz16，每个FAT表占用扇区数
 
-; 根目录占用空间，RootDirSectors = ((bpbRootEntCnt*32)+(bpbBytsPerSec–1))/bpbBytsPerSec，这样是为了保证此公式在根目录区无法
+; 根目录占用空间，ROOT_DIR_SECTORS = ((bpbRootEntCnt*32)+(bpbBytsPerSec–1))/bpbBytsPerSec，这样是为了保证此公式在根目录区无法
 ; 填满整数各扇区时，仍然成立。
 ; 在本系统中，直接定为占用14个扇区，故定义此宏
-RootDirSectors		      equ	14
+ROOT_DIR_SECTORS          equ	14
 
 ; Root Directory 的第一个扇区号	= bpbRsvdSecCnt + (bpbNumFATs; FATSz)
-SectorNoOfRootDirectory	equ	19
+SECTOR_NUM_OF_ROOT_DIR    equ	19
 
 ; FAT1 的第一个扇区号	= bpbRsvdSecCnt
-SectorNoOfFAT1		      equ	1
+SECTOR_NUM_OF_FAT1		    equ	1
 
-; DeltaSectorNo = bpbRsvdSecCnt + (bpbNumFATs; FATSz) - 2
-; 文件的开始Sector号 = DirEntry中的开始簇号 + 根目录占用Sector数目 + DeltaSectorNo
+; DELTA_SECTOR_NUM = bpbRsvdSecCnt + (bpbNumFATs; FATSz) - 2
+; 文件的开始Sector号 = DirEntry中的开始簇号 + 根目录占用Sector数目 + DELTA_SECTOR_NUM
 ; 这里定义为17，是因为根目录开始于第19个扇区，而数据区第一个簇的簇号开始于2(0,1两个FAT项始终不用)
-DeltaSectorNo		        equ	17
+DELTA_SECTOR_NUM		      equ	17
 ; ======================================================================================================================

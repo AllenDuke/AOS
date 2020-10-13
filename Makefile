@@ -1,8 +1,8 @@
 #============================================================================
 #   AOS内核的内存挂载点
 #----------------------------------------------------------------------------
-# 这个值必须存在且相等在文件"loader.inc"中的 'KernelEntryPointPhyAddr'！
-EntryPoint     = 0x1000
+# 这个值必须存在且相等在文件"loader.inc"中的 'KERNEL_ENTRY_POINT_PHY_ADDR'！
+ENTRY_POINT     = 0x1000
 #============================================================================
 
 
@@ -37,7 +37,7 @@ LD              = ld
 ASMFlagsOfBoot  = -I src/boot/include/
 ASMFlagsOfKernel= -f elf -I $(sk)/
 CFlags          = -c -I$i -fno-builtin -Wall
-LDFlags         = -Ttext $(EntryPoint) -Map kernel.map
+LDFlags         = -Ttext $(ENTRY_POINT) -Map kernel.map
 # ======================================================================================================================
 
 
@@ -49,7 +49,7 @@ AOSBoot      = $(tb)/boot.bin $(tb)/loader.bin
 AOSKernel    = $(tk)/kernel.bin
 
 # 内核，只实现基本功能
-KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_386lib.o
+KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o
 
 Objs            = $(KernelObjs)
 # ======================================================================================================================
@@ -138,7 +138,7 @@ $(AOSKernel): $(Objs)
 $(tk)/kernel.o: $(sk)/kernel.asm
 	$(ASM) $(ASMFlagsOfKernel) -o $@ $<
 
-$(tk)/kernel_386lib.o: $(sk)/kernel_386lib.asm
+$(tk)/kernel_i386lib.o: $(sk)/kernel_i386lib.asm
 	$(ASM) $(ASMFlagsOfKernel) -o $@ $<
 
 $(tk)/main.o: $(sk)/main.c

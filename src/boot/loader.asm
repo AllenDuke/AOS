@@ -3,14 +3,14 @@ org 0x100
 
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
-; 一些宏定义，汇编伪指令不会产生机器代码
+;   一些宏定义，汇编伪指令不会产生机器代码
 ; ----------------------------------------------------------------------------------------------------------------------
-StackBase       equ     0x100       ; 用0x7c00以下的地方来作为栈，要注意不要达到0x0500
-MessageLength	equ 	10          ; 为简化代码, 下面每个要打印的字符串的长度均为 MessageLength
+STACK_BASE      equ     0x100       ; 用0x7c00以下的地方来作为栈，要注意不要达到0x0500
+MESSAGE_LENGTH  equ 	10          ; 为简化代码, 下面每个要打印的字符串的长度均为 MESSAGE_LENGTH
 ; ======================================================================================================================
 
 
-    jmp START
+    jmp start
 
 
 ; ======================================================================================================================
@@ -34,13 +34,13 @@ DataSegDesc         Descriptor  0,          0xfffff,    DA_32 | DA_DRW | DA_LIMI
 VideoSegDesc        Descriptor  0xb8000,    0xfffff,    DA_DRW | DA_DPL3            ; 视频段，特权级3（用户特权级）
 
 ; GDT全局描述符表
-GDTLen              equ     $ - GDT                         ; GDT的长度
-gdtPtr              dw      GDTLen - 1                      ; GDT指针.段界限
-                    dd      LoaderPhyAddr + GDT           ; GDT指针.基地址
+GDT_LENGTH          equ     $ - GDT                         ; GDT的长度
+gdtPtr              dw      GDT_LENGTH - 1                  ; GDT指针.段界限
+                    dd      LOADER_PHY_ADDR + GDT           ; GDT指针.基地址
 ; GDT选择子
-SelectorCode        equ     CodeSegDesc - GDT               ; 代码段选择子
-SelectorData        equ     DataSegDesc - GDT               ; 数据段选择子
-SelectorVideo       equ     VideoSegDesc - GDT | SA_RPL3    ; 视频段选择子，特权级3（用户特权级）
+CODE_SELECTOR       equ     CodeSegDesc - GDT               ; 代码段选择子
+DATA_SELECTOR       equ     DataSegDesc - GDT               ; 数据段选择子
+VIDEO_SELECTOR      equ     VideoSegDesc - GDT | SA_RPL3    ; 视频段选择子，特权级3（用户特权级）
 ; ======================================================================================================================
 
 
@@ -48,122 +48,117 @@ SelectorVideo       equ     VideoSegDesc - GDT | SA_RPL3    ; 视频段选择子
 ; ----------------------------------------------------------------------------------------------------------------------
 ;   16位实模式代码段
 ; ----------------------------------------------------------------------------------------------------------------------
-START:
+start:
     ; 寄存器复位
-    mov	ax, cs              ; 此时的cs为LoaderSeg，即0x9000，ip为0x0100
+    mov	ax, cs              ; 此时的cs为LOADER_SERG，即0x9000，ip为0x0100
     mov	ds, ax
     mov	es, ax
     mov	ss, ax
-    mov	sp, StackBase       ; sp指向当前栈顶，栈向低地址生长
+    mov	sp, STACK_BASE      ; sp指向当前栈顶，栈向低地址生长
 
     ; 显示字符串 "Loading..."
     mov	dh, 0
-    call PRINT_STRING       ; 显示字符串
+    call print_string       ; 显示字符串
 
    ; 得到内存数
     mov ebx, 0              ; ebx = 后续值，开始时需为0
-    mov di, memChkBuf16      ; es:di 指向一个地址范围描述符结构(Address Range Descriptor Structure)
-CHECK_MEM:
+    mov di, memChkBuf16     ; es:di 指向一个地址范围描述符结构(Address Range Descriptor Structure)
+check_mem:
 	mov eax, 0E820h		    ; eax = 0000E820h
 	mov ecx, 20			    ; ecx = 地址范围描述符结构的大小
 	mov edx, 0534D4150h	    ; edx = 'SMAP'
 	int 15h
-	jc CHECK_MEM_FAIL		    ; 如果产生的进位，即CF = 1，跳转到.MemChkFail
+	jc check_mem_fail		    ; 如果产生的进位，即CF = 1，跳转到.MemChkFail
 	add di, 20
 	inc dword [mcrCountDD16]	; _dwMCRNumber = ARDS　的个数
 	cmp ebx, 0
-	jne CHECK_MEM		    ; ebx != 0，继续进行循环
-	jmp CHECK_MEM_OK		    ; ebx == 0，得到内存数OK
-CHECK_MEM_FAIL:
+	jne check_mem		        ; ebx != 0，继续进行循环
+	jmp check_mem_ok		    ; ebx == 0，得到内存数OK
+check_mem_fail:
 	mov dword [mcrCountDD16], 0
-CHECK_MEM_OK:
+check_mem_ok:
     ; 操作软盘前，现将软驱复位
     xor ah, ah              ; xor:异或，ah = 0
     xor dl, dl              ; dl = 0
     int 0x13
     ; 接下来我们在软盘A中开始寻找文件
-    mov word [sectorW], SectorNoOfRootDirectory     ; 读取软盘的根目录扇区号
-SEARCH_FILE_IN_ROOR_DIR_BEGIN:
+    mov word [sectorW], SECTOR_NUM_OF_ROOT_DIR     ; 读取软盘的根目录扇区号
+search_file_in_root_dir_begin:
     cmp word [rootDirSizeLoopW], 0
-    jz NO_FILE                  ; 读完了整个根目录扇区都没找到，所以没有
+    jz no_file                  ; 读完了整个根目录扇区都没找到，所以没有
     dec word [rootDirSizeLoopW] ; wRootDirSizeLoop--
 
     ; 读取扇区
-    mov ax, KernelSeg          ; es = KERNEL_SEG
+    mov ax, KERNEL_SEG          ; es = KERNEL_SEG
     mov es, ax
-    mov bx, KernelOffset
+    mov bx, KERNEL_OFFSET
     mov ax, [sectorW]
     mov cl, 1
-    call READ_SECTOR
+    call read_sector
 
     mov si, kernelFileName      ; ds:si -> Loader的文件名称
-    mov di, KernelOffset       ; es:di -> KERNEL_SEG:KERNEL_OFFSET -> 加载到内存中的扇区数据
+    mov di, KERNEL_OFFSET       ; es:di -> KERNEL_SEG:KERNEL_OFFSET -> 加载到内存中的扇区数据
     cld                         ; 字符串比较方向，si、di方向向右
 
     ; 开始在扇区中寻找文件，比较文件名
     mov dx, 16                  ; 一个扇区512字节，FAT目录项占用32个字节，512/32 = 16，所以一个扇区有16个目录项
-SEARCH_FOR_FILE:
+search_for_file:
     cmp dx, 0
-    jz NEXT_SECTOR_IN_ROOT_DIR  ; 读完整个扇区，依旧没找到，准备加载下一个扇区
+    jz next_sector_in_root_dir  ; 读完整个扇区，依旧没找到，准备加载下一个扇区
     dec dx                      ; dx--
     ; 应该开始比较目录项中的文件名了
     mov cx, 11
-CMP_FILENAME:
+cmp_file_name:
     cmp cx, 0
-    jz FILENAME_FOUND           ; cx = 0，整个文件名里的字符都匹配上了，我们发现它了
+    jz file_name_found          ; cx = 0，整个文件名里的字符都匹配上了，我们发现它了
     dec cx                      ; cx--
     lodsb                       ; ds:si -> al, si++
     cmp al, byte [es:di]        ; 比较字符
-    je GO_ON                    ; 字符相同，准备继续比较下一个
-    jmp DIFFERENT               ; 只要有一个字符不相同，就表明本目录项不是我们要寻找的文件的目录项
-
-GO_ON:
+    je go_on                    ; 字符相同，准备继续比较下一个
+    jmp different               ; 只要有一个字符不相同，就表明本目录项不是我们要寻找的文件的目录项
+go_on:
     inc di
-    jmp  CMP_FILENAME
-DIFFERENT:
+    jmp  cmp_file_name
+different:
     and di, 0xfff0              ; di &= f0, 11111111 11110000，是为了让它指向本目录项条目的开始。
-
     add di, 32                  ; di += 32， 让di指向下一个目录项
     mov si, kernelFileName
-    jmp SEARCH_FOR_FILE         ; 重新开始在下一个目录项中查找文件并比较
-
-NEXT_SECTOR_IN_ROOT_DIR:
+    jmp search_for_file         ; 重新开始在下一个目录项中查找文件并比较
+next_sector_in_root_dir:
     add word [sectorW], 1       ; 准备开始读取下一个扇区
-    jmp SEARCH_FILE_IN_ROOR_DIR_BEGIN
-
-NO_FILE:
+    jmp search_file_in_root_dir_begin
+no_file:
     mov dh, 4
-    call PRINT_STRING                ; 打印"NO KERNEL!"
+    call print_string                ; 打印"NO KERNEL!"
     ; 死循环
     jmp $
-FILENAME_FOUND:
+file_name_found:
     ; 准备参数，开始读取文件数据扇区
-    mov ax, RootDirSectors      ; ax = 根目录占用空间（占用的扇区数）
+    mov ax, ROOT_DIR_SECTORS    ; ax = 根目录占用空间（占用的扇区数）
     and di, 0xfff0              ; di &= f0, 11111111 11110000，是为了让它指向本目录项条目的开始。
-
     push eax                    ; 保存eax的值
     mov eax, [es:di + 0x1c]     ; FAT目录项第0x1c处偏移是文件大小
     mov dword [kernelSizeDW], eax   ; 保存内核文件大小
-    cmp eax, KernelHaveSpace  ; 看看内核文件大小有没有超过我们为其保留的大小
-    ja KERNEL_FILE_TOO_LARGE    ; 超过了！
+    cmp eax, KERNEL_KEEP_SPACE  ; 看看内核文件大小有没有超过我们为其保留的大小
+    ja kernel_file_too_large    ; 超过了！
     pop eax                     ; 恢复eax
-    jmp FILE_START_LAOD         ; 没超过，准备开始加载内核文件
-KERNEL_FILE_TOO_LARGE:          ; 内核文件太大了，超过了我们给它留的128KB
+    jmp start_to_load_file      ; 没超过，准备开始加载内核文件
+kernel_file_too_large:          ; 内核文件太大了，超过了我们给它留的128KB
     mov dh, 3
-    call PRINT_STRING                ; 打印"Too Large!"
+    call print_string           ; 打印"Too Large!"
     jmp $                       ;
-FILE_START_LAOD:
+start_to_load_file:
     add di, 0x1a                ; FAT目录项第0x1a处偏移是文件数据所在的第一个簇号
     mov cx, word [es:di]        ; cx = 文件数据所在的第一个簇号
     push cx                     ; 保存文件数据所在的第一个簇号
     ; 通过簇号计算它的真正扇区号
     add cx, ax
-    add cx, DeltaSectorNo       ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的第一个扇区
-    mov ax, KernelSeg
+    add cx, DELTA_SECTOR_NUM    ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的第一个扇区
+    mov ax, KERNEL_SEG
     mov es, ax                  ; es <- KERNEL_SEG
-    mov bx, KernelOffset       ; bx <- KERNEL_OFFSET
+    mov bx, KERNEL_OFFSET       ; bx <- KERNEL_OFFSET
     mov ax, cx                  ; ax = 文件数据的第一个扇区
-LOADING_FILE:
+loading_file:
     ; 我们每读取一个数据扇区，就在“Loading...”之后接着打印一个点，形成一种动态加载的动画。
     ; 0x10中断，0xe功能 --> 在光标后打印一个字符
     push ax
@@ -176,37 +171,36 @@ LOADING_FILE:
     pop ax
 
     mov cl, 1                   ; 读1个
-    call READ_SECTOR             ; 读取
+    call read_sector            ; 读取
     pop ax                      ; 取出前面保存的文件的的簇号
-    call GET_FATEntry           ; 通过簇号获得该文件的下一个FAT项的值
+    call get_fat_entry          ; 通过簇号获得该文件的下一个FAT项的值
     cmp ax, 0xff8
-    jae FILE_LOADED             ; 加载完成...
+    jae file_loaded             ; 加载完成...
     ; FAT项的值 < 0xff8，那么我们继续设置下一次要读取的扇区的参数
     ; 通过簇号计算它的真正扇区号
     push ax                     ; 保存簇号
-    mov dx, RootDirSectors
+    mov dx, ROOT_DIR_SECTORS
     add ax, dx
-    add ax, DeltaSectorNo       ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的扇区
-    add bx, [bpbBytsPerSec]    ; bx += 扇区字节量
-    jc KERNEL_GREAT_64KB        ; 如果bx += 扇区字节量，产生了一个进位，说明已经读满64KB，内核文件大于64KB
-    jmp CONTINUE_LOADING        ; 内核文件还在64KB内，继续正常加载
-KERNEL_GREAT_64KB:
+    add ax, DELTA_SECTOR_NUM    ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的扇区
+    add bx, [bpbBytsPerSec]     ; bx += 扇区字节量
+    jc kernel_great_64KB        ; 如果bx += 扇区字节量，产生了一个进位，说明已经读满64KB，内核文件大于64KB
+    jmp keep_loading            ; 内核文件还在64KB内，继续正常加载
+kernel_great_64KB:
     ; es += 0x1000，es指向下一个段，准备继续加载
     push ax
     mov ax, es
     add ax, 0x1000
     mov es, ax
     pop ax
-CONTINUE_LOADING:               ; 继续加载内核文件
-    jmp LOADING_FILE
-FILE_LOADED:
-    call KillMotor              ; 关闭软驱马达
-
+keep_loading:                   ; 继续加载内核文件
+    jmp loading_file
+file_loaded:
+    call kill_motor             ; 关闭软驱马达
     mov dh, 1
-    call PRINT_STRING                ; 打印"KERNEL OK!"
-;----------------------------------------------------------------------------
-; 万事俱备，准备进入32位保护模式
-;----------------------------------------------------------------------------
+    call print_string           ; 打印"KERNEL OK!"
+; ----------------------------------------------------------------------------------------------------------------------
+; 准备进入32位保护模式
+; ----------------------------------------------------------------------------------------------------------------------
     ; 1 首先，进入保护模式必须有 GDT 全局描述符表，我们加载 gdtr（gdt地址指针）
     lgdt	[gdtPtr]
 
@@ -224,7 +218,7 @@ FILE_LOADED:
     mov cr0, eax
 
 ; ----------------------------------------------------------------------------------------------------------------------
-; 注意，我们并没有去设置GDT中代码段描述符的32位段基地址，它仍然是0，但是我们可以利用偏移量来进入32保护模式，去执行PM_32_START处的代码。
+; 注意，我们并没有去设置GDT中代码段描述符的32位段基地址，它仍然是0，但是我们可以利用偏移量来进入32保护模式，去执行pm32_start处的代码。
 ; 这里在补充一下32位保护模式下的内存寻址的计算方式。
 ; 此时，下一条指令地址是这样计算的，cs存着的是段选择子，gdtr存着的是gdt的线性基地址和界限，cpu可以通过此二者来访问到gdt的某一项，
 ; 然后取出该项中的段线性基地址，最后加上ip中的偏移量，这样就可以得知下一条指令的物理地址了。
@@ -232,22 +226,21 @@ FILE_LOADED:
 
     ; 5 真正进32位入保护模式！前面的4步已经进入了保护模式
     ; 	现在只需要跳入到一个32位代码段就可以真正进入32位保护模式了！
-    jmp dword SelectorCode:LoaderPhyAddr + PM_32_START
+    jmp dword CODE_SELECTOR:LOADER_PHY_ADDR + pm32_start
 
     ; 如果上面一切顺利，这一行永远不可能执行的到
     jmp $
 
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
-; 一些变量
+;   一些变量 ; db 汇编伪指令，表示其后的每个操作数占1字节。dw，2字节。dd，double word 4字节。
 ; ----------------------------------------------------------------------------------------------------------------------
-rootDirSizeLoopW    dw      RootDirSectors  ; 根目录占用的扇区数14，在循环中将被被逐步递减至0
-sectorW             dw      0               ; 要读取的扇区号
-isOdd               db      0               ; 读取的FAT条目是不是奇数项?
-kernelSizeDW        dd      0               ; 内核文件的大小
+rootDirSizeLoopW    dw      ROOT_DIR_SECTORS    ; 根目录占用的扇区数14，在循环中将被被逐步递减至0
+sectorW             dw      0                   ; 要读取的扇区号
+isOdd               db      0                   ; 读取的FAT条目是不是奇数项?
+kernelSizeDW        dd      0                   ; 内核文件的大小
 ; ----------------------------------------------------------------------------------------------------------------------
 ; 要显示的字符串
-; db 汇编伪指令，表示其后的每个操作数占1字节。dw，2字节。dd，double word 4字节。
 ; ----------------------------------------------------------------------------------------------------------------------
 kernelFileName		db  "KERNEL  BIN", 0	; KERNEL.BIN 之文件名
 
@@ -264,7 +257,7 @@ loaderMessage 		db	"Loading..."        ; 10, 不够则用空格补齐. 序号 0
 ; ----------------------------------------------------------------------------------------------------------------------
 ;   16位支持函数库
 ; ----------------------------------------------------------------------------------------------------------------------
-%include "loader_16lib.inc"
+%include "loader_16lib.asm"
 ; ======================================================================================================================
 
 
@@ -273,42 +266,47 @@ loaderMessage 		db	"Loading..."        ; 10, 不够则用空格补齐. 序号 0
 ;   32位代码段
 ; ----------------------------------------------------------------------------------------------------------------------
 [section .code32]
-align 32
-[bits 32]
-PM_32_START:            ; 跳转到这里，说明已经进入32位保护模式
-    mov ax, SelectorData
+; ----------------------------------------------------------------------------------------------------------------------
+; 关于段开始地址，NASM默认会有一个段，默认4字节（即16位）对齐，使用align来改变默认值。
+;
+; 关于段中指令编译模式，默认16模式，使用bits来改变默认值。
+; 例如mov ax,0x1234，对应16位模式二进制指令：B83412，对应32位模式二进制指令：66B83412。（从左往右，地址由低到高，小端，低地址存低位）
+; ----------------------------------------------------------------------------------------------------------------------
+align 32    ; 该段的开始地址会32字节对齐，编译时会寻找最近的对齐地址
+bits 32     ; 指示编译器产生在32位模式下工作的代码，默认16位模式。
+pm32_start:                 ; 跳转到这里，说明已经进入32位保护模式
+    mov ax, DATA_SELECTOR
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov ss, ax              ; ds = es = fs = ss = 数据段
-    mov esp, StackTop     ; 设置栈顶
-    mov ax, SelectorVideo
+    mov esp, STACK_TOP      ; 设置栈顶
+    mov ax, VIDEO_SELECTOR
     mov gs, ax              ; gs = 视频段
 
     ; 计算内存大小
-    call CalcMemSize
+    call cal_mem_size
 
     ; 打印内存信息
-    call PrintMemSize
+    call print_mem_size
     ; 启动分页机制
-    call SetupPaging
+    call setup_paging
     ; 初始化内核程序
-    call InitKernelFile
+    call init_kernel_file
 
     ; 进入内核前，我们别忘了将一些重要的参数保存，以便以后内核可以很方便的获取它们
-    mov dword [BootParamAddr], BootParamMagic   ; Flyanx引导参数的魔数
-    mov eax, [memSizeDD16]                            ; 内存大小
-    mov [BootParamAddr + 4], eax                  ; 第一个引导参数：内存大小
-    mov eax, KernelPhyAddr
-    add eax, KernelOffset                          ; 内核文件的物理地址 =
+    mov dword [BOOT_PARAM_ADDR], BOOT_PARAM_MAGIC   ; Flyanx引导参数的魔数
+    mov eax, [memSizeDD16]                          ; 内存大小
+    mov [BOOT_PARAM_ADDR + 4], eax                  ; 第一个引导参数：内存大小
+    mov eax, KERNEL_PHY_ADDR
+    add eax, KERNEL_OFFSET                          ; 内核文件的物理地址 =
                                                     ; KERNEL_SEG * 16 + KERNEL_OFFSET
-    mov [BootParamAddr + 8], eax                  ; 第二个引导参数：内核文件所在物理地址
+    mov [BOOT_PARAM_ADDR + 8], eax                  ; 第二个引导参数：内核文件所在物理地址
     ; 暂时我只想到这两个参数需要保存，以后有更多参数可以直接追加保存在后面，我们保留给引导参数的内存还挺大的！
 
-    ; ***********************************************************************
     ; 正式跳入内核，Loader将CPU控制权转交给内核，至此，Loader的使命也结束了！比Boot厉害吧！
     ; 从这里的函数运行成功后，我们才真正算是进入编写操作系统的门槛！
-    jmp SelectorCode:KernelEntryPointPhyAddr
+    jmp CODE_SELECTOR:KERNEL_ENTRY_POINT_PHY_ADDR
 
     ; 永远到达不了的真实
     jmp $
@@ -319,25 +317,23 @@ PM_32_START:            ; 跳转到这里，说明已经进入32位保护模式
 ; ----------------------------------------------------------------------------------------------------------------------
 ;   32位支持函数库
 ; ----------------------------------------------------------------------------------------------------------------------
-%include "loader_32lib.inc"
+%include "loader_32lib.asm"
 ; ======================================================================================================================
 
 
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
-; 32位数据段
+;   32位数据段
 ; ----------------------------------------------------------------------------------------------------------------------
-[section .data32]
-    align 32                ; 32字节对齐
+section data32 align=32    ; 32字节对齐
 DATA32:
-
 ; ----------------------------------------------------------------------------------------------------------------------
-; 16位实模式下使用的数据地址，变量以下划线作前缀与32位下的变量区分开。
+; 16位实模式下使用的数据地址，变量以16做后缀与32位下的变量区分开。
 ; ----------------------------------------------------------------------------------------------------------------------
 ; 字符串
 strMemSize16         db "Memory Size: ", 0
 strKB16              db "KB", 10, 0
-strSetupPaging16     db "Setup paging.", 10, 0
+strsetup_paging16    db "Setup paging.", 10, 0
 strDebug16           db "BreakPoint", 10,0
 
 ; 变量
@@ -359,21 +355,24 @@ memChkBuf16          times 256 db 0
 ; ----------------------------------------------------------------------------------------------------------------------
 ; 32位保护模式下的数据地址符号，这里是16位下访问不到的
 ; ----------------------------------------------------------------------------------------------------------------------
-StrMemSize32          equ LoaderPhyAddr + strMemSize16
-StrKB32               equ LoaderPhyAddr + strKB16
-StrSetupPaging32               equ LoaderPhyAddr + strSetupPaging16
+STR_MEM_SIZE_32             equ LOADER_PHY_ADDR + strMemSize16
+STR_KB_32                   equ LOADER_PHY_ADDR + strKB16
+STR_SETUP_PAGING_32         equ LOADER_PHY_ADDR + strsetup_paging16
 
-MCRCountDD32          equ LoaderPhyAddr + mcrCountDD16
-MemSizeDD32           equ LoaderPhyAddr + memSizeDD16
-DispPositionDD32      equ LoaderPhyAddr + dispPositionDD16
-ARDS32                equ LoaderPhyAddr + ARDS16
-    BaseAddrLowDD32   equ LoaderPhyAddr + baseAddrLowDD16
-    BaseAddrHighDD32  equ LoaderPhyAddr + baseAddrHighDD16
-    LengthLowDD32     equ LoaderPhyAddr + lengthLowDD16
-    LengthHighDD32    equ LoaderPhyAddr + lengthHighDD16
-    TypeDD32          equ LoaderPhyAddr + typeDD16
-MemChkBuf32           equ LoaderPhyAddr + memChkBuf16
+MCR_COUNT_DD_32             equ LOADER_PHY_ADDR + mcrCountDD16
+MEM_SIZE_DD_32              equ LOADER_PHY_ADDR + memSizeDD16
+DISP_POSITION_DD_32         equ LOADER_PHY_ADDR + dispPositionDD16
+
+ARDS_32                     equ LOADER_PHY_ADDR + ARDS16
+    BASE_ADDR_LOW_DD_32     equ LOADER_PHY_ADDR + baseAddrLowDD16
+    BASE_ADDR_HIGH_DD_32    equ LOADER_PHY_ADDR + baseAddrHighDD16
+    LENGTH_LOW_DD_32        equ LOADER_PHY_ADDR + lengthLowDD16
+    LENGTH_HIGH_DD_32       equ LOADER_PHY_ADDR + lengthHighDD16
+    TYPE_DD_32              equ LOADER_PHY_ADDR + typeDD16
+
+MEM_CHK_BUF_32              equ LOADER_PHY_ADDR + memChkBuf16
+
 ; 堆栈就在数据段的末尾，一共给这个32位代码段堆栈分配4KB
-StackSpace times 0x1000    db 0
-StackTop  equ LoaderPhyAddr + $     ; 栈顶
+stackSpace                  times 0x1000    db 0
+STACK_TOP                   equ LOADER_PHY_ADDR + $     ; 栈顶
 ; ======================================================================================================================

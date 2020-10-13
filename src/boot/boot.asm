@@ -1,16 +1,3 @@
-; ======================================================================================================================
-; ----------------------------------------------------------------------------------------------------------------------
-; 一些说明
-; ----------------------------------------------------------------------------------------------------------------------
-; 函数名统一使用大写和下划线，使用动词+名词，或者动词的形式命名，例如，PRINT_STRING，意为字符串打印函数。使用 : 且换行。
-; 保险起见，在函数内，会先将使用到的寄存器的值，返回前，恢复寄存器到函数调用前状态。
-;
-; 宏定义统一使用大驼峰命名法，例如，StackBase，意为栈基地址。不使用 ：且不换行。
-;
-; 变量名统一使用小驼峰命名法，例如，isOdd，意为是否奇数。不使用 : 且不换行。
-; ======================================================================================================================
-
-
 ; 值得注意的时，即使没有这个org汇编伪指令，往后的这些内容都将会被加载到内存0000:0x7c00处
 ; 汇编伪指令，表示往后需要计算 label 的绝对地址时，还再要加上0x7c00的偏移量。
 ; 如果不涉及 label的计算，那么是不需要这个指令的
@@ -19,17 +6,18 @@ org 0x7c00
 
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
-; 一些宏定义，汇编伪指令不会产生机器代码
+;   一些宏定义
+; 汇编伪指令不会产生机器代码
 ; ----------------------------------------------------------------------------------------------------------------------
-LoaderSeg       equ 0x9000      ; LOADER加载到的段地址，不能往上越过0x9fc00，即loader.bin大小不能超过63kB
-LoaderOffset    equ 0x100       ; LOADER加载到的偏移地址，预留一定的边界，即LOADER加载到0x90100
+LOADER_SEG          equ 0x9000      ; LOADER加载到的段地址，不能往上越过0x9fc00，即loader.bin大小不能超过63kB
+LOADER_OFFSET       equ 0x100       ; LOADER加载到的偏移地址，预留一定的边界，即LOADER加载到0x90100
 
-StackBase       equ 0x7c00      ; 用0x7c00以下的地方来作为栈，要注意不要达到0x0500
-MessageLength	equ	10          ; 为简化代码, 下面每个要打印的字符串的长度均为 MessageLength
+STACK_BASE          equ 0x7c00      ; 用0x7c00以下的地方来作为栈，要注意不要达到0x0500
+MESSAGE_LENGTH      equ	10          ; 为简化代码, 下面每个要打印的字符串的长度均为 MESSAGE_LENGTH
 ; ======================================================================================================================
 
 
-    jmp short START             ; 直接跳转指令，实际上在nasm中只有jmp，没有远近、段内段间的区别
+    jmp short start             ; 直接跳转指令，实际上在nasm中只有jmp，没有远近、段内段间的区别
     nop                         ; 空指令
     %include "fat12hdr.inc"     ; 导入FAT12头以及相关常量信息
 
@@ -38,22 +26,22 @@ MessageLength	equ	10          ; 为简化代码, 下面每个要打印的字符�
 
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
-; 引导程序
+;   引导程序
 ; ----------------------------------------------------------------------------------------------------------------------
-START:
+start:
     ; 寄存器复位
     mov ax, cs
     mov ds, ax
     mov ss, ax
     ; 此时代码段、数据段、堆栈段地址都是一样的，0
-    mov sp, StackBase   ; sp指向当前栈顶，栈向低地址生长
+    mov sp, STACK_BASE   ; sp指向当前栈顶，栈向低地址生长
 
     ; 清理屏幕
-    call CLEAR          ; 相当于将ip压栈，然后改变ip。
+    call clear          ; 相当于将ip压栈，然后改变ip。
 
     ; 显示字符串 "Booting..."
     mov	dh, 0			; "Booting..."
-    call PRINT_STRING	; 显示字符串
+    call print_string	; 显示字符串
 
     ; 操作软盘前，现将软驱复位
     xor ah, ah          ; xor:异或，ah = 0，听说比mov ah, 0更快
@@ -61,86 +49,86 @@ START:
     int 0x13
 
     ; 设定变量，接下来我们在软盘A中开始寻找文件"load.bin"，从根目录开始寻找它的所在位置。
-    mov word [sectorW], SectorNoOfRootDirectory     ; 直接寻址方式，ds+wSector
+    mov word [sectorW], SECTOR_NUM_OF_ROOT_DIR     ; 直接寻址方式，ds+wSector
 ; ======================================================================================================================
 
 
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
 ; 扇区号从0开始，根目录从第19扇区开始，共占据14个扇区。现在遍历根目录寻找文件load.bin，
-; 找到后，将load.bin加载到LoaderSeg:LoaderOffset
+; 找到后，将load.bin加载到LOADER_SEG:LOADER_OFFSET
 ; ----------------------------------------------------------------------------------------------------------------------
-SEARCH_FILE_IN_ROOR_DIR_BEGIN:
+search_file_in_root_dir_begin:
     cmp word [rootDirSizeLoopW], 0
-    jz NO_FILE                          ; 读完了整个根目录扇区都没找到，所以没有
+    jz no_file                          ; 读完了整个根目录扇区都没找到，所以没有
     dec word [rootDirSizeLoopW]         ; wRootDirSizeLoop--
 
     ; 读取扇区
-    mov ax, LoaderSeg
-    mov es, ax                          ; es = LoaderSeg
-    mov bx, LoaderOffset
+    mov ax, LOADER_SEG
+    mov es, ax                          ; es = LOADER_SEG
+    mov bx, LOADER_OFFSET
     mov ax, [sectorW]
     mov cl, 1
-    call READ_SECTOR                    ; 从第 ax 个 Sector 开始, 将 cl 个 Sector 读入 es:bx 中
+    call read_sector                    ; 从第 ax 个 Sector 开始, 将 cl 个 Sector 读入 es:bx 中
 
     mov si, loaderFileName              ; ds:si -> loader的文件名称
-    mov di, LoaderOffset                ; es:di -> LoaderSeg:LoaderOffset -> 加载到内存中的扇区数据
+    mov di, LOADER_OFFSET                ; es:di -> LOADER_SEG:LOADER_OFFSET -> 加载到内存中的扇区数据
     cld                                 ; 字符串比较方向，si、di方向向右
 
     ; 开始在扇区中寻找文件，比较文件名
     mov dx, 16                          ; 一个扇区512字节，FAT目录项占用32个字节，512/32 = 16，所以一个扇区有16个目录项
-SEARCH_FOR_FILE:
+search_for_file:
     cmp dx, 0
-    jz NEXT_SECTOR_IN_ROOT_DIR          ; 读完整个扇区，依旧没找到，准备加载下一个扇区
+    jz next_sector_in_root_dir          ; 读完整个扇区，依旧没找到，准备加载下一个扇区
     dec dx                              ; dx--
 
     mov cx, 11                          ; 开始比较目录项中的11字节的文件名了
-CMP_FILENAME:
+cmp_file_name:
     cmp cx, 0
-    jz FILENAME_FOUND                   ; cx = 0，整个文件名里的字符都匹配上了，我们发现它了
+    jz file_name_found                   ; cx = 0，整个文件名里的字符都匹配上了，我们发现它了
     dec cx                              ; cx--
     lodsb                               ; ds:si -> al, si++
     cmp al, byte [es:di]                ; 比较字符
-    je GO_ON                            ; 字符相同，准备继续比较下一个
-    jmp DIFFERENT                       ; 只要有一个字符不相同，就表明本目录项不是我们要寻找的文件的目录项
+    je go_on                            ; 字符相同，准备继续比较下一个
+    jmp different                       ; 只要有一个字符不相同，就表明本目录项不是我们要寻找的文件的目录项
 
-GO_ON:
+go_on:
     inc di
-    jmp  CMP_FILENAME
-DIFFERENT:
+    jmp  cmp_file_name
+different:
     and di, 0xfff0                      ; di &= f0, 11111111 11110000，是为了让它指向本目录项条目的开始。
 
     add di, 32                          ; di += 32， 让di指向下一个目录项
     mov si, loaderFileName
-    jmp SEARCH_FOR_FILE                 ; 重新开始在下一个目录项中查找文件并比较
+    jmp search_for_file                 ; 重新开始在下一个目录项中查找文件并比较
 
-NEXT_SECTOR_IN_ROOT_DIR:
+next_sector_in_root_dir:
     add word [sectorW], 1               ; 准备开始读取下一个扇区
-    jmp SEARCH_FILE_IN_ROOR_DIR_BEGIN
+    jmp search_file_in_root_dir_begin
 
-NO_FILE:
+no_file:
     mov dh, 2
-    call PRINT_STRING                   ; 打印"NO LOADER!"
+    call print_string                   ; 打印"NO LOADER!"
     jmp $                               ; 死循环
 
-FILENAME_FOUND:
+file_name_found:
     ; 准备参数，开始读取文件数据扇区
-    mov ax, RootDirSectors              ; ax = 根目录占用空间（占用的扇区数）
+    mov ax, ROOT_DIR_SECTORS              ; ax = 根目录占用空间（占用的扇区数）
     and di, 0xfff0                      ; di &= f0, 11111111 11110000，是为了让它指向本目录项条目的开始。
     add di, 0x1a                        ; FAT目录项第0x1a处偏移是文件数据所在的第一个簇号
     mov cx, word [es:di]                ; cx = 文件数据所在的第一个簇号
     push cx                             ; 保存文件数据所在的第一个簇号
     ; 通过簇号计算它的真正扇区号
     add cx, ax
-    add cx, DeltaSectorNo               ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的第一个扇区
-    mov ax, LoaderSeg
-    mov es, ax                          ; es <- LoaderSeg
-    mov bx, LoaderOffset                ; bx <- LoaderOffset
+    add cx, DELTA_SECTOR_NUM               ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的第一个扇区
+    mov ax, LOADER_SEG
+    mov es, ax                          ; es <- LOADER_SEG
+    mov bx, LOADER_OFFSET                ; bx <- LOADER_OFFSET
     mov ax, cx                          ; ax = 文件数据的第一个扇区
 ; ----------------------------------------------------------------------------------------------------------------------
-; load.bin的数据将从 LoaderSeg:LoaderOffset 一直往上叠加。
+; load.bin的数据将从 LOADER_SEG:LOADER_OFFSET 一直往上叠加。
 ; ----------------------------------------------------------------------------------------------------------------------
-LOADING_FILE:
+loading_file:
     ; 我们每读取一个数据扇区，就在“Loading...”之后接着打印一个点，形成一种动态加载的动画。
     ; 0x10中断，0xe功能 --> 在光标后打印一个字符
     push ax
@@ -153,31 +141,30 @@ LOADING_FILE:
     pop ax
 
     mov cl, 1                           ; 读1个
-    call READ_SECTOR                     ; 读取
+    call read_sector                     ; 读取
     pop ax                              ; 取出前面保存的文件的的簇号
-    call GET_FATEntry                   ; 通过簇号获得该文件的下一个FAT项的值
+    call get_fat_entry                   ; 通过簇号获得该文件的下一个FAT项的值
     cmp ax, 0xff8
-    jae FILE_LOADED                     ; 加载完成...
+    jae file_loaded                     ; 加载完成...
     ; FAT项的值 < 0xff8，那么我们继续设置下一次要读取的扇区的参数
     ; 通过簇号计算它的真正扇区号
     push ax                             ; 保存簇号
-    mov dx, RootDirSectors
+    mov dx, ROOT_DIR_SECTORS
     add ax, dx
-    add ax, DeltaSectorNo               ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的扇区
+    add ax, DELTA_SECTOR_NUM               ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的扇区
     add bx, [bpbBytsPerSec]             ; bx += 扇区字节量，数据读到 es:bx
-    jmp LOADING_FILE
-FILE_LOADED:
+    jmp loading_file
+file_loaded:
     mov dh, 1
-    call PRINT_STRING                   ; 打印"Loaded ^-^"
+    call print_string                   ; 打印"Loaded ^-^"
 
-    jmp LoaderSeg:LoaderOffset          ; 段间转移，设置cs=LoaderSeg,ip=LoaderOffset。跳转到Loader程序，至此引导程序使命结束
+    jmp LOADER_SEG:LOADER_OFFSET          ; 段间转移，设置cs=LOADER_SEG,ip=LOADER_OFFSET。跳转到Loader程序，至此引导程序使命结束
 
 ; ======================================================================================================================
 
 
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
-; 函数名: READ_SECTOR
 ; 作用: 从第 ax 个 Sector 开始, 将 cl 个 Sector 读入 es:bx 中
 ; 1.44MB的软盘的组成：2*80*18*512
 ;   1. 0 1 两个磁头
@@ -192,7 +179,7 @@ FILE_LOADED:
 ;  每磁道扇区数      │
 ;                   └ 余 z => 起始扇区号 = z + 1，实际上在硬件的编码中，是从1起的。
 ; ----------------------------------------------------------------------------------------------------------------------
-READ_SECTOR:
+read_sector:
 	push	bp
 	mov	bp, sp
 	sub	esp, 2			    ; 辟出两个字节的堆栈区域保存要读的扇区数: byte [bp-2]
@@ -213,11 +200,11 @@ READ_SECTOR:
 	; 至此, "柱面号，磁头号，所处磁道扇区号" 全部得到 ^^^^^^^^^^^^^^^^^^^^^^^^
 	mov	dl, [bsDrvNum]		; 驱动器号 (0 表示 A 盘)
 
-G0_ON_READING:
+go_on_reading:
 	mov	ah, 2				; 读
 	mov	al, byte [bp-2]		; 读 al 个扇区
 	int	13h                 ; 13h中断读磁盘
-	jc	G0_ON_READING		; 如果读取错误 CF 会被置为 1, 这时就不停地读, 直到正确为止
+	jc	go_on_reading		; 如果读取错误 CF 会被置为 1, 这时就不停地读, 直到正确为止
 
 	add	esp, 2
 	pop	bp
@@ -233,13 +220,13 @@ G0_ON_READING:
 ; 要点是，找出簇号为 ax 所在的 FAT项 相对于 FAT表1 的字节偏移量，然后算出所在扇区 和 扇区内偏移量，将两个扇区读进内存，
 ; 最后能算出 该FAT项 的在内存的地址。这时要区分簇号是奇还是偶，将12位的值存到 ax 。
 ; ----------------------------------------------------------------------------------------------------------------------
-GET_FATEntry:
+get_fat_entry:
     push es
     push bx
 
     ; 在加载的段地址处开辟出新的空间用于存放加载的FAT表
     push ax
-    mov ax, LoaderSeg - 0x100
+    mov ax, LOADER_SEG - 0x100
     mov es, ax
     pop ax
 
@@ -251,12 +238,12 @@ GET_FATEntry:
     mov bx, 2               ; bx = 2
     div bx                  ; dx:ax / 2 --> ax存放商，dx存放余数。
     cmp dx, 0
-    je EVEN
+    je even
     mov byte [isOdd], 1     ; isOdd = TRUE
 ; ----------------------------------------------------------------------------------------------------------------------
 ; 此时ax为该FAT项相对于FAT表1的字节偏移量
 ; ----------------------------------------------------------------------------------------------------------------------
-EVEN:                       ; 偶数，意味者该FAT项的高4位在下一字节的低4位，反之意为着该FAT项的低4位在上一字节的高4位
+even:                       ; 偶数，意味者该FAT项的高4位在下一字节的低4位，反之意为着该FAT项的低4位在上一字节的高4位
     ; FAT表占 9个扇区 ， 字节偏移量 5 ， 5 / 512 -- 0 .. 5， FAT表中的0扇区， FAT表0扇区中这个簇号所在偏移是5
     ; 570   570 / 512 -- 1 .. 58， FAT表中的1扇区， FAT表1扇区中这个簇号所在偏移是58
     xor dx, dx              ; dx = 0
@@ -264,30 +251,30 @@ EVEN:                       ; 偶数，意味者该FAT项的高4位在下一字�
     div bx                  ; dx:ax / 每扇区字节数，ax(商)存放FAT项相对于FAT表中的扇区号，
                             ; dx(余数)FAT项在相对于FAT表中的扇区的偏移。
     push dx                 ; 保存FAT项在相对于FAT表中的扇区的偏移。
-    mov bx, 0               ; bx = 0，es:bx --> (LoaderSeg - 0x100):0
+    mov bx, 0               ; bx = 0，es:bx --> (LOADER_SEG - 0x100):0
 
     ; 其实编码上会有点奇怪的，因为有些认为是需要计算的，有些认为它一般是一个固定值，比如这里认为它位于第一个FAT表中
-    add ax, SectorNoOfFAT1  ; 此句执行之后的 ax 就是 FATEntry 所在的扇区号，即加上FAT项的整体偏移量
+    add ax, SECTOR_NUM_OF_FAT1  ; 此句执行之后的 ax 就是 FATEntry 所在的扇区号，即加上FAT项的整体偏移量
     mov cl, 2               ; 读取两个扇区
-    call READ_SECTOR        ; 一次读两个，避免发生边界错误问题，因为一个FAT项可能会跨越两个扇区
+    call read_sector        ; 一次读两个，避免发生边界错误问题，因为一个FAT项可能会跨越两个扇区
     pop dx                  ; 恢复FAT项在相对于FAT表中的扇区的偏移。
 ; ----------------------------------------------------------------------------------------------------------------------
 ; 此时dx为该FAT项所在扇区的字节偏移量，而扇区已被读取到内存es:bx处。
-;        LoaderSeg          |————| 往下的4KB空间足够存放该FAT项所在的中两个扇区内容。
+;        LOADER_SEG          |————| 往下的4KB空间足够存放该FAT项所在的中两个扇区内容。
 ;                           |    | 4kB？注意这里是段地址，寻址时会左移4位，1000h->4k
 ;        LoadererSeg-100h   |————| es:bx
 ; ----------------------------------------------------------------------------------------------------------------------
-    ; todo 这里的bx=0，应该可以换成 mov bx, dx
+    ; todo 这里的bx=0，应该可以换成 loader_16lib bx, dx
     add bx, dx              ; bx += FAT项在相对于FAT表中的扇区的偏移，得到FAT项在内存中的偏移地址，因为已经将扇区读取到内存中
     mov ax, [es:bx]         ; ax = 簇号对应的FAT项，但还没完成，读了两个字节
     cmp byte [isOdd], 1
-    jne EVEN_2
+    jne even_2
     ; 奇数FAT项处理
     shr ax, 4               ; 需要将低四位清零（他是上一个FAT项的高四位）
-    jmp GET_FATEntry_OK
-EVEN_2:                     ; 偶数FAT项处理
+    jmp get_fat_entry_ok
+even_2:                     ; 偶数FAT项处理
     and ax, 0x0fff           ; 需要将高四位清零（它是下一个FAT项的低四位）
-GET_FATEntry_OK:
+get_fat_entry_ok:
 	pop bx
 	pop es
     ret
@@ -296,9 +283,10 @@ GET_FATEntry_OK:
 
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
-; 清屏函数，清理BIOS的输出，通过call来调用，不可以用jmp
+;   清屏函数
+; 清理BIOS的输出，通过call来调用，不可以用jmp
 ; ----------------------------------------------------------------------------------------------------------------------
-CLEAR:
+clear:
     ; ax bx cx dx 压栈
     push ax
     push bx
@@ -325,13 +313,13 @@ CLEAR:
 
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
-; 一些变量
+;   一些变量
 ; ----------------------------------------------------------------------------------------------------------------------
-rootDirSizeLoopW    dw      RootDirSectors  ; 根目录占用的扇区数14，在循环中将被被逐步递减至0
+rootDirSizeLoopW    dw      ROOT_DIR_SECTORS  ; 根目录占用的扇区数14，在循环中将被被逐步递减至0
 sectorW             dw      0               ; 要读取的扇区号
 isOdd               db      0               ; 读取的FAT条目是不是奇数项?
 ; ----------------------------------------------------------------------------------------------------------------------
-; 要显示的字符串
+;   要显示的字符串
 ; db 汇编伪指令，表示其后的每个操作数占1字节。dw，2字节。dd，double word 4字节。
 ; ----------------------------------------------------------------------------------------------------------------------
 loaderFileName		db	"LOADER  BIN", 0    ; LOADER.BIN 之文件名
@@ -348,7 +336,7 @@ bootMessage 		db	"Booting..."        ; 12字节, 不够则用空格补齐. 序�
 ; 字符串显示函数
 ; 显示一个字符串, 函数开始时 dh 中应该是字符串序号(0-based)，即 dh=0 -> "Booting..." dh=1 -> "Loaded ^-^"，且dh为要打印的行
 ; ----------------------------------------------------------------------------------------------------------------------
-PRINT_STRING:
+print_string:
 ; 由于加上这些指令后，引导程序将超出512字节，所以只好注释掉，由自己来保证寄存器状态的正确性了
 ;    push ax
 ;    push bp
@@ -358,16 +346,16 @@ PRINT_STRING:
 ;    push bx
 ;    push dx
 
-	mov	ax, MessageLength
+	mov	ax, MESSAGE_LENGTH
 	mul	dh
 	add	ax, bootMessage
 	mov	bp, ax  ; ┓
 	mov	ax, ds  ; ┣ ES:BP = 串地址
 	mov	es, ax  ; ┛
 	; es = ds, 但由于两个段寄存器间没有直接通路，所以不能使用mov指令，也就是说mov指令的两个操作数不能同时为段寄存器
-    ; 所以要借助第三方中转，比如可以  mov ax,ds   mov es,ax
+    ; 所以要借助第三方中转，比如可以  loader_16lib ax,ds   loader_16lib es,ax
 
-	mov	cx, MessageLength   ; CX = 串长度
+	mov	cx, MESSAGE_LENGTH   ; CX = 串长度
 	mov	ax, 1301h           ; AH = 13,  AL = 01h
 	mov	bx, 0007h           ; 页号为0(BH = 0) 黑底白字(BL = 07h)
 	mov	dl, 0               ; 要打印的位置 列
