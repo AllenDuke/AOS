@@ -27,6 +27,7 @@ MESSAGE_LENGTH      equ	10          ; 为简化代码, 下面每个要打印的�
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
 ;   引导程序
+; 准备进入FAT12文件系统，即读取软盘中的加载程序文件，准备执行加载程序
 ; ----------------------------------------------------------------------------------------------------------------------
 start:
     ; 寄存器复位
@@ -49,7 +50,7 @@ start:
     int 0x13
 
     ; 设定变量，接下来我们在软盘A中开始寻找文件"load.bin"，从根目录开始寻找它的所在位置。
-    mov word [sectorW], SECTOR_NUM_OF_ROOT_DIR     ; 直接寻址方式，ds+wSector
+    mov word [sectorW], SECTOR_NUM_OF_ROOT_DIR     ; 直接寻址方式，ds+sectorW
 ; ======================================================================================================================
 
 
@@ -72,7 +73,7 @@ search_file_in_root_dir_begin:
     call read_sector                    ; 从第 ax 个 Sector 开始, 将 cl 个 Sector 读入 es:bx 中
 
     mov si, loaderFileName              ; ds:si -> loader的文件名称
-    mov di, LOADER_OFFSET                ; es:di -> LOADER_SEG:LOADER_OFFSET -> 加载到内存中的扇区数据
+    mov di, LOADER_OFFSET               ; es:di -> LOADER_SEG:LOADER_OFFSET -> 加载到内存中的扇区数据
     cld                                 ; 字符串比较方向，si、di方向向右
 
     ; 开始在扇区中寻找文件，比较文件名
@@ -113,20 +114,20 @@ no_file:
 
 file_name_found:
     ; 准备参数，开始读取文件数据扇区
-    mov ax, ROOT_DIR_SECTORS              ; ax = 根目录占用空间（占用的扇区数）
+    mov ax, ROOT_DIR_SECTORS            ; ax = 根目录占用空间（占用的扇区数）
     and di, 0xfff0                      ; di &= f0, 11111111 11110000，是为了让它指向本目录项条目的开始。
     add di, 0x1a                        ; FAT目录项第0x1a处偏移是文件数据所在的第一个簇号
     mov cx, word [es:di]                ; cx = 文件数据所在的第一个簇号
     push cx                             ; 保存文件数据所在的第一个簇号
     ; 通过簇号计算它的真正扇区号
     add cx, ax
-    add cx, DELTA_SECTOR_NUM               ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的第一个扇区
+    add cx, DELTA_SECTOR_NUM            ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的第一个扇区
     mov ax, LOADER_SEG
     mov es, ax                          ; es <- LOADER_SEG
-    mov bx, LOADER_OFFSET                ; bx <- LOADER_OFFSET
+    mov bx, LOADER_OFFSET               ; bx <- LOADER_OFFSET
     mov ax, cx                          ; ax = 文件数据的第一个扇区
 ; ----------------------------------------------------------------------------------------------------------------------
-; load.bin的数据将从 LOADER_SEG:LOADER_OFFSET 一直往上叠加。
+; load.bin的数据将从 LOADER_SEG:LOADER_OFFSET 一直往高地址叠加。
 ; ----------------------------------------------------------------------------------------------------------------------
 loading_file:
     ; 我们每读取一个数据扇区，就在“Loading...”之后接着打印一个点，形成一种动态加载的动画。
@@ -141,9 +142,9 @@ loading_file:
     pop ax
 
     mov cl, 1                           ; 读1个
-    call read_sector                     ; 读取
+    call read_sector                    ; 读取
     pop ax                              ; 取出前面保存的文件的的簇号
-    call get_fat_entry                   ; 通过簇号获得该文件的下一个FAT项的值
+    call get_fat_entry                  ; 通过簇号获得该文件的下一个FAT项的值
     cmp ax, 0xff8
     jae file_loaded                     ; 加载完成...
     ; FAT项的值 < 0xff8，那么我们继续设置下一次要读取的扇区的参数
@@ -151,14 +152,14 @@ loading_file:
     push ax                             ; 保存簇号
     mov dx, ROOT_DIR_SECTORS
     add ax, dx
-    add ax, DELTA_SECTOR_NUM               ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的扇区
+    add ax, DELTA_SECTOR_NUM            ; 簇号 + 根目录占用空间 + 文件开始扇区号 == 文件数据的扇区
     add bx, [bpbBytsPerSec]             ; bx += 扇区字节量，数据读到 es:bx
     jmp loading_file
 file_loaded:
     mov dh, 1
     call print_string                   ; 打印"Loaded ^-^"
 
-    jmp LOADER_SEG:LOADER_OFFSET          ; 段间转移，设置cs=LOADER_SEG,ip=LOADER_OFFSET。跳转到Loader程序，至此引导程序使命结束
+    jmp LOADER_SEG:LOADER_OFFSET        ; 段间转移，设置cs=LOADER_SEG,ip=LOADER_OFFSET。跳转到Loader程序。
 
 ; ======================================================================================================================
 
@@ -260,11 +261,10 @@ even:                       ; 偶数，意味者该FAT项的高4位在下一字�
     pop dx                  ; 恢复FAT项在相对于FAT表中的扇区的偏移。
 ; ----------------------------------------------------------------------------------------------------------------------
 ; 此时dx为该FAT项所在扇区的字节偏移量，而扇区已被读取到内存es:bx处。
-;        LOADER_SEG          |————| 往下的4KB空间足够存放该FAT项所在的中两个扇区内容。
+;        LOADER_SEG         |————| 往下的4KB空间足够存放该FAT项所在的中两个扇区内容。
 ;                           |    | 4kB？注意这里是段地址，寻址时会左移4位，1000h->4k
 ;        LoadererSeg-100h   |————| es:bx
 ; ----------------------------------------------------------------------------------------------------------------------
-    ; todo 这里的bx=0，应该可以换成 loader_16lib bx, dx
     add bx, dx              ; bx += FAT项在相对于FAT表中的扇区的偏移，得到FAT项在内存中的偏移地址，因为已经将扇区读取到内存中
     mov ax, [es:bx]         ; ax = 簇号对应的FAT项，但还没完成，读了两个字节
     cmp byte [isOdd], 1

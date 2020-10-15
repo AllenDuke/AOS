@@ -37,7 +37,7 @@ LD              = ld
 ASMFlagsOfBoot  = -I src/boot/include/
 ASMFlagsOfKernel= -f elf -I $(sk)/
 CFlags          = -c -I$i -fno-builtin -Wall
-LDFlags         = -Ttext $(ENTRY_POINT) -Map kernel.map
+LDFlags         = -Ttext $(ENTRY_POINT) -Map kernel.map     # -Ttext 选项参数用来调整elf文件的可执行代码中的p_vaddr的值
 # ======================================================================================================================
 
 
@@ -98,11 +98,12 @@ updebug: $(Img) image debug
 
 # 清理所有的中间编译文件
 clean:
+	-rm -rf $(Objs)
 	@echo "中间文件清理完毕"
 
 # 完全清理：清理所有的中间编译文件以及生成的目标文件（二进制文件）
 realclean: clean
-	-rm -f $(AOSBoot) $(AOSKernel)
+	-rm -f $(AOSBoot) $(AOSKernel) $(Objs)
 # ======================================================================================================================
 
 

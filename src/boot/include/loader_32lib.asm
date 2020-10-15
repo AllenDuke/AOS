@@ -16,25 +16,25 @@ cal_mem_size:
     mov edi, ARDS_32                ; ds:edi -> 一个ARDS结构
 .1: ; 将缓冲区中的第 i 个ARDS结构拷贝到ds:edi中的ARDS结构
     push dword [esi]
-    pop eax                 ; ds:eax -> 缓冲区中的第一个ADRS结构
-    stosd                   ; 将ds:eax中的一个dword内容拷贝到ds:edi中，填充ADRS结构
-    add esi, 4              ; ds:esi指向ARDS中的下一个成员变量
-    dec edx                 ; j--
+    pop eax                         ; ds:eax -> 缓冲区中的第一个ADRS结构
+    stosd                           ; 将ds:eax中的一个dword内容拷贝到ds:edi中，填充ADRS结构
+    add esi, 4                      ; ds:esi指向ARDS中的下一个成员变量
+    dec edx                         ; j--
     cmp edx, 0
-    jnz .1                  ; j != 0，继续填充
+    jnz .1                          ; j != 0，继续填充
     ; j == 0，ARDS结构填充完毕
     cmp dword [TYPE_DD_32], 1
-    jne .2                  ; 不是OS可使用的内存范围，直接进入下个外循环看下一个ARDS
+    jne .2                          ; 不是OS可使用的内存范围，直接进入下个外循环看下一个ARDS
     ; 是OS可用的地址范围，我们计算这个ARDS的内存大小
-    mov eax, [BASE_ADDR_LOW_DD_32]; eax = 基地址低32位
-    add eax, [LENGTH_LOW_DD_32]  ; eax = 基地址低32位 + 长度低32位 --> 这个ARDS结构的指代的内存大小
-                            ; 为什么不算高32为？因为32位既可以表示0~4G的内存范围，而32位CPU也只能识别0~4G
-                            ; 我们编写的是32位操作系统，所以高32位是为64位操作系统做准备的，我们不需要。
+    mov eax, [BASE_ADDR_LOW_DD_32]  ; eax = 基地址低32位
+    add eax, [LENGTH_LOW_DD_32]     ; eax = 基地址低32位 + 长度低32位 --> 这个ARDS结构的指代的内存大小
+                                    ; 为什么不算高32为？因为32位既可以表示0~4G的内存范围，而32位CPU也只能识别0~4G
+                                    ; 我们编写的是32位操作系统，所以高32位是为64位操作系统做准备的，我们不需要。
     cmp eax, [MEM_SIZE_DD_32]
     jb .2
-    mov dword [MEM_SIZE_DD_32], eax  ; 内存大小 = 最后一个基地址最大的ARDS的  基地址低32位 + 长度低32位
+    mov dword [MEM_SIZE_DD_32], eax ; 内存大小 = 最后一个基地址最大的ARDS的  基地址低32位 + 长度低32位
 .2:
-    loop .loop              ; jmp .loop, ecx--
+    loop .loop                      ; jmp .loop, ecx--
 
     pop edi
     pop edx
@@ -86,17 +86,17 @@ print_mem_size:
 ;      所有页表存放在1.4M(0x101000)~5.4M处(0x501000)
 ; -----------------------------------------------------------------------------------------------------------------------
 setup_paging:
-    xor edx, edx            ; edx = 0
-    mov eax, [MEM_SIZE_DD_32]    ; eax = 内存大小
-    mov ebx, 0x400000       ; 0x400000 = 4M = 4096 * 1024，即一个页表对于的内存大小
-    div ebx                 ; 内存大小 / 4M
-    mov ecx, eax            ; ecx = 需要的页表的个数，即 PDE 应该的页数
+    xor edx, edx                    ; edx = 0
+    mov eax, [MEM_SIZE_DD_32]       ; eax = 内存大小
+    mov ebx, 0x400000               ; 0x400000 = 4M = 4096 * 1024，即一个页表对于的内存大小
+    div ebx                         ; 内存大小 / 4M
+    mov ecx, eax                    ; ecx = 需要的页表的个数，即 PDE 应该的页数
     test edx, edx
-    jz .no_remainder        ; if(edx == 0) jmp .no_remainder，没有余数
-    inc ecx                 ; else ecx++，有余数则需要多一个 PDE 去映射它
+    jz .no_remainder                ; if(edx == 0) jmp .no_remainder，没有余数
+    inc ecx                         ; else ecx++，有余数则需要多一个 PDE 去映射它
 .no_remainder:
-    push ecx                ; 保存页表个数
-    ; flyanx 0.11为了简化处理，所有线性地址对应相等的物理地址，并且暂不考虑内存空洞
+    push ecx                        ; 保存页表个数
+    ; 为了简化处理，所有线性地址对应相等的物理地址，并且暂不考虑内存碎片
 
     ; 首先初始化页目录
     mov ax, DATA_SELECTOR
@@ -122,7 +122,7 @@ setup_paging:
 .setup_pte:  ; 设置 PTE
     stosd                   ; 将ds:eax中的一个dword内容拷贝到ds:edi中，填充页表项结构
     add eax, 4096           ; 每一页指向 4K 的内存空间
-    loop .setup_pte          ; 直到ecx = 0，才退出循环，ecx是需要的PTE个数
+    loop .setup_pte         ; 直到ecx = 0，才退出循环，ecx是需要的PTE个数
 
     ; 最后设置 cr3 寄存器和 cr0，开启分页机制
     mov eax, PAGE_DIR_BASE
@@ -267,6 +267,7 @@ print_int:
 ;   内存拷贝，仿C语言mem_copy
 ; 函数原型：
 ;   void *mem_copy(void *es:dest, void *ds:src, int size)
+; 默认是段内调用的
 ; 参数：
 ;   dest    目的地地址
 ;   src     源数据地址
@@ -278,7 +279,17 @@ mem_copy:
     push esi
     push edi
     push ecx
-
+; ----------------------------------------------------------------------------------------------------------------------
+; 为什么是 +4*4->dest +4*5->src +4*6->size？
+; C语言中，函数调用约定是，首先压入参数列表中的最后一个。即           栈
+;   push size   ; int 4字节，32位                          esp | ecx |
+;   push *src   ; 32位机，指针4字节，32位                        | edi |
+;   push *dest  ; 32位机，指针4字节，32位                        | esi |
+;   push eip    ; 4字节，32位，这里认为是段内调用的，不保存eds      | eip |
+;   push esi    ; 4字节，32位                                  |*dest|
+;   push edi    ；4字节，32位                                  | *src |
+;   push ecx    ；4字节，32位                                  | size |
+; ----------------------------------------------------------------------------------------------------------------------
     mov edi, [esp + 4 * 4]      ; edi = dest
     mov esi, [esp + 4 * 5]      ; esi = src
     mov ecx, [esp + 4 * 6]      ; ecx = size
@@ -319,6 +330,9 @@ init_kernel_file:
     cmp eax, 0
     jz .no_action                           ; p_type == 0，是一个不可用的段
     ; p_type != 0，是一个可用的段
+; ----------------------------------------------------------------------------------------------------------------------
+; 把elf格式的kernel.bin文件中指令拷贝到文件中已设定的虚拟地址0x1000处，即KERNEL_ENTRY_POINT_PHY_ADDR
+; ----------------------------------------------------------------------------------------------------------------------
     push dword [esi + 16]                   ; 压入p_filesz（段在文件中的长度），作为mem_copy的最后一个参数size
     mov eax, [esi + 4]                      ; eax = p_offset，段的第一个字节在文件中的偏移
     add eax, KERNEL_PHY_ADDR                ; eax -> 段第一个字节

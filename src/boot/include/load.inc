@@ -1,5 +1,4 @@
-; 包含了启动内核的一些信息
-; 软盘启动/硬盘启动都需要这个文件
+; 包含了启动内核的一些信息 软盘启动/硬盘启动都需要这个文件
 
 ; 内核挂载点
 ; 注意：1、必须与 MAKEFILE 中参数 -Ttext 的值相等!!
@@ -25,11 +24,10 @@ KERNEL_OFFSET	equ	    0
 ; KERNEL.BIN 被加载到的位置　--- 物理地址　(= KERNEL_SEG * 10h)
 KERNEL_PHY_ADDR	equ	KERNEL_SEG * 10h
 
-;; 为kernel.bin装载保留的内存大小(字节)，内核文件大小不应该超过这个大小！
+; 为kernel.bin装载保留的内存大小(字节)，内核文件大小不应该超过这个大小！
 KERNEL_KEEP_SPACE   equ LOADER_PHY_ADDR - KERNEL_PHY_ADDR
 
-;; 引导（启动）参数
-; 注意：
-;   以下的宏应该和C代码里的同步，它们在include/flyanx/config.h下
+; 引导（启动）参数
+; 注意：以下的宏应该和C代码里的同步，它们在include/flyanx/config.h下
 BOOT_PARAM_ADDR     equ 0x700
 BOOT_PARAM_MAGIC    equ 0x328

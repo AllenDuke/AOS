@@ -56,6 +56,7 @@ LOAD target/kernel/kernel_i386lib.o
  *(.rel.dtors)
  *(.rel.got)
  *(.rel.bss .rel.bss.* .rel.gnu.linkonce.b.*)
+ .reltext       0x00000000        0x0 target/kernel/kernel.o
 
 .rela.dyn
  *(.rela.init)
@@ -82,29 +83,43 @@ LOAD target/kernel/kernel_i386lib.o
 .plt
  *(.plt)
 
-.text           0x00001000       0x9d
+.text           0x00001000       0x8d
  *(.text .stub .text.* .gnu.linkonce.t.*)
- .text          0x00001000       0x15 target/kernel/kernel.o
-                0x00001000                _start
- *fill*         0x00001015        0x3 90909090
- .text          0x00001018       0x14 target/kernel/main.o
-                0x00001018                aos_main
- *fill*         0x0000102c        0x4 90909090
- .text          0x00001030       0x6d target/kernel/kernel_i386lib.o
-                0x00001030                phys_copy
-                0x00001060                low_print
+ .text          0x00001000       0x20 target/kernel/main.o
+                0x00001000                aos_main
+ .text          0x00001020       0x6d target/kernel/kernel_i386lib.o
+                0x00001020                phys_copy
+                0x00001050                low_print
  *(.text.*personality*)
  *(.gnu.warning)
 
 .fini
  *(.fini)
-                0x0000109d                PROVIDE (__etext, .)
-                0x0000109d                PROVIDE (_etext, .)
-                0x0000109d                PROVIDE (etext, .)
+                0x0000108d                PROVIDE (__etext, .)
+                0x0000108d                PROVIDE (_etext, .)
+                0x0000108d                PROVIDE (etext, .)
 
-.rodata         0x0000109d       0x1b
+.rodata         0x0000108d       0x18
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x0000109d       0x1b target/kernel/main.o
+ .rodata        0x0000108d       0x18 target/kernel/main.o
+                0x000010a5                . = ALIGN (0x1)
+                0x000010a5                __start_text = .
+
+text            0x000010a5       0x15
+ text           0x000010a5       0x15 target/kernel/kernel.o
+                0x000010ba                __stop_text = .
+                0x000010ba                . = ALIGN (0x1)
+                0x000010ba                __start_data = .
+
+data            0x000010ba        0x1
+ data           0x000010ba        0x1 target/kernel/kernel.o
+                0x000010bb                __stop_data = .
+                0x000010bb                . = ALIGN (0x1)
+                0x000010bb                __start_bss = .
+
+bss             0x000010bb      0x800
+ bss            0x000010bb      0x800 target/kernel/kernel.o
+                0x000018bb                __stop_bss = .
 
 .rodata1
  *(.rodata1)
@@ -117,8 +132,8 @@ LOAD target/kernel/kernel_i386lib.o
 
 .gcc_except_table
  *(.gcc_except_table .gcc_except_table.*)
-                0x000010b8                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
-                0x000020b8                . = (0x1000 DATA_SEGMENT_ALIGN 0x1000)
+                0x000018bb                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
+                0x000028bb                . = (0x1000 DATA_SEGMENT_ALIGN 0x1000)
 
 .eh_frame
  *(.eh_frame)
@@ -133,22 +148,22 @@ LOAD target/kernel/kernel_i386lib.o
  *(.tbss .tbss.* .gnu.linkonce.tb.*)
  *(.tcommon)
 
-.preinit_array  0x000020b8        0x0
-                0x000020b8                PROVIDE (__preinit_array_start, .)
+.preinit_array  0x000028bb        0x0
+                0x000028bb                PROVIDE (__preinit_array_start, .)
  *(.preinit_array)
-                0x000020b8                PROVIDE (__preinit_array_end, .)
+                0x000028bb                PROVIDE (__preinit_array_end, .)
 
-.init_array     0x000020b8        0x0
-                0x000020b8                PROVIDE (__init_array_start, .)
+.init_array     0x000028bb        0x0
+                0x000028bb                PROVIDE (__init_array_start, .)
  *(SORT(.init_array.*))
  *(.init_array)
-                0x000020b8                PROVIDE (__init_array_end, .)
+                0x000028bb                PROVIDE (__init_array_end, .)
 
-.fini_array     0x000020b8        0x0
-                0x000020b8                PROVIDE (__fini_array_start, .)
+.fini_array     0x000028bb        0x0
+                0x000028bb                PROVIDE (__fini_array_start, .)
  *(.fini_array)
  *(SORT(.fini_array.*))
-                0x000020b8                PROVIDE (__fini_array_end, .)
+                0x000028bb                PROVIDE (__fini_array_end, .)
 
 .ctors
  *crtbegin.o(.ctors)
@@ -176,29 +191,26 @@ LOAD target/kernel/kernel_i386lib.o
 
 .got
  *(.got)
-                0x000020b8                . = (. DATA_SEGMENT_RELRO_END 0xc)
+                0x000028bb                . = (. DATA_SEGMENT_RELRO_END 0xc)
 
 .got.plt
  *(.got.plt)
 
-.data           0x000020b8        0x8
+.data           0x000028bc        0x4
  *(.data .data.* .gnu.linkonce.d.*)
- .data          0x000020b8        0x1 target/kernel/kernel.o
- *fill*         0x000020b9        0x3 00
- .data          0x000020bc        0x4 target/kernel/main.o
-                0x000020bc                DISPLAY_POSITION
+ .data          0x000028bc        0x4 target/kernel/main.o
+                0x000028bc                DISPLAY_POSITION
  *(.gnu.linkonce.d.*personality*)
 
 .data1
  *(.data1)
-                0x000020c0                _edata = .
-                0x000020c0                PROVIDE (edata, .)
-                0x000020c0                __bss_start = .
+                0x000028c0                _edata = .
+                0x000028c0                PROVIDE (edata, .)
+                0x000028c0                __bss_start = .
 
-.bss            0x000020c0      0x800
+.bss            0x000028c0        0x0
  *(.dynbss)
  *(.bss .bss.* .gnu.linkonce.b.*)
- .bss           0x000020c0      0x800 target/kernel/kernel.o
  .bss           0x000028c0        0x0 target/kernel/main.o
  *(COMMON)
                 0x000028c0                . = ALIGN ((. != 0x0)?0x4:0x1)
