@@ -1,7 +1,10 @@
-/* 该文件被软盘系统任务使用
+//
+// Created by 杜科 on 2020/10/15.
+//
+/**
+ * 该文件被软盘系统任务使用
  * disk_parameter_s 结构用于描述一个磁盘的结构参数
  */
-
 #ifndef _DISKPARM_H
 #define _DISKPARM_H
 struct disk_parameter_s {

@@ -1,15 +1,12 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/9.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
- * 公共定义
+//
+// Created by 杜科 on 2020/10/15.
+//
+/**
+ * 一些公共定义
  */
 
-#ifndef _FLYANX_COMMON_H
-#define _FLYANX_COMMON_H
+#ifndef AOS_COMMON_H
+#define AOS_COMMON_H
 
 /*===========================================================================*
  *				系统调用例程可以支持的操作				     *
@@ -43,4 +40,4 @@
 #define CLOCK_TIME      m6_l1	/* 时间值 */
 
 
-#endif //_FLYANX_COMMON_H
+#endif //AOS_COMMON_H

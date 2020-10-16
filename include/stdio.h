@@ -1,10 +1,4 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/25.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
+/**
  * 标准输入/输出 定义
  * 这个文件基于POSIX标准，所以你没必要更改和在意它原有的内容，
  * 但是为它添加新内容是完全可以的。

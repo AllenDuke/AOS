@@ -1,27 +1,9 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/18.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
- * 定义了控制终端类型的I/O所用到的常量、宏和函数原型。
- * 其中最重要的数据结构是termios结构，包含的内容有:标识操作模式的标志位、设置输入输出
- * 速率的变量、以及放置特殊字符的数组(比如 INTR 和KILL)。termios是POSIX所需要的,同
- * 样地,该文件中定义的许多宏和函数原型也是POSIX需要的。
- *
- * 然而,正如POSIX标准始终遵循的那样,它并未提供可能用到的全部内容。在文件的后半部分的
- * “#ifdef _FLYANX”中,提供了POSIX并不包含的扩展部分。其中有些扩展的意义是很明显的。
- * 比如定义57,600或以上的波特率,以及对终端显示窗口的支持。正如任何合理的标准都是开放
- * 的那样,POSIX标准并不排斥扩展。但在FLYANX环境下想写一个可移植到其他环境的程序时,就
- * 必须注意避免使用那些局限于FLYANX的特征。这一点很容易做到。在该文件和其他定义面向
- * FLYANX的扩展的文件中,这些扩展是通过以下语句控制的。
- * # ifdef _FLYANX
- * 如果 _FLYANX未被定义,编译器将根本不会感知到FLYANX扩展。
- */
+//
+// Created by 杜科 on 2020/10/15.
+//
 
-#ifndef FLYANX_TERMIOS_H
-#define FLYANX_TERMIOS_H
+#ifndef AOS_TERMINAL_IO_H
+#define AOS_TERMINAL_IO_H
 
 typedef unsigned short  tcflag_t;
 typedef unsigned char   cc_t;
@@ -150,14 +132,14 @@ _PROTOTYPE( int cfsetispeed, (struct termios_s *_termios_p, speed_t _speed)    )
 _PROTOTYPE( int cfsetospeed, (struct termios_s *_termios_p, speed_t _speed)    );
 _PROTOTYPE( int tcgetattr, (int _filedes, struct termios_s *_termios_p)        );
 _PROTOTYPE( int tcsetattr,
-        (int _filedes, int _opt_actions, const struct termios_s *_termios_p)   );
+            (int _filedes, int _opt_actions, const struct termios_s *_termios_p)   );
 
 #define cfgetispeed(termios_p)		((termios_p)->c_ispeed)
 #define cfgetospeed(termios_p)		((termios_p)->c_ospeed)
 #define cfsetispeed(termios_p, speed)	((termios_p)->c_ispeed = (speed), 0)
 #define cfsetospeed(termios_p, speed)	((termios_p)->c_ospeed = (speed), 0)
 
-#ifdef _FLYANX
+#ifdef _AOS
 
 /* Here are the local extensions to the POSIX standard for Minix. Posix
  * conforming programs are not able to access these, and therefore they are
@@ -219,6 +201,6 @@ typedef struct win_frame_s
     int  	y_pixel;	/* 垂直尺寸，像素 */
 } WinFrame;
 
-#endif /*_ FLYANX */
+#endif  //AOS
 
-#endif //FLYANX_TERMIOS_H
+#endif //AOS_TERMINAL_IO_H

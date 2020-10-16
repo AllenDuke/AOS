@@ -10,5 +10,16 @@
 4. float 偏移量必须为sizeof(float) 即4的倍数,只能从0,4,8...等4的倍数的地址开始存储
 5. double 偏移量必须为sizeof(double)即8的倍数,只能从0,8,16...等地址开始存储
 
-## 提示工具
-可用objdump -d 命令来进行反汇编，查看期对应的编译后的汇编代码
+## 一些一定要注意的点
+### 段名称的选取
+在kernel.asm中，关于段名称的选取，如：section text与section .text是不同的，而我们应该选择后者。因为这不仅仅是一个名称而已，
+.text是nasm默认采取的段名称，如果使用了 text ，那么nasm很可能将开头的某些代码默认其段名称为 .text(当然还要看，text所在的位置)，这样的话，
+指令在文件中的排列状况，很可能会不符合我们的预期，而最终导致，在文件装载进内存后，cpu执行了错误的指令。以下指出二者在kernel.bin中反编译的结果：
+#### test
+![section-text1](../../img/section-text1.PNG)
+![section-text2](../../img/section-text2.PNG)
+#### .text
+![section-.text1](../../img/section-.text1.PNG)
+![section-.text1](../../img/section-.text2.PNG)
+#### 在线反编译工具
+https://onlinedisassembler.com

@@ -1,15 +1,12 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2020/3/15.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
+//
+// Created by 杜科 on 2020/10/15.
+//
+/**
  * 系统时间相关
  */
 
-#ifndef _FLYANX_TIMES_H
-#define _FLYANX_TIMES_H
+#ifndef AOS_TIME_H
+#define AOS_TIME_H
 
 #ifndef _CLOCK_T
 #define _CLOCK_T
@@ -38,4 +35,4 @@ typedef struct rtc_time {
 #include <ansi.h>
 #endif
 
-#endif //_FLYANX_TIMES_H
+#endif //AOS_TIME_H

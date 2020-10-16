@@ -1,24 +1,19 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/9.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
- * 定义了系统使用的数据类型
- *
- * 使用这里提供的定义可以避免对特定情况下所使用的基本数据结构的理解错误而导致的故障。
- *
- * 注意：所有的类型名都以“_t”结尾,这不仅仅是一种习惯,而是POSIX
- * 标准的规定。这是“保留后缀”的一个例子,而且“_t”不用于非数据类型的其他任何符号名。
+//
+// Created by 杜科 on 2020/10/15.
+//
+/**
+ * 定义一些常用的数据类型
+ * 注意：所有的类型名都以“_t”结尾,这不仅仅是一种习惯,而是POSIX标准的规定。
+ * 这是“保留后缀”的一个例子,而且“_t”不用于非数据类型的其他任何符号名。
  */
 
-#ifndef _TYPES_H
-#define _TYPES_H
+#ifndef AOS_TYPES_H
+#define AOS_TYPES_H
 
 #ifndef _ANSI_H
 #include <ansi.h>
 #endif
+
 
 /* 类型size_t包含sizeof操作符的所有结果。乍一看，似乎很明显它应该是无符号整数，但情况
  * 并不总是如此。例如，有些时候(例如在68000处理器的机器上)有32位指针和16位整数。当要求
@@ -119,4 +114,4 @@ typedef int             Mode_t;
 /* 信号处理程序类型，例如SIG_IGN */
 typedef void _PROTOTYPE( (*sighandler_t), (int) );
 
-#endif //_TYPES_H
+#endif //AOS_TYPES_H

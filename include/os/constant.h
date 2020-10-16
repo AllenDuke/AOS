@@ -1,31 +1,24 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc.
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/9.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
- * flyanx所需的常量定义
- *
- * 其他地方也有const.h头文件，而在这里的常量定义，都是在系统中一个以上的部分被用到的，
- * 其他的const.h一般是局部常量。
- *
- * 大量的定义来源于minix，它真的很好用。
+//
+// Created by 杜科 on 2020/10/15.
+//
+/**
+ * 一些常量，大多来自于minix
  */
-#ifndef _FLYANX_CONST_H
-#define _FLYANX_CONST_H
+
+#ifndef AOS_CONSTANT_H
+#define AOS_CONSTANT_H
 
 #ifndef CHIP
 #error CHIP is not defined
 #endif
 
-/* EXTERN 被定义为extern，带上这个关键字，说明一个变量是全局的，并且该变量需要在头文件中声明 */
+/* 增加一个这样的定义，是为了后续可能需要在某些文件中根据某些宏来确定要不要对某个变量加extern关键字 */
 #define EXTERN        extern	/* used in *.h files */
-/* PRIVATE是static的同义词，带上它的变量或函数将只在它所在当前文件中可见，所以可称为私有(PRIVATE) */
+
 #define PRIVATE       static	/* PRIVATE x limits the scope of x */
-/* 带上PUBLIC，将是公有，可以被其他文件所看到 */
+
 #define PUBLIC					/* PUBLIC is the opposite of PRIVATE */
-/* FORWARD，一些编译器要求它是静态static的 */
+
 #define FORWARD       static	/* some compilers require this to be 'static' */
 
 #define TRUE               1	/* 布尔值：真 */
@@ -97,4 +90,5 @@
 #define NO_ENTRY                ((ino_t) 0)	/* 缺少目录项 */
 #define NO_DEV                  ((dev_t) 0)	/* 缺少设备号 */
 
-#endif //_FLYANX_CONST_H
+
+#endif //AOS_CONSTANT_H

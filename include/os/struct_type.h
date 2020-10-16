@@ -1,34 +1,27 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc.
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/9.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
- * 该文件包含了许多重要的类型定义以及相关的数量值
- * 该文件最重要的定义是Message，其定义了以消息传递的系统体系中最重要的
- * 消息结构体。
+//
+// Created by 杜科 on 2020/10/15.
+//
+/**
+ * 一些结构体类型
  */
+#ifndef AOS_STRUCT_TYPE_H
+#define AOS_STRUCT_TYPE_H
 
-#ifndef _FLYANX_TYPE_H
-#define _FLYANX_TYPE_H
-
-#ifndef _FLYANX_TYPES_H
-#include <sys/types.h>
+#ifndef AOS_TYPES_H
+#include "sys/types.h"
 #endif
 
 /* 虚拟内存块，一个块在INTEL的Flyanx中是256个字节 */
 typedef unsigned int vir_clicks;
-/* 物理地址（字节） */
+/* 物理地址（字节长度） */
 typedef unsigned long phys_bytes;
 /* 物理内存块，一个块在INTEL的Flyanx中是256个字节 */
 typedef unsigned int phys_clicks;
 
 #if (CHIP == INTEL)
-/* 虚拟地址（字节） */
+/* 虚拟地址（字节长度） */
 typedef unsigned int vir_bytes;
 #endif
-
 
 /* 与消息类型有关的定义。 */
 #define M1                 1        /* 消息类型1：消息域使用mess_union1 */
@@ -49,7 +42,7 @@ typedef struct {int m6i1, m6i2, m6i3; long m6l1; sighandler_t m6f1;} mess_union6
  */
 typedef struct message_s{
     int source;         /* 谁发送的消息 */
-    int type;           /* 消息的类型，用于判断告诉对方意图 */
+    int type;           /* 消息的类型（例如，发给时钟任务的GET_TIME） */
     union {             /* 消息域，一共可以是六种消息域类型之一 */
         mess_union1 m_u1;
         mess_union2 m_u2;
@@ -124,4 +117,4 @@ typedef struct boot_params_s {
     phys_bytes kernel_file;     /* 内核所在绝对物理地址 */
 } BootParams_t;
 
-#endif //_FLYANX_TYPE_H
+#endif //AOS_STRUCT_TYPE_H

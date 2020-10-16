@@ -1,15 +1,9 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/10.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
- * 本头文件是库使用的主标头。 lib子目录中的所有C文件一般都包括它。
- */
+//
+// Created by 杜科 on 2020/10/16.
+//
 
-#ifndef _LIB_H
-#define _LIB_H
+#ifndef AOS_LIB_H
+#define AOS_LIB_H
 
 /*
  * _POSIX_SOURCE是POSIX标准自行定义的一个特征检测宏。
@@ -18,23 +12,21 @@
  */
 #define _POSIX_SOURCE       1
 /* 宏_FLYANX将为FLYANX所定义的扩展而"重载_POSIX_SOURCE"的作用 */
-#define _FLYANX             1
+#define _AOS             1
 
 /* 引入库应该所需要的头文件 */
-#include <flyanx/config.h>
+#include <os/config.h>
 #include <sys/types.h>
-#include <limits.h>
+#include <limit.h>
 #include <errno.h>
 #include <ansi.h>
 
-#include <flyanx/const.h>
-#include <flyanx/type.h>
-#include <flyanx/callnr.h>
+#include <os/constant.h>
+#include <os/struct_type.h>
+#include <os/sys_call_num.h>
 
 #define MM                  0       /* 内存管理器 */
 #define FS                  1       /* 文件系统 */
 #define FLY                 2       /* 飞彦拓展器，其他调用都在这处理 */
 
-
-
-#endif //_LIB_H
+#endif //AOS_LIB_H

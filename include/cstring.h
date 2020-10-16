@@ -1,15 +1,9 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/9.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
- * 本头文件包含串处理函数的原型。
- */
+//
+// Created by 杜科 on 2020/10/16.
+//
 
-#ifndef _STRING_H
-#define _STRING_H
+#ifndef AOS_CSTRING_H
+#define AOS_CSTRING_H
 
 #define NULL    ((void *)0)
 
@@ -46,9 +40,9 @@ _PROTOTYPE( char *strstr, (const char *_s1, const char *_s2)		);
 _PROTOTYPE( char *strtok, (char *_s1, const char *_s2)			);
 _PROTOTYPE( size_t strxfrm, (char *_s1, const char *_s2, size_t _n)	);
 
-/* flyanx特有的，自己实现的 */
-#ifdef _FLYANX
+/* AOS特有的，自己实现的 */
+#ifdef _AOS
 
 #endif
 
-#endif //_STRING_H
+#endif //AOS_CSTRING_H

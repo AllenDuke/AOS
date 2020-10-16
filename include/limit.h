@@ -1,16 +1,9 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/9.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
- * 这个头文件定义了许多基本的大小值，既有语言中的数据类型，如整数所占的位数，
- * 也有操作系统的限制，如文件名的长度。
- */
+//
+// Created by 杜科 on 2020/10/15.
+//
 
-#ifndef _LIMITS_H
-#define _LIMITS_H
+#ifndef AOS_LIMIT_H
+#define AOS_LIMIT_H
 
 /* 机器字大小（以字节为单位），等于sizeof(int）的常量 */
 #if __ACK__     /* 确定是不是Amsterdam Comiler Kit (ACK)编译器 */
@@ -97,4 +90,4 @@
 
 #endif /* _POSIX_SOURCE */
 
-#endif //_LIMITS_H
+#endif //AOS_LIMIT_H

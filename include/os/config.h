@@ -1,21 +1,16 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/9.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
+//
+// Created by 杜科 on 2020/10/15.
+//
+/**
+ * 一些编译首选项，同时也是编译器实际上处理的第一个文件。
  *
- * 该文件包含flyanx的编译首选项，同时也是编译器实际上处理的第一个文件。
- *
- * Flyanx暂时只支持32位有保护模式的机器，我们怎么知道这个呢？我们通过gcc编译器
- * 提供的宏，如果是32，则__i386__宏会被定义，64则__x86_64__会被定义，通过简单
- * 的判断就可以知道当前编译平台的机器位数了。
- * 虽然我们暂未支持其他，但可以识别他们Flyanx以后的扩展性会更好。
+ * AOS暂时只支持32位有保护模式的机器。通过gcc编译器提供的32位下的宏__i386__，64位下的宏64__x86_64__，来判断。
  */
-#ifndef _FLYANX_CONFIG_H
-#define _FLYANX_CONFIG_H
 
-/* Flyanx发行版和版本号。 */
+#ifndef AOS_CONFIG_H
+#define AOS_CONFIG_H
+
+/* AOS发行版和版本号。 */
 #define OS_RELEASE "0"
 #define OS_VERSION "0.1"
 
@@ -46,7 +41,7 @@
 
 /* 如果在不在32位机器上编译，报错 */
 #if _WORD_SIZE != 4
-#error 对不起，Flyanx暂时只支持32位编译器和32位机器！
+#error AOS暂时只支持32位编译器和32位机器！
 #endif
 
 /* 内核代码段、数据段基地址
@@ -65,7 +60,7 @@
 #define BP_MEMORY_SIZE      1
 #define BP_KERNEL_FILE      2
 
-/* 进程表中的用户进程的槽数，这个配置决定了flyanx能同时运行多少个用户进程。 */
+/* 进程表中的用户进程的槽数，这个配置决定了AOS能同时运行多少个用户进程。 */
 #define NR_PROCS          32
 
 /* 控制器任务的数量（/dev/cN设备类）。 */
@@ -93,7 +88,7 @@
 /* 内核配置参数 */
 #define LINE_WARP               1   /* 控制台选项 - 是否需要在第80列换行？ */
 
-/* flyanx所启用的控制台的数量等定义 */
+/* AOS所启用的控制台的数量等定义 */
 #define NR_CONSOLES           	3	/* 系统控制台数量(1 ~ 9) */
 #define	NR_RS_LINES	   		    0	/* rs232终端数量(0 ~ 2) */
 #define	NR_PTYS		  	 	    0	/* 伪终端数量(0 ~ 64) */
@@ -122,15 +117,15 @@
 #endif
 
 #ifndef MACHINE
-error "编译前请在<flyanx/config.h>配置文件中定义你要编译的机器的宏(MACHINE)"
+error "编译前请在<os/config.h>配置文件中定义你要编译的机器的宏(MACHINE)"
 #endif
 
 #ifndef CHIP
-error "编译前请在<flyanx/config.h>配置文件中定义你要编译的机器的宏(MACHINE)"
+error "编译前请在<os/config.h>配置文件中定义你要编译的机器的宏(MACHINE)"
 #endif
 
 #if (MACHINE == 0)
 error "MACHINE的值不正确(0)"
 #endif
 
-#endif //_FLYANX_CONFIG_H
+#endif //AOS_CONFIG_H

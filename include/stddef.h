@@ -1,15 +1,11 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/11.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
- * 本文件定义了某些常用的宏。
+//
+// Created by 杜科 on 2020/10/16.
+//
+/**
+ * 一些常用的宏
  */
-
-#ifndef _STDDEF_H
-#define _STDDEF_H
+#ifndef AOS_STDDEF_H
+#define AOS_STDDEF_H
 
 /* 机器字大小（以字节为单位），等于sizeof(int）的常量 */
 #if __ACK__     /* 确定是不是Amsterdam Comiler Kit (ACK)编译器 */
@@ -446,4 +442,4 @@ typedef __WINT_TYPE__ wint_t;
 #endif  //__GNUC__
 
 
-#endif //_STDDEF_H
+#endif //AOS_STDDEF_H

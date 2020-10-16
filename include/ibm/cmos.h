@@ -1,12 +1,6 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc.
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2020/3/16.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
- * CMOS 相关头文件
- */
+//
+// Created by 杜科 on 2020/10/15.
+//
 
 /* CMOS */
 #define CLK_ELE		0x70	/* CMOS RAM address register port (write only)

@@ -1,16 +1,12 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2019/11/9.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
+//
+// Created by 杜科 on 2020/10/15.
+//
+/**
  * 这个头文件定义了许多常量，其中多数是POSIX需要的。
  * 它也包含了许多C函数的原型，其中包括所有用于进行系统调用的C函数原型。
  */
-
-#ifndef _UNISTD_H
-#define _UNISTD_H
+#ifndef AOS_UNISTD_H
+#define AOS_UNISTD_H
 
 #ifndef FLYANX_TYPES_H
 #include <sys/types.h>
@@ -35,7 +31,7 @@
 #define STDOUT_FILENO      1	/* file descriptor for stdout */
 #define STDERR_FILENO      2	/* file descriptor for stderr */
 
-#ifdef _FLYANX
+#ifdef _AOS
 /* How to exit the system. */
 /* 如何退出系统 */
 #define RBT_HALT	   0	/* 正常关机 */
@@ -101,11 +97,10 @@ _PROTOTYPE( int execl, (const char *_path, const char *_arg1, ...) );
 _PROTOTYPE( int exec, (const char *_path) );
 
 
-/* 这些是flyanx独有的 */
-#ifdef _FLYANX
-
+/* 这些是AOS独有的 */
+#ifdef _AOS
+_PROTOTYPE( int sleep, (time_t _mills) );
 #endif
 
 
-
-#endif //FLYANX_UNISTD_H
+#endif //AOS_UNISTD_H

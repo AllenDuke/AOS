@@ -13,14 +13,24 @@ ENTRY_POINT     = 0x1000
 
 # 头文件目录
 i = include
+ios = $i/os
+is = $i/sys
+ib = $i/ibm
+il = $i/lib
 
 # C文件所在目录
 sk = src/kernel
+
+# 库文件所在目录
+lansi = src/lib/ansi
+lstdio = src/lib/stdio
+li386 = src/lib/i386
 
 # 编译链接中间目录
 t = target
 tb = $t/boot
 tk = $t/kernel
+tl = $t/lib
 
 # 所需软盘镜像，可以指定已存在的软盘镜像，系统内核将被写入到这里
 Img = AOS.img
@@ -36,8 +46,8 @@ CC              = gcc
 LD              = ld
 ASMFlagsOfBoot  = -I src/boot/include/
 ASMFlagsOfKernel= -f elf -I $(sk)/
-CFlags          = -c -I$i -fno-builtin -Wall
-LDFlags         = -Ttext $(ENTRY_POINT) -Map kernel.map     # -Ttext 选项参数用来调整elf文件的可执行代码中的p_vaddr的值
+CFlags			= -std=c99 -I $i -c -fno-builtin -Wall
+LDFlags			= -Ttext $(ENTRY_POINT) -Map kernel.map  # -Ttext 选项参数用来调整elf文件的可执行代码中的p_vaddr的值
 # ======================================================================================================================
 
 
@@ -49,9 +59,17 @@ AOSBoot      = $(tb)/boot.bin $(tb)/loader.bin
 AOSKernel    = $(tk)/kernel.bin
 
 # 内核，只实现基本功能
-KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o
+KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/protect.o \
+                  $(tk)/table.o $(tk)/start.o $(tk)/exception.o $(tk)/misc.o $(tk)/i8259.o \
+                  $(tk)/clock.o $(tk)/process.o $(tk)/ipc_msg.o $(tk)/dump.o
 
-Objs            = $(KernelObjs)
+# 内核之外所需要的库，有系统库，也有提供给用户使用的库
+LibObjs         = $(AnsiObjs) $(StdioObjs) $(I386Objs)
+AnsiObjs        = $(tl)/ansi/string.o $(tl)/ansi/memcmp.o $(tl)/ansi/cstring.o
+StdioObjs       = $(tl)/vsprintf.o
+I386Objs        = $(tl)/i386/ipc/ipc_msg.o
+
+Objs            = $(KernelObjs) $(LibObjs)
 # ======================================================================================================================
 
 
@@ -123,6 +141,7 @@ $(tb)/boot.bin: src/boot/boot.asm
 # 加载程序Loader
 $(tb)/loader.bin: src/boot/include/fat12hdr.inc
 $(tb)/loader.bin: src/boot/include/load.inc
+$(tb)/loader.bin: src/boot/include/pm.inc
 $(tb)/loader.bin: src/boot/loader.asm
 	$(ASM) $(ASMFlagsOfBoot) -o $@ $<
 
@@ -144,5 +163,51 @@ $(tk)/kernel_i386lib.o: $(sk)/kernel_i386lib.asm
 
 $(tk)/main.o: $(sk)/main.c
 	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/start.o: $(sk)/start.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/protect.o: $(sk)/protect.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/table.o: $(sk)/table.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/exception.o: $(sk)/exception.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/misc.o: $(sk)/misc.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/i8259.o: $(sk)/i8259.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/clock.o: $(sk)/clock.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/process.o: $(sk)/process.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/ipc_msg.o: $(sk)/ipc_msg.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/dump.o: $(sk)/dump.c
+	$(CC) $(CFlags) -o $@ $<
+
+# ======= 库  =======
+$(tl)/ansi/string.o: $(lansi)/string.asm
+	$(ASM) $(ASMFlagsOfKernel) -o $@ $<
+
+$(tl)/ansi/memcmp.o: $(lansi)/memcmp.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/ansi/cstring.o: $(lansi)/cstring.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/vsprintf.o: $(lstdio)/vsprintf.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/i386/ipc/ipc_msg.o: $(li386)/ipc/ipc_msg.asm
+	$(ASM) $(ASMFlagsOfKernel) -o $@ $<
 
 #============================================================================

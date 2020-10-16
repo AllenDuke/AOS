@@ -1,3 +1,4 @@
+
 /* Description of entry in partition table.  */
 #ifndef _PARTITION_H
 #define _PARTITION_H
