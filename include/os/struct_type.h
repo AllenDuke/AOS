@@ -11,11 +11,12 @@
 #include "sys/types.h"
 #endif
 
-/* 虚拟内存块，一个块在INTEL的Flyanx中是256个字节 */
+/* 虚拟内存块，一个块在INTEL的AOS中是256个字节 */
 typedef unsigned int vir_clicks;
+
 /* 物理地址（字节长度） */
-typedef unsigned long phys_bytes;
-/* 物理内存块，一个块在INTEL的Flyanx中是256个字节 */
+typedef unsigned int phys_bytes;
+/* 物理内存块，一个块在intel的AOS中是256个字节 */
 typedef unsigned int phys_clicks;
 
 #if (CHIP == INTEL)

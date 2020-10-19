@@ -13,21 +13,23 @@
 
 /* 全局描述符表GDT */
 PUBLIC SegDescriptor_t gdt[GDT_SIZE];
+
 /* 中断描述符表IDT */
 PRIVATE Gate_t idt[IDT_SIZE];
+
 /* 任务状态段TSS(Task-State Segment) */
 PUBLIC Tss_t tss;
 
 /* 中断门信息 */
-struct gate_desc_s {
+typedef struct gate_info_s {
     u8_t vector;            /* 中断向量号 */
-    int_handler_t handler;  /* 处理例程 */
+    int_handler_t handler;  /* 处理例程，这相当于一个32位的函数指针 */
     u8_t privilege;         /* 门权限 */
-};
+}GateInfo_t;
 
 /* 中断门信息表 */
-struct gate_desc_s int_gate_table[] = {
-        /* ************* 异常 *************** */
+GateInfo_t initGateInfos[] = {
+        /* 暂时只考虑i386中的0~16号异常 */
         { INT_VECTOR_DIVIDE, divide_error, KERNEL_PRIVILEGE },
         { INT_VECTOR_DEBUG, single_step_exception, KERNEL_PRIVILEGE },
         { INT_VECTOR_NMI, nmi, KERNEL_PRIVILEGE },
@@ -44,6 +46,7 @@ struct gate_desc_s int_gate_table[] = {
         { INT_VECTOR_PROTECTION, general_protection, KERNEL_PRIVILEGE },
         { INT_VECTOR_PAGE_FAULT, page_fault, KERNEL_PRIVILEGE },
         { INT_VECTOR_COPROC_ERR, copr_error, KERNEL_PRIVILEGE },
+
         /* ************* 硬件中断 *************** */
         { INT_VECTOR_IRQ0 + 0, hwint00, KERNEL_PRIVILEGE },
         { INT_VECTOR_IRQ0 + 1, hwint01, KERNEL_PRIVILEGE },
@@ -61,40 +64,41 @@ struct gate_desc_s int_gate_table[] = {
         { INT_VECTOR_IRQ8 + 5, hwint13, KERNEL_PRIVILEGE },
         { INT_VECTOR_IRQ8 + 6, hwint14, KERNEL_PRIVILEGE },
         { INT_VECTOR_IRQ8 + 7, hwint15, KERNEL_PRIVILEGE },
+
         /* ************* 软件中断 *************** */
         { INT_VECTOR_LEVEL0, level0_sys_call, TASK_PRIVILEGE },         /* 提供给系统任务的系统调用：提权 */
         { INT_VECTOR_SYS_CALL, flyanx_386_sys_call, USER_PRIVILEGE },   /* 提供给系统任务的系统调用：提权 */
 };
 
 /* 本地函数 */
-FORWARD _PROTOTYPE( void init_gate, (u8_t vector, u8_t desc_type, int_handler_t  handler, u8_t privilege) );
+FORWARD _PROTOTYPE( void init_gate_desc, (GateInfo_t* gateInfo, u8_t desc_type) );
 
-/*=========================================================================*
- *				protect_init				   *
- *				保护模式初始化
- *=========================================================================*/
+/* 保护模式初始化 */
 PUBLIC void protect_init(void){
 
-    /* 首先，将 LOADER 中的 GDT 拷贝到内核中新的 GDT 中  */
-    phys_copy(*((u32_t *)vir2phys(&gdt_ptr[2])),            // src:LOADER中旧的GDT基地址
-            vir2phys(&gdt),                                // dest:新的GDT基地址
-            *((u16_t*)vir2phys(&gdt_ptr[0])) + 1           // size:旧GDT的段界限 + 1
-            );
+    /**
+     * 将 LOADER 中的 GDT 拷贝到内核中新的 gdt 中。
+     * src:LOADER中旧的GDT基地址
+     * dest:新的GDT基地址
+     * size:旧GDT的段界限 + 1
+     * 这里的src和size分别强转为无符号32位指针和无符号16位指针，是因为，分别要取低地址到高地址的4字节内容和2字节的内容
+     */
+    phys_copy(*((u32_t *)vir2phys(&gdt_ptr[2])),vir2phys(&gdt),
+              *((u16_t*)vir2phys(&gdt_ptr[0])) + 1);
     /* 算出新 GDT 的基地址和界限，设置新的 gdt_ptr */
     u16_t* p_gdt_limit = (u16_t*)vir2phys(&gdt_ptr[0]);
     u32_t* p_gdt_base = (u32_t*)vir2phys(&gdt_ptr[2]);
     *p_gdt_limit = GDT_SIZE * DESCRIPTOR_SIZE - 1;
     *p_gdt_base = vir2phys(&gdt);
+
     /* 算出IDT的基地址和界限，设置新的 idt_ptr */
     u16_t* p_idt_limit = (u16_t*)vir2phys(&idt_ptr[0]);
     u32_t* p_idt_base = (u32_t*)vir2phys(&idt_ptr[2]);
     *p_idt_limit = IDT_SIZE * sizeof(Gate_t) - 1;
     *p_idt_base = vir2phys(&idt);
-
     /* 初始化所有中断门描述符到 IDT中 */
-    struct gate_desc_s* p_gate = &int_gate_table[0];
-    for(; p_gate < &int_gate_table[sizeof(int_gate_table) / sizeof(struct gate_desc_s)]; p_gate++){
-        init_gate(p_gate->vector, DA_386IGate, p_gate->handler, p_gate->privilege);
+    for(struct gate_info_s* p_gate = initGateInfos; p_gate < initGateInfos + sizeof(initGateInfos); p_gate++){
+        init_gate_desc(p_gate, DA_386IGate);
     }
 
     /* 初始化任务状态段TSS，并为处理器寄存器和其他任务切换时应保存的信息提供空间。
@@ -117,17 +121,26 @@ PUBLIC void protect_init(void){
 
 }
 
+/**
+ * 利用一个中断门信息，初始化一个中断门描述符到IDT
+ * @param gateInfo 中断门信息
+ * @param desc_type 门描述符的类型 其实这里就是DA_386IGate，即中断门类型
+ */
+PRIVATE void init_gate_desc(GateInfo_t* gateInfo, u8_t desc_type){
+    Gate_t* p_gate = &idt[gateInfo->vector];
+    u32_t base_addr = (u32_t)gateInfo->handler;
+    p_gate->offset_low = base_addr & 0xFFFF;
+    p_gate->selector = SELECTOR_KERNEL_CS;
+    p_gate->dcount = 0;
+    p_gate->attr = desc_type | (gateInfo->privilege << 5);
+    p_gate->offset_high = (base_addr >> 16) & 0xFFFF;
+}
+
 /*=========================================================================*
  *				init_segment_desc				   *
  *				初始化段描述符
  *=========================================================================*/
-PUBLIC void init_segment_desc(
-        SegDescriptor_t *p_desc,
-        phys_bytes base,
-        phys_bytes limit,
-        u16_t attribute
-)
-{
+PUBLIC void init_segment_desc(SegDescriptor_t *p_desc,phys_bytes base,phys_bytes limit,u16_t attribute){
     /* 初始化一个数据段描述符 */
     p_desc->limit_low	= limit & 0x0FFFF;         /* 段界限 1		(2 字节) */
     p_desc->base_low	= base & 0x0FFFF;          /* 段基址 1		(2 字节) */
@@ -136,40 +149,5 @@ PUBLIC void init_segment_desc(
     p_desc->granularity = ((limit >> 16) & 0x0F) |  /* 段界限 2 + 属性 2 */
                           ((attribute >> 8) & 0xF0);
     p_desc->base_high	= (base >> 24) & 0x0FF;     /* 段基址 3		(1 字节) */
-}
-
-/*=========================================================================*
- *				init_gate				   *
- *				初始化一个 386门描述符
- *=========================================================================*/
-PRIVATE void init_gate(
-        u8_t vector,
-        u8_t desc_type,
-        int_handler_t  handler,
-        u8_t privilege
-)
-{
-    // 得到中断向量对应的门结构
-    Gate_t* p_gate = &idt[vector];
-    // 取得处理函数的基地址
-    u32_t base_addr = (u32_t)handler;
-    // 一一赋值
-    p_gate->offset_low = base_addr & 0xFFFF;
-    p_gate->selector = SELECTOR_KERNEL_CS;
-    p_gate->dcount = 0;
-    p_gate->attr = desc_type | (privilege << 5);
-#if _WORD_SIZE == 4
-    p_gate->offset_high = (base_addr >> 16) & 0xFFFF;
-#endif
-}
-
-/*=========================================================================*
- *				seg2phys				   *
- *		由段名求其在内存中的物理地址
- *=========================================================================*/
-PUBLIC phys_bytes seg2phys(U16_t seg)
-{
-    SegDescriptor_t* p_dest = &gdt[seg >> 3];
-    return (p_dest->base_high << 24 | p_dest->base_middle << 16 | p_dest->base_low);
 }
 

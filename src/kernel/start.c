@@ -11,7 +11,6 @@
 
 
 #include "kernel.h"
-#include "protect.h"
 #include "assert.h"
 INIT_ASSERT
 

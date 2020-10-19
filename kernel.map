@@ -146,7 +146,7 @@ LOAD target/lib/i386/ipc/ipc_msg.o
 .plt
  *(.plt)
 
-.text           0x00001000     0x26dc
+.text           0x00001000     0x267c
  *(.text .stub .text.* .gnu.linkonce.t.*)
  .text          0x00001000      0x603 target/kernel/kernel.o
                 0x00001591                flyanx_386_sys_call
@@ -208,97 +208,96 @@ LOAD target/lib/i386/ipc/ipc_msg.o
                 0x000017f7                cmos_read
                 0x00001760                disable_irq
  *fill*         0x00001806        0x2 90909090
- .text          0x00001808      0x2b6 target/kernel/protect.o
-                0x00001a7b                seg2phys
-                0x00001998                init_segment_desc
+ .text          0x00001808      0x257 target/kernel/protect.o
+                0x000019ec                init_segment_desc
                 0x00001808                protect_init
- *fill*         0x00001abe        0x2 90909090
- .text          0x00001ac0        0x0 target/kernel/table.o
- .text          0x00001ac0       0x7b target/kernel/start.o
-                0x00001ac0                test_int
-                0x00001ad9                cstart
- *fill*         0x00001b3b        0x1 90909090
- .text          0x00001b3c       0x6e target/kernel/exception.o
-                0x00001b3c                exception_handler
- *fill*         0x00001baa        0x2 90909090
- .text          0x00001bac       0xe4 target/kernel/misc.o
-                0x00001bac                k_printf
-                0x00001c3b                bad_compare
-                0x00001be6                bad_assertion
- .text          0x00001c90      0x1a8 target/kernel/i8259.o
-                0x00001c90                interrupt_init
-                0x00001d92                put_irq_handler
- .text          0x00001e38      0x605 target/kernel/clock.o
-                0x00001e38                clock_task
-                0x00001f40                milli_delay
-                0x000020b6                get_rtc_time
- *fill*         0x0000243d        0x3 90909090
- .text          0x00002440      0x531 target/kernel/process.o
-                0x000028ff                lock_hunter
-                0x000028f0                schedule_stop
-                0x00002917                lock_ready
-                0x00002570                unhold
-                0x00002700                unready
-                0x00002959                lock_schedule
-                0x00002938                lock_unready
-                0x00002440                interrupt
-                0x00002646                ready
- *fill*         0x00002971        0x3 90909090
- .text          0x00002974      0x47d target/kernel/ipc_msg.o
-                0x00002cc4                flyanx_receive
-                0x00002aed                flyanx_send
-                0x00002974                sys_call
- *fill*         0x00002df1        0x3 90909090
- .text          0x00002df4      0x31a target/kernel/dump.o
-                0x00002df4                proc_dump
-                0x0000304a                map_dump
- *fill*         0x0000310e        0x2 90909090
- .text          0x00003110       0x81 target/lib/ansi/memcmp.o
-                0x00003110                memcmp
- *fill*         0x00003191        0x3 90909090
- .text          0x00003194      0x12b target/lib/ansi/cstring.o
-                0x00003194                strncmp
-                0x0000323a                strcmp
- *fill*         0x000032bf        0x1 90909090
- .text          0x000032c0      0x41c target/lib/vsprintf.o
-                0x000032c0                vsprintf
+ *fill*         0x00001a5f        0x1 90909090
+ .text          0x00001a60        0x0 target/kernel/table.o
+ .text          0x00001a60       0x7b target/kernel/start.o
+                0x00001a60                test_int
+                0x00001a79                cstart
+ *fill*         0x00001adb        0x1 90909090
+ .text          0x00001adc       0x6e target/kernel/exception.o
+                0x00001adc                exception_handler
+ *fill*         0x00001b4a        0x2 90909090
+ .text          0x00001b4c       0xe4 target/kernel/misc.o
+                0x00001b4c                k_printf
+                0x00001bdb                bad_compare
+                0x00001b86                bad_assertion
+ .text          0x00001c30      0x1a8 target/kernel/i8259.o
+                0x00001c30                interrupt_init
+                0x00001d32                put_irq_handler
+ .text          0x00001dd8      0x605 target/kernel/clock.o
+                0x00001dd8                clock_task
+                0x00001ee0                milli_delay
+                0x00002056                get_rtc_time
+ *fill*         0x000023dd        0x3 90909090
+ .text          0x000023e0      0x531 target/kernel/process.o
+                0x0000289f                lock_hunter
+                0x00002890                schedule_stop
+                0x000028b7                lock_ready
+                0x00002510                unhold
+                0x000026a0                unready
+                0x000028f9                lock_schedule
+                0x000028d8                lock_unready
+                0x000023e0                interrupt
+                0x000025e6                ready
+ *fill*         0x00002911        0x3 90909090
+ .text          0x00002914      0x47d target/kernel/ipc_msg.o
+                0x00002c64                flyanx_receive
+                0x00002a8d                flyanx_send
+                0x00002914                sys_call
+ *fill*         0x00002d91        0x3 90909090
+ .text          0x00002d94      0x31a target/kernel/dump.o
+                0x00002d94                proc_dump
+                0x00002fea                map_dump
+ *fill*         0x000030ae        0x2 90909090
+ .text          0x000030b0       0x81 target/lib/ansi/memcmp.o
+                0x000030b0                memcmp
+ *fill*         0x00003131        0x3 90909090
+ .text          0x00003134      0x12b target/lib/ansi/cstring.o
+                0x00003134                strncmp
+                0x000031da                strcmp
+ *fill*         0x0000325f        0x1 90909090
+ .text          0x00003260      0x41c target/lib/vsprintf.o
+                0x00003260                vsprintf
  *(.text.*personality*)
  *(.gnu.warning)
 
 .fini
  *(.fini)
-                0x000036dc                PROVIDE (__etext, .)
-                0x000036dc                PROVIDE (_etext, .)
-                0x000036dc                PROVIDE (etext, .)
+                0x0000367c                PROVIDE (__etext, .)
+                0x0000367c                PROVIDE (_etext, .)
+                0x0000367c                PROVIDE (etext, .)
 
-.rodata         0x000036dc      0x860
+.rodata         0x0000367c      0x860
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x000036dc       0x67 target/kernel/main.o
- *fill*         0x00003743        0x1 00
- .rodata        0x00003744       0x6c target/kernel/start.o
- .rodata        0x000037b0      0x254 target/kernel/exception.o
- .rodata        0x00003a04      0x123 target/kernel/misc.o
- *fill*         0x00003b27        0x1 00
- .rodata        0x00003b28       0xa9 target/kernel/i8259.o
- *fill*         0x00003bd1        0x3 00
- .rodata        0x00003bd4       0xe1 target/kernel/clock.o
- .rodata        0x00003cb5       0x17 target/kernel/process.o
- .rodata        0x00003ccc       0x3a target/kernel/ipc_msg.o
- *fill*         0x00003d06        0x2 00
- .rodata        0x00003d08       0xe4 target/kernel/dump.o
- .rodata        0x00003dec      0x150 target/lib/vsprintf.o
+ .rodata        0x0000367c       0x67 target/kernel/main.o
+ *fill*         0x000036e3        0x1 00
+ .rodata        0x000036e4       0x6c target/kernel/start.o
+ .rodata        0x00003750      0x254 target/kernel/exception.o
+ .rodata        0x000039a4      0x123 target/kernel/misc.o
+ *fill*         0x00003ac7        0x1 00
+ .rodata        0x00003ac8       0xa9 target/kernel/i8259.o
+ *fill*         0x00003b71        0x3 00
+ .rodata        0x00003b74       0xe1 target/kernel/clock.o
+ .rodata        0x00003c55       0x17 target/kernel/process.o
+ .rodata        0x00003c6c       0x3a target/kernel/ipc_msg.o
+ *fill*         0x00003ca6        0x2 00
+ .rodata        0x00003ca8       0xe4 target/kernel/dump.o
+ .rodata        0x00003d8c      0x150 target/lib/vsprintf.o
 
-.lib            0x00003f3c       0xb6
- .lib           0x00003f3c       0x7e target/lib/ansi/string.o
-                0x00003f8c                strcpy
-                0x00003f3c                memcpy
-                0x00003f68                memset
-                0x00003fa4                strlen
- .lib           0x00003fba       0x38 target/lib/i386/ipc/ipc_msg.o
-                0x00003fd2                send_rec
-                0x00003fba                send
-                0x00003fc6                receive
-                0x00003fde                in_outbox
+.lib            0x00003edc       0xb6
+ .lib           0x00003edc       0x7e target/lib/ansi/string.o
+                0x00003f2c                strcpy
+                0x00003edc                memcpy
+                0x00003f08                memset
+                0x00003f44                strlen
+ .lib           0x00003f5a       0x38 target/lib/i386/ipc/ipc_msg.o
+                0x00003f72                send_rec
+                0x00003f5a                send
+                0x00003f66                receive
+                0x00003f7e                in_outbox
 
 .rodata1
  *(.rodata1)
@@ -311,7 +310,7 @@ LOAD target/lib/i386/ipc/ipc_msg.o
 
 .gcc_except_table
  *(.gcc_except_table .gcc_except_table.*)
-                0x00003ff2                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
+                0x00003f92                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
                 0x00004000                . = (0x1000 DATA_SEGMENT_ALIGN 0x1000)
 
 .eh_frame
@@ -383,7 +382,7 @@ LOAD target/lib/i386/ipc/ipc_msg.o
                 0x00004004                DISPLAY_POSITION
  *fill*         0x00004008       0x18 00
  .data          0x00004020      0x198 target/kernel/protect.o
-                0x00004020                int_gate_table
+                0x00004020                initGateInfos
  *fill*         0x000041b8        0x8 00
  .data          0x000041c0       0x48 target/kernel/table.o
                 0x000041c0                sys_proc_table

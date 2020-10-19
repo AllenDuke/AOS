@@ -37,7 +37,7 @@ VideoSegDesc        Descriptor  0xb8000,    0xfffff,    DA_DRW | DA_DPL3        
 
 ; GDT全局描述符表
 GDT_LENGTH          equ     $ - GDT                         ; GDT的长度
-gdtPtr              dw      GDT_LENGTH - 1                  ; GDT指针.段界限
+gdtPtr              dw      GDT_LENGTH - 1                  ; GDT指针.段界限，即地址的上界
                     dd      LOADER_PHY_ADDR + GDT           ; GDT指针.基地址
 ; GDT选择子
 CODE_SELECTOR       equ     CodeSegDesc - GDT               ; 代码段选择子

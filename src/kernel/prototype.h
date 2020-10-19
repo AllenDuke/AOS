@@ -49,7 +49,7 @@ _PROTOTYPE( void protect_init, (void) );
 /*================================================================================================*/
 /* kernel_i386lib.asm */
 /*================================================================================================*/
-_PROTOTYPE( void phys_copy, (phys_bytes _src, phys_bytes _dest, phys_bytes _size) );
+_PROTOTYPE( void phys_copy, (phys_bytes src, phys_bytes dest, phys_bytes size) );
 _PROTOTYPE( void low_print, (char* _str) );
 _PROTOTYPE( u8_t in_byte, (port_t port) );
 _PROTOTYPE( void out_byte, (port_t port, U8_t value) );

@@ -102,7 +102,7 @@
 
 /* 固定系统调用向量。 */
 #define INT_VECTOR_LEVEL0           0x66	    /* 用于系统任务提权到 0 的调用向量 */
-#define INT_VECTOR_SYS_CALL         0x94        /* flyanx 386 系统调用向量 */
+#define INT_VECTOR_SYS_CALL         0x94        /* AOS 386 系统调用向量 */
 
 #endif /* (CHIP == INTEL) */
 
@@ -118,8 +118,7 @@
 /* 在内核中，将printf的引用指向printk，注意：还没有实现printk，那么请别在内核中使用printf */
 #define printf  k_printf
 
-/* 将内核空间中的虚拟地址转换为物理地址。
- */
+/* 将内核空间中的虚拟地址转换为物理地址。其实这里的内核数据段基址还是0 */
 #define	vir2phys(vir) ((phys_bytes)(KERNEL_DATA_SEG_BASE) + (vir_bytes)(vir))
 
 /* 秒 转化为 毫秒 */

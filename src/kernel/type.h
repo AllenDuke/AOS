@@ -85,10 +85,12 @@ typedef struct seg_descriptor_s {
     u8_t base_high;         /* 段基址高8位 */
 } SegDescriptor_t;
 
-/* 硬件（异常）中断处理函数原型 */
+/* 硬件（异常）中断处理函数原型 int_handler_t是一个函数指针 所以要取内容 */
 typedef _PROTOTYPE( void (*int_handler_t), (void) );
+
 /* 中断请求处理函数原型 */
 typedef _PROTOTYPE( int (*irq_handler_t), (int irq) );
+
 /* 系统调用函数原型 */
 typedef _PROTOTYPE( void (*flyanx_syscall_t),  (void) );
 

@@ -27,6 +27,7 @@ global restart                      ; 进程恢复
 global halt                         ; 待机
 global level0_sys_call              ; 提权调用函数
 global flyanx_386_sys_call          ; 系统调用函数
+
 ; 所有的异常处理入口
 global divide_error
 global single_step_exception
@@ -44,6 +45,7 @@ global stack_exception
 global general_protection
 global page_fault
 global copr_error
+
 ; 所有中断处理入口，一共16个(两个8259A)
 global	hwint00
 global	hwint01

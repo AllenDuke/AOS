@@ -72,7 +72,7 @@
 /* Setting any of _MINIX, _POSIX_C_SOURCE or _POSIX2_SOURCE implies
  * _POSIX_SOURCE.  (Seems wrong to put this here in ANSI space.)
  */
-#if defined(_FLYANX) || _POSIX_C_SOURCE > 0 || defined(_POSIX2_SOURCE)
+#if defined(_AOS) || _POSIX_C_SOURCE > 0 || defined(_POSIX2_SOURCE)
 #undef _POSIX_SOURCE
 #define _POSIX_SOURCE	1
 #endif
