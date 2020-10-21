@@ -11,20 +11,18 @@ ENTRY_POINT     = 0x1000
 # 一些变量
 # ----------------------------------------------------------------------------------------------------------------------386
 
-# 头文件目录
-i = include
-ios = $i/os
-is = $i/sys
+# 内核头文件目录
+i = src/kernel/include
+ic = $i/core
 ib = $i/ibm
-il = $i/lib
 
-# C文件所在目录
+# 内核C文件所在目录
 sk = src/kernel
 
 # 库文件所在目录
-lansi = src/lib/ansi
-lstdio = src/lib/stdio
-li386 = src/lib/i386
+lansi = src/kernel/lib/ansi
+lstdio = src/kernel/lib/stdio
+li386 = src/kernel/lib/i386
 
 # 编译链接中间目录
 t = target
@@ -45,7 +43,7 @@ ASM             = nasm
 CC              = gcc
 LD              = ld
 ASMFlagsOfBoot  = -I src/boot/include/
-ASMFlagsOfKernel= -f elf -I $(sk)/
+ASMFlagsOfKernel= -f elf -I src/kernel/include/core/
 CFlags			= -std=c99 -I $i -c -fno-builtin -Wall
 LDFlags			= -Ttext $(ENTRY_POINT) -Map kernel.map  # -Ttext 选项参数用来调整elf文件的可执行代码中的p_vaddr的值
 # ======================================================================================================================
@@ -60,14 +58,13 @@ AOSKernel    = $(tk)/kernel.bin
 
 # 内核，只实现基本功能
 KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/protect.o \
-                  $(tk)/table.o $(tk)/start.o $(tk)/exception.o $(tk)/misc.o $(tk)/i8259.o \
-                  $(tk)/clock.o $(tk)/process.o $(tk)/ipc_msg.o $(tk)/dump.o
+                  $(tk)/init_c.o $(tk)/exception.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LibObjs         = $(AnsiObjs) $(StdioObjs) $(I386Objs)
 AnsiObjs        = $(tl)/ansi/string.o $(tl)/ansi/memcmp.o $(tl)/ansi/cstring.o
-StdioObjs       = $(tl)/vsprintf.o
-I386Objs        = $(tl)/i386/ipc/ipc_msg.o
+StdioObjs       =
+I386Objs        =
 
 Objs            = $(KernelObjs) $(LibObjs)
 # ======================================================================================================================
@@ -103,7 +100,7 @@ image: $(Img) $(AOSBoot)
 debug: $(Img)
 	bochs -q
 
-# 运行Flyanx系统：打印提示信息
+# 运行AOS：打印提示信息
 run: $(Img)
 	@qemu-system-i386 -drive file=$(Img),if=floppy
 	@echo "你还可以使用Vbox等虚拟机挂载.img软盘，即可开始运行！"
@@ -158,40 +155,19 @@ $(AOSKernel): $(Objs)
 $(tk)/kernel.o: $(sk)/kernel.asm
 	$(ASM) $(ASMFlagsOfKernel) -o $@ $<
 
-$(tk)/kernel_i386lib.o: $(sk)/kernel_i386lib.asm
+$(tk)/kernel_i386lib.o: $(sk)/include/core/kernel_i386lib.asm
 	$(ASM) $(ASMFlagsOfKernel) -o $@ $<
 
 $(tk)/main.o: $(sk)/main.c
 	$(CC) $(CFlags) -o $@ $<
 
-$(tk)/start.o: $(sk)/start.c
+$(tk)/init_c.o: $(sk)/init_c.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tk)/protect.o: $(sk)/protect.c
 	$(CC) $(CFlags) -o $@ $<
 
-$(tk)/table.o: $(sk)/table.c
-	$(CC) $(CFlags) -o $@ $<
-
 $(tk)/exception.o: $(sk)/exception.c
-	$(CC) $(CFlags) -o $@ $<
-
-$(tk)/misc.o: $(sk)/misc.c
-	$(CC) $(CFlags) -o $@ $<
-
-$(tk)/i8259.o: $(sk)/i8259.c
-	$(CC) $(CFlags) -o $@ $<
-
-$(tk)/clock.o: $(sk)/clock.c
-	$(CC) $(CFlags) -o $@ $<
-
-$(tk)/process.o: $(sk)/process.c
-	$(CC) $(CFlags) -o $@ $<
-
-$(tk)/ipc_msg.o: $(sk)/ipc_msg.c
-	$(CC) $(CFlags) -o $@ $<
-
-$(tk)/dump.o: $(sk)/dump.c
 	$(CC) $(CFlags) -o $@ $<
 
 # ======= 库  =======
@@ -203,11 +179,5 @@ $(tl)/ansi/memcmp.o: $(lansi)/memcmp.c
 
 $(tl)/ansi/cstring.o: $(lansi)/cstring.c
 	$(CC) $(CFlags) -o $@ $<
-
-$(tl)/vsprintf.o: $(lstdio)/vsprintf.c
-	$(CC) $(CFlags) -o $@ $<
-
-$(tl)/i386/ipc/ipc_msg.o: $(li386)/ipc/ipc_msg.asm
-	$(ASM) $(ASMFlagsOfKernel) -o $@ $<
 
 #============================================================================

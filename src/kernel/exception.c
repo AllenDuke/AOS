@@ -8,7 +8,7 @@
  *  - exception_handler:         异常公共处理例程，所有例程都会被中断到这
  */
 
-#include "kernel.h"
+#include "include/core/kernel.h"
 
 /* 异常信息表 */
 PRIVATE char* exception_table[] = {
@@ -34,26 +34,27 @@ PRIVATE char* exception_table[] = {
         "#XF SIMD Floating-Point Exception",                /* SIMD浮点异常 */
 };
 
-/*=========================================================================*
- *				exception_handler				   *
- *			    异常处理例程
- *=========================================================================*/
-PUBLIC void exception_handler(
-        int int_vector,         /* 异常中断向量 */
-        int error_no            /* 异常错误代码 */
-){
+/**
+ * 异常处理例程
+ * @param int_vector 中断向量号
+ * @param error_no 错误码
+ */
+PUBLIC void exception_handler(int int_vector, int error_no){
 
     /* 非屏蔽中断，我们不予理睬 */
     if(int_vector == 2){
-        printf("!********** Got spurious NMI! **********!\n");
+        low_print("忽略非屏蔽中断！\n");
         return;
     }
 
     /* 简单点，内核发生异常，我们准备宕机 */
-    if(exception_table[int_vector] == NIL_PTR){
-        panic("Fount a exception, but it not in table!", NO_NUM);
+    if(exception_table[int_vector] == NULL){
+        low_print("Fount a exception, but it not in table!\n");
     } else {
-        panic(exception_table[int_vector], error_no != 0xffffffff ? error_no : NO_NUM);
+        low_print(exception_table[int_vector]);
+        low_print("\n");
     }
+
+    while (TRUE){}
 
 }

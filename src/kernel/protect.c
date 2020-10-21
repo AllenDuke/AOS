@@ -1,80 +1,49 @@
+//
+// Created by 杜科 on 2020/10/16.
+//
 /**
  * protect.c包含与Intel处理器保护模式相关的例程。
- *
- * 本文件的入口点是：
- *  - protect_init          保护模式初始化
- *  - init_segment_desc     初始化一个段描述符
- *  - seg2phys              由段名求其在内存中的物理地址
  */
 
-#include "kernel.h"
-#include "protect.h"
-#include "process.h"
-
-/* 全局描述符表GDT */
-PUBLIC SegDescriptor_t gdt[GDT_SIZE];
+#include "include/core/kernel.h"
 
 /* 中断描述符表IDT */
-PRIVATE Gate_t idt[IDT_SIZE];
-
-/* 任务状态段TSS(Task-State Segment) */
-PUBLIC Tss_t tss;
+PRIVATE GateDescriptor idt[IDT_SIZE];
 
 /* 中断门信息 */
-typedef struct gate_info_s {
+typedef struct {
     u8_t vector;            /* 中断向量号 */
     int_handler_t handler;  /* 处理例程，这相当于一个32位的函数指针 */
     u8_t privilege;         /* 门权限 */
-}GateInfo_t;
+} GateInfo;
 
 /* 中断门信息表 */
-GateInfo_t initGateInfos[] = {
+GateInfo initGateInfos[] = {
         /* 暂时只考虑i386中的0~16号异常 */
-        { INT_VECTOR_DIVIDE, divide_error, KERNEL_PRIVILEGE },
-        { INT_VECTOR_DEBUG, single_step_exception, KERNEL_PRIVILEGE },
-        { INT_VECTOR_NMI, nmi, KERNEL_PRIVILEGE },
-        { INT_VECTOR_BREAKPOINT, breakpoint_exception, KERNEL_PRIVILEGE },
-        { INT_VECTOR_OVERFLOW, overflow, KERNEL_PRIVILEGE },
-        { INT_VECTOR_BOUNDS, bounds_check, KERNEL_PRIVILEGE },
-        { INT_VECTOR_INVAL_OP, inval_opcode, KERNEL_PRIVILEGE },
-        { INT_VECTOR_COPROC_NOT, copr_not_available, KERNEL_PRIVILEGE },
-        { INT_VECTOR_DOUBLE_FAULT, double_fault, KERNEL_PRIVILEGE },
-        { INT_VECTOR_COPROC_SEG, copr_seg_overrun, KERNEL_PRIVILEGE },
-        { INT_VECTOR_INVAL_TSS, inval_tss, KERNEL_PRIVILEGE },
-        { INT_VECTOR_SEG_NOT, segment_not_present, KERNEL_PRIVILEGE },
-        { INT_VECTOR_STACK_FAULT, stack_exception, KERNEL_PRIVILEGE },
-        { INT_VECTOR_PROTECTION, general_protection, KERNEL_PRIVILEGE },
-        { INT_VECTOR_PAGE_FAULT, page_fault, KERNEL_PRIVILEGE },
-        { INT_VECTOR_COPROC_ERR, copr_error, KERNEL_PRIVILEGE },
-
-        /* ************* 硬件中断 *************** */
-        { INT_VECTOR_IRQ0 + 0, hwint00, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 1, hwint01, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 2, hwint02, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 3, hwint03, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 4, hwint04, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 5, hwint05, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 6, hwint06, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 7, hwint07, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 0, hwint08, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 1, hwint09, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 2, hwint10, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 3, hwint11, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 4, hwint12, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 5, hwint13, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 6, hwint14, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 7, hwint15, KERNEL_PRIVILEGE },
-
-        /* ************* 软件中断 *************** */
-        { INT_VECTOR_LEVEL0, level0_sys_call, TASK_PRIVILEGE },         /* 提供给系统任务的系统调用：提权 */
-        { INT_VECTOR_SYS_CALL, flyanx_386_sys_call, USER_PRIVILEGE },   /* 提供给系统任务的系统调用：提权 */
+        {0x0,   divide_error,           KERNEL_PRIVILEGE},
+        {0x1,   debug_exception,        KERNEL_PRIVILEGE},
+        {0x2,   non_maskable_int,       KERNEL_PRIVILEGE},
+        {0x3,   break_point,            KERNEL_PRIVILEGE},
+        {0x4,   over_flow,              KERNEL_PRIVILEGE},
+        {0x5,   out_of_bounds,          KERNEL_PRIVILEGE},
+        {0x6,   invalid_opcode,         KERNEL_PRIVILEGE},
+        {0x7,   dev_not_available,      KERNEL_PRIVILEGE},
+        {0x8,   double_fault,           KERNEL_PRIVILEGE},
+        {0x9,   coop_proc_seg_oob,      KERNEL_PRIVILEGE},
+        {0xA,   invalid_tss,            KERNEL_PRIVILEGE},
+        {0xB,   segment_not_present,    KERNEL_PRIVILEGE},
+        {0xC,   stack_exception,        KERNEL_PRIVILEGE},
+        {0xD,   general_protection,     KERNEL_PRIVILEGE},
+        {0xE,   page_fault,             KERNEL_PRIVILEGE},
+        /* 中断向量号 0xF 为 intel保留，未使用 */
+        {0x10,  math_fault,             KERNEL_PRIVILEGE}
 };
 
 /* 本地函数 */
-FORWARD _PROTOTYPE( void init_gate_desc, (GateInfo_t* gateInfo, u8_t desc_type) );
+FORWARD _PROTOTYPE(void init_gate_desc, (GateInfo *gateInfo, u8_t desc_type, GateDescriptor *p));
 
 /* 保护模式初始化 */
-PUBLIC void protect_init(void){
+PUBLIC void protect_init(void) {
 
     /**
      * 将 LOADER 中的 GDT 拷贝到内核中新的 gdt 中。
@@ -83,41 +52,33 @@ PUBLIC void protect_init(void){
      * size:旧GDT的段界限 + 1
      * 这里的src和size分别强转为无符号32位指针和无符号16位指针，是因为，分别要取低地址到高地址的4字节内容和2字节的内容
      */
-    phys_copy(*((u32_t *)vir2phys(&gdt_ptr[2])),vir2phys(&gdt),
-              *((u16_t*)vir2phys(&gdt_ptr[0])) + 1);
+    phys_copy(*((u32_t *) vir2phys(&gp_gdt[2])), vir2phys(&g_gdt),
+              *((u16_t *) vir2phys(&gp_gdt[0])) + 1);
     /* 算出新 GDT 的基地址和界限，设置新的 gdt_ptr */
-    u16_t* p_gdt_limit = (u16_t*)vir2phys(&gdt_ptr[0]);
-    u32_t* p_gdt_base = (u32_t*)vir2phys(&gdt_ptr[2]);
+    u16_t *p_gdt_limit = (u16_t *) vir2phys(&gp_gdt[0]);
+    u32_t *p_gdt_base = (u32_t *) vir2phys(&gp_gdt[2]);
     *p_gdt_limit = GDT_SIZE * DESCRIPTOR_SIZE - 1;
-    *p_gdt_base = vir2phys(&gdt);
+    *p_gdt_base = vir2phys(&g_gdt);
 
     /* 算出IDT的基地址和界限，设置新的 idt_ptr */
-    u16_t* p_idt_limit = (u16_t*)vir2phys(&idt_ptr[0]);
-    u32_t* p_idt_base = (u32_t*)vir2phys(&idt_ptr[2]);
-    *p_idt_limit = IDT_SIZE * sizeof(Gate_t) - 1;
+    u16_t *p_idt_limit = (u16_t *) vir2phys(&gp_idt[0]);
+    u32_t *p_idt_base = (u32_t *) vir2phys(&gp_idt[2]);
+    *p_idt_limit = IDT_SIZE * sizeof(GateDescriptor) - 1;
     *p_idt_base = vir2phys(&idt);
     /* 初始化所有中断门描述符到 IDT中 */
-    for(struct gate_info_s* p_gate = initGateInfos; p_gate < initGateInfos + sizeof(initGateInfos); p_gate++){
-        init_gate_desc(p_gate, DA_386IGate);
+    for (GateInfo *p_gate = initGateInfos; p_gate < initGateInfos + sizeof(initGateInfos); p_gate++) {
+        init_gate_desc(p_gate, DA_386IGate, &idt[p_gate->vector]);
     }
 
-    /* 初始化任务状态段TSS，并为处理器寄存器和其他任务切换时应保存的信息提供空间。
+    /**
+     * 初始化任务状态段TSS，并为处理器寄存器和其他任务切换时应保存的信息提供空间。
      * 我们只使用了某些域的信息，这些域定义了当发生中断时在何处建立新堆栈。
      * 下面init_seg_desc的调用保证它可以用GDT进行定位。
      */
-    memset(&tss, 0, sizeof(tss));
-    tss.ss0 = SELECTOR_KERNEL_DS;
-    init_segment_desc(&gdt[TSS_INDEX], vir2phys(&tss), sizeof(tss) - 1, DA_386TSS);
-    tss.iobase = sizeof(tss);           /* 空 I/O 位图 */
-
-    /* 为每个进程分配唯一的 LDT */
-    Process_t *proc = BEG_PROC_ADDR;
-    int ldt_idx = LDT_FIRST_INDEX;
-    for(; proc < END_PROC_ADDR; proc++, ldt_idx++) {
-        memset(proc, 0, sizeof(Process_t)); /* clean */
-        init_segment_desc(&gdt[ldt_idx], vir2phys(proc->ldt), sizeof(proc->ldt) - 1, DA_LDT);
-        proc->ldt_sel = ldt_idx * DESCRIPTOR_SIZE;
-    }
+    memset(&g_tss, 0, sizeof(g_tss)); /* 初始化g_tss为0 */
+    g_tss.ss0 = KERNEL_DS_SELECTOR;
+    init_segment_desc(&g_gdt[TSS_INDEX], vir2phys(&g_tss), sizeof(g_tss) - 1, DA_386TSS);
+    g_tss.ioMapBase = sizeof(g_tss);           /* 空 I/O 位图 */
 
 }
 
@@ -126,28 +87,28 @@ PUBLIC void protect_init(void){
  * @param gateInfo 中断门信息
  * @param desc_type 门描述符的类型 其实这里就是DA_386IGate，即中断门类型
  */
-PRIVATE void init_gate_desc(GateInfo_t* gateInfo, u8_t desc_type){
-    Gate_t* p_gate = &idt[gateInfo->vector];
-    u32_t base_addr = (u32_t)gateInfo->handler;
+PRIVATE void init_gate_desc(GateInfo *gateInfo, u8_t desc_type, GateDescriptor *p_gate) {
+    u32_t base_addr = (u32_t) gateInfo->handler;
     p_gate->offset_low = base_addr & 0xFFFF;
-    p_gate->selector = SELECTOR_KERNEL_CS;
+    p_gate->selector = KERNEL_CS_SELECTOR;
     p_gate->dcount = 0;
     p_gate->attr = desc_type | (gateInfo->privilege << 5);
     p_gate->offset_high = (base_addr >> 16) & 0xFFFF;
 }
 
-/*=========================================================================*
- *				init_segment_desc				   *
- *				初始化段描述符
- *=========================================================================*/
-PUBLIC void init_segment_desc(SegDescriptor_t *p_desc,phys_bytes base,phys_bytes limit,u16_t attribute){
-    /* 初始化一个数据段描述符 */
-    p_desc->limit_low	= limit & 0x0FFFF;         /* 段界限 1		(2 字节) */
-    p_desc->base_low	= base & 0x0FFFF;          /* 段基址 1		(2 字节) */
-    p_desc->base_middle	= (base >> 16) & 0x0FF;     /* 段基址 2		(1 字节) */
-    p_desc->access		= attribute & 0xFF;         /* 属性 1 */
-    p_desc->granularity = ((limit >> 16) & 0x0F) |  /* 段界限 2 + 属性 2 */
-                          ((attribute >> 8) & 0xF0);
-    p_desc->base_high	= (base >> 24) & 0x0FF;     /* 段基址 3		(1 字节) */
+/**
+ * 初始化段描述符
+ * @param p_desc 段描述符指针
+ * @param base 段基址
+ * @param limit 段界限
+ * @param attribute 段属性
+ */
+PUBLIC void init_segment_desc(SegDescriptor *p_desc, phys_addr base, u32_t limit, u16_t attribute) {
+    p_desc->limit_low = limit & 0x0FFFF;                                        /* 段界限 1    (2 字节) */
+    p_desc->base_low = base & 0x0FFFF;                                          /* 段基址 1    (2 字节) */
+    p_desc->base_middle = (base >> 16) & 0x0FF;                                 /* 段基址 2    (1 字节) */
+    p_desc->access = attribute & 0xFF;                                          /* 属性 1 */
+    p_desc->granularity = ((limit >> 16) & 0x0F) |((attribute >> 8) & 0xF0);    /* 段界限 2 + 属性 2 */
+    p_desc->base_high = (base >> 24) & 0x0FF;                                   /* 段基址 3    (1 字节) */
 }
 

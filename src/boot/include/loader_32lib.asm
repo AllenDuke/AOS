@@ -99,7 +99,7 @@ setup_paging:
     ; 为了简化处理，所有线性地址对应相等的物理地址，并且暂不考虑内存碎片
 
     ; 首先初始化页目录
-    mov ax, DATA_SELECTOR
+    mov ax, DATA_SEG_SELECTOR
     mov es, ax
     mov edi, PAGE_DIR_BASE  ; edi = 页目录存放的首地址
     xor eax, eax

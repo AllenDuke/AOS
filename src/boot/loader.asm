@@ -31,18 +31,18 @@ MESSAGE_LENGTH  equ 	10          ; 为简化代码, 下面每个要打印的字�
 ; ----------------------------------------------------------------------------------------------------------------------
 ; 描述符                        基地址        段界限       段属性
 GDT			        Descriptor	0,          0,          0							; 空描述符，必须存在，不然CPU无法识别GDT
-CodeSegDesc         Descriptor	0,          0xfffff,    DA_32 | DA_CR | DA_LIMIT_4K	; 0~4G，32位可读代码段，粒度为4KB
-DataSegDesc         Descriptor  0,          0xfffff,    DA_32 | DA_DRW | DA_LIMIT_4K; 0~4G，32位可读写数据段，粒度为4KB
-VideoSegDesc        Descriptor  0xb8000,    0xfffff,    DA_DRW | DA_DPL3            ; 视频段，特权级3（用户特权级）
+CODE_SEG_DESC       Descriptor	0,          0xfffff,    DA_32 | DA_CR | DA_LIMIT_4K	; 0~4G，32位可读代码段，粒度为4KB
+DATA_SEG_DESC       Descriptor  0,          0xfffff,    DA_32 | DA_DRW | DA_LIMIT_4K; 0~4G，32位可读写数据段，粒度为4KB
+VIDEO_SEG_DESC      Descriptor  0xb8000,    0xfffff,    DA_DRW | DA_DPL3            ; 视频段，特权级3（用户特权级）
 
 ; GDT全局描述符表
-GDT_LENGTH          equ     $ - GDT                         ; GDT的长度
-gdtPtr              dw      GDT_LENGTH - 1                  ; GDT指针.段界限，即地址的上界
-                    dd      LOADER_PHY_ADDR + GDT           ; GDT指针.基地址
+GDT_LENGTH              equ     $ - GDT                             ; GDT的长度
+gdtPtr                  dw      GDT_LENGTH - 1                      ; GDT指针.段界限，即地址的上界
+                        dd      LOADER_PHY_ADDR + GDT               ; GDT指针.基地址
 ; GDT选择子
-CODE_SELECTOR       equ     CodeSegDesc - GDT               ; 代码段选择子
-DATA_SELECTOR       equ     DataSegDesc - GDT               ; 数据段选择子
-VIDEO_SELECTOR      equ     VideoSegDesc - GDT | SA_RPL3    ; 视频段选择子，特权级3（用户特权级）
+CODE_SEG_SELECTOR       equ     CODE_SEG_DESC - GDT                 ; 代码段选择子
+DATA_SEG_SELECTOR       equ     DATA_SEG_DESC - GDT                 ; 数据段选择子
+VIDEO_SEG_SELECTOR      equ     VIDEO_SEG_DESC - GDT | SA_RPL3      ; 视频段选择子，特权级3（用户特权级）
 ; ======================================================================================================================
 
 
@@ -236,7 +236,7 @@ file_loaded:
 
     ; 5 真正进32位入保护模式！前面的4步已经进入了保护模式
     ; 	现在只需要跳入到一个32位代码段就可以真正进入32位保护模式了！
-    jmp dword CODE_SELECTOR:LOADER_PHY_ADDR + pm32_start
+    jmp dword CODE_SEG_SELECTOR:LOADER_PHY_ADDR + pm32_start
 
     ; 如果上面一切顺利，这一行永远不可能执行的到
     jmp $
@@ -276,7 +276,7 @@ loaderMessage 		db	"Loading..."        ; 10, 不够则用空格补齐. 序号 0
 ;   32位代码段
 ; ----------------------------------------------------------------------------------------------------------------------
 section code32 align=32     ; 该段的开始地址会32字节对齐，编译时会寻找最近的对齐地址
-bits 32     ; 指示编译器产生在32位模式下工作的代码，默认16位模式。
+bits 32                     ; 指示编译器产生在32位模式下工作的代码，默认16位模式。
 ; ----------------------------------------------------------------------------------------------------------------------
 ; 关于段开始地址，NASM默认会有一个段，默认4字节对齐，使用align来改变默认值。
 ;
@@ -285,13 +285,13 @@ bits 32     ; 指示编译器产生在32位模式下工作的代码，默认16�
 ; 指令mov eax, 0x5678，对应16位模式二进制指令：66B878560000，对应32位模式二进制指令：B878560000
 ; ----------------------------------------------------------------------------------------------------------------------
 pm32_start:                 ; 跳转到这里，说明已经进入32位保护模式
-    mov ax, DATA_SELECTOR
+    mov ax, DATA_SEG_SELECTOR
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov ss, ax              ; ds = es = fs = ss = 数据段
     mov esp, STACK_TOP      ; 设置栈顶
-    mov ax, VIDEO_SELECTOR
+    mov ax, VIDEO_SEG_SELECTOR
     mov gs, ax              ; gs = 视频段
 
     ; 计算内存大小
@@ -314,7 +314,7 @@ pm32_start:                 ; 跳转到这里，说明已经进入32位保护模
 
     ; 正式跳入内核，Loader将CPU控制权转交给内核，至此，Loader的使命也结束了！比Boot厉害吧！
     ; 从这里的函数运行成功后，我们才真正算是进入编写操作系统的门槛！
-    jmp CODE_SELECTOR:KERNEL_ENTRY_POINT_PHY_ADDR
+    jmp CODE_SEG_SELECTOR:KERNEL_ENTRY_POINT_PHY_ADDR
 
     ; 永远到达不了的真实
     jmp $
