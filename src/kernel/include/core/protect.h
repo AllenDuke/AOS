@@ -81,7 +81,7 @@ typedef struct{
                                              */
 
 /* 固定的全局描述符索引 */
-#define DUMMY_INDEX         0   /* GDT的头，标志性，重要 */
+#define DUMMY_INDEX         0   /* GDT的头，标志性 */
 #define TEXT_INDEX          1   /* 0~4G，32位可读代码段 */
 #define DATA_INDEX          2   /* 0~4G，32位可读写数据段 */
 #define VIDEO_INDEX         3   /* 显存首地址，特权级3 */
