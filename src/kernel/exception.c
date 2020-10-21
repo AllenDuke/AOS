@@ -11,7 +11,7 @@
 #include "include/core/kernel.h"
 
 /* 异常信息表 */
-PRIVATE char* exception_table[] = {
+PRIVATE char* sp_exceptionInfos[] = {
         "#DE Divide Error",                                 /* 除法错误 */
         "#DB RESERVED",                                     /* 调试异常 */
         "—   NMI Interrupt",                                /* 非屏蔽中断 */
@@ -28,10 +28,7 @@ PRIVATE char* exception_table[] = {
         "#GP General Protection",                           /* 常规保护错误 */
         "#PF Page Fault",                                   /* 页错误 */
         "—   (Intel reserved. Do not use.)",                /* Intel保留，不使用 */
-        "#MF x87 FPU Floating-Point Error (Math Fault)",    /* x87FPU浮点数(数学错误) */
-        "#AC Alignment Check",                              /* 对齐校验 */
-        "#MC Machine Check",                                /* 机器检查 */
-        "#XF SIMD Floating-Point Exception",                /* SIMD浮点异常 */
+        "#MF x87 FPU Floating-Point Error (Math Fault)"    /* x87FPU浮点数(数学错误) */
 };
 
 /**
@@ -48,10 +45,10 @@ PUBLIC void exception_handler(int int_vector, int error_no){
     }
 
     /* 简单点，内核发生异常，我们准备宕机 */
-    if(exception_table[int_vector] == NULL){
+    if(sp_exceptionInfos[int_vector] == NULL){
         low_print("Fount a exception, but it not in table!\n");
     } else {
-        low_print(exception_table[int_vector]);
+        low_print(sp_exceptionInfos[int_vector]);
         low_print("\n");
     }
 

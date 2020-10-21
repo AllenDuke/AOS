@@ -8,7 +8,7 @@
 #include "include/core/kernel.h"
 
 /* 中断描述符表IDT */
-PRIVATE GateDescriptor idt[IDT_SIZE];
+PRIVATE GateDescriptor s_idt[IDT_SIZE];
 
 /* 中断门信息 */
 typedef struct {
@@ -18,7 +18,7 @@ typedef struct {
 } GateInfo;
 
 /* 中断门信息表 */
-GateInfo initGateInfos[] = {
+GateInfo s_initGateInfos[] = {
         /* 暂时只考虑i386中的0~16号异常 */
         {0x0,   divide_error,           KERNEL_PRIVILEGE},
         {0x1,   debug_exception,        KERNEL_PRIVILEGE},
@@ -64,10 +64,10 @@ PUBLIC void protect_init(void) {
     u16_t *p_idt_limit = (u16_t *) vir2phys(&gp_idt[0]);
     u32_t *p_idt_base = (u32_t *) vir2phys(&gp_idt[2]);
     *p_idt_limit = IDT_SIZE * sizeof(GateDescriptor) - 1;
-    *p_idt_base = vir2phys(&idt);
+    *p_idt_base = vir2phys(&s_idt);
     /* 初始化所有中断门描述符到 IDT中 */
-    for (GateInfo *p_gate = initGateInfos; p_gate < initGateInfos + sizeof(initGateInfos); p_gate++) {
-        init_gate_desc(p_gate, DA_386IGate, &idt[p_gate->vector]);
+    for (GateInfo *p_gate = s_initGateInfos; p_gate < s_initGateInfos + sizeof(s_initGateInfos); p_gate++) {
+        init_gate_desc(p_gate, DA_386IGate, &s_idt[p_gate->vector]);
     }
 
     /**

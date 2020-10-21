@@ -77,10 +77,6 @@ pre_c:
     mov ax, TSS_SELECTOR
     ltr ax
 
-;    jmp 0x40:0		    ; 手动触发一个General Protection异常，测试异常机制
-;    ud2                ; 手动触发一个无效指令异常
-;    int 2              ; 手动触发一个不可屏蔽中断
-
     ; 跳入C语言编写的主函数，在这之后我们内核的开发工作主要用C开发了
     ; 这一步，我们迎来了质的飞跃，汇编虽然好，只是不够骚！
     jmp aos_main

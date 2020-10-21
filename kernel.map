@@ -158,18 +158,18 @@ LOAD target/lib/ansi/cstring.o
                 0x00001613                PROVIDE (_etext, .)
                 0x00001613                PROVIDE (etext, .)
 
-.rodata         0x00001614      0x26f
+.rodata         0x00001614      0x227
  *(.rodata .rodata.* .gnu.linkonce.r.*)
  .rodata        0x00001614       0x18 target/kernel/main.o
  .rodata        0x0000162c       0x14 target/kernel/init_c.o
- .rodata        0x00001640      0x243 target/kernel/exception.o
+ .rodata        0x00001640      0x1fb target/kernel/exception.o
 
-.lib            0x00001883       0x7e
- .lib           0x00001883       0x7e target/lib/ansi/string.o
-                0x000018d3                strcpy
-                0x00001883                memcpy
-                0x000018af                memset
-                0x000018eb                strlen
+.lib            0x0000183b       0x7e
+ .lib           0x0000183b       0x7e target/lib/ansi/string.o
+                0x0000188b                strcpy
+                0x0000183b                memcpy
+                0x00001867                memset
+                0x000018a3                strlen
 
 .rodata1
  *(.rodata1)
@@ -182,7 +182,7 @@ LOAD target/lib/ansi/cstring.o
 
 .gcc_except_table
  *(.gcc_except_table .gcc_except_table.*)
-                0x00001901                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
+                0x000018b9                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
                 0x00002000                . = (0x1000 DATA_SEGMENT_ALIGN 0x1000)
 
 .eh_frame
@@ -246,25 +246,25 @@ LOAD target/lib/ansi/cstring.o
 .got.plt
  *(.got.plt)
 
-.data           0x00002000      0x130
+.data           0x00002000      0x124
  *(.data .data.* .gnu.linkonce.d.*)
  .data          0x00002000        0x1 target/kernel/kernel.o
  *fill*         0x00002001        0x3 00
  .data          0x00002004        0x0 target/kernel/main.o
  *fill*         0x00002004       0x1c 00
  .data          0x00002020       0xc0 target/kernel/protect.o
-                0x00002020                initGateInfos
+                0x00002020                s_initGateInfos
  .data          0x000020e0        0x0 target/kernel/init_c.o
- .data          0x000020e0       0x50 target/kernel/exception.o
- .data          0x00002130        0x0 target/lib/ansi/memcmp.o
- .data          0x00002130        0x0 target/lib/ansi/cstring.o
+ .data          0x000020e0       0x44 target/kernel/exception.o
+ .data          0x00002124        0x0 target/lib/ansi/memcmp.o
+ .data          0x00002124        0x0 target/lib/ansi/cstring.o
  *(.gnu.linkonce.d.*personality*)
 
 .data1
  *(.data1)
-                0x00002130                _edata = .
-                0x00002130                PROVIDE (edata, .)
-                0x00002130                __bss_start = .
+                0x00002124                _edata = .
+                0x00002124                PROVIDE (edata, .)
+                0x00002124                __bss_start = .
 
 .bss            0x00002140      0xd44
  *(.dynbss)
