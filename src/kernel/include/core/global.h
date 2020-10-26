@@ -15,7 +15,10 @@ TSS g_tss; /* 用于内核任务 */
 
 u8_t gp_gdt[6];                             /* GDT指针，0~15：Limit 16~47：Base */
 u8_t gp_idt[6];                             /* IDT指针，同上 */
-int g_display_position;                        /* low_print函数需要它标识显示位置 */
+
+int g_dispPosition;                        /* low_print函数需要它标识显示位置 */
+
+irq_handler g_irqHandlers[NR_IRQ_VECTORS];
 
 /* 其他 */
 BootParam *gp_bootParam;   /* 引导参数指针 */

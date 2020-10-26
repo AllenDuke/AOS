@@ -15,9 +15,9 @@
 #define INIT_ASSERT	static char *assert_file= __FILE__;
 
 /* 错误断言：当我们的断言错误，将会自动调用这个例程进行处理 */
-void bad_assertion(char *file, int line, char *what);
+void bad_assertion(char *file, int line, char *p_srcCode);
 /* 错误比较：当我们的比较错误，将会自动调用这个例程进行处理 */
-void bad_compare(char *file, int line, int lhs, char *what, int rhs);
+void bad_compare(char *file, int line, int lhs, char *p_srcCode, int rhs);
 
 /* 断言：我们断定一个事件成立，x是一个布尔值
  *  例如我们断定a等于1，那么请这样写：assert(a == 1)

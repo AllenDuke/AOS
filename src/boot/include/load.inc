@@ -30,4 +30,4 @@ KERNEL_KEEP_SPACE   equ LOADER_PHY_ADDR - KERNEL_PHY_ADDR
 ; 引导（启动）参数
 ; 注意：以下的宏应该和C代码里的同步，它们在include/flyanx/config.h下
 BOOT_PARAM_ADDR     equ 0x700
-BOOT_PARAM_MAGIC    equ 0x328
+BOOT_PARAM_MAGIC    equ 0x0123

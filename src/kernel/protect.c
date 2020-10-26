@@ -13,7 +13,7 @@ PRIVATE GateDescriptor s_idt[IDT_SIZE];
 /* 中断门信息 */
 typedef struct {
     u8_t vector;            /* 中断向量号 */
-    int_handler_t handler;  /* 处理例程，这相当于一个32位的函数指针 */
+    int_handler handler;  /* 处理例程，这相当于一个32位的函数指针 */
     u8_t privilege;         /* 门权限 */
 } GateInfo;
 
@@ -43,7 +43,7 @@ GateInfo s_initGateInfos[] = {
 FORWARD _PROTOTYPE(void init_gate_desc, (GateInfo *gateInfo, u8_t desc_type, GateDescriptor *p));
 
 /* 保护模式初始化 */
-PUBLIC void protect_init(void) {
+PUBLIC void init_protect(void) {
 
     /**
      * 将 LOADER 中的 GDT 拷贝到内核中新的 gdt 中。
@@ -54,6 +54,7 @@ PUBLIC void protect_init(void) {
      */
     phys_copy(*((u32_t *) vir2phys(&gp_gdt[2])), vir2phys(&g_gdt),
               *((u16_t *) vir2phys(&gp_gdt[0])) + 1);
+    low_print("#{init_protect}-->called\n");
     /* 算出新 GDT 的基地址和界限，设置新的 gdt_ptr */
     u16_t *p_gdt_limit = (u16_t *) vir2phys(&gp_gdt[0]);
     u32_t *p_gdt_base = (u32_t *) vir2phys(&gp_gdt[2]);
@@ -79,7 +80,7 @@ PUBLIC void protect_init(void) {
     g_tss.ss0 = KERNEL_DS_SELECTOR;
     init_segment_desc(&g_gdt[TSS_INDEX], vir2phys(&g_tss), sizeof(g_tss) - 1, DA_386TSS);
     g_tss.ioMapBase = sizeof(g_tss);           /* 空 I/O 位图 */
-
+    printf("already init protect mode\n");
 }
 
 /**

@@ -10,28 +10,29 @@
  */
 
 #include "include/core/kernel.h"
-//#include "include/assert.h"
-//INIT_ASSERT
+#include "include/assert.h"
+INIT_ASSERT
 
 /**
  * 进入内核主函数前做一些初始化工作。
  */
 PUBLIC void init_c(void){
-
     /* 初始化显示位置 */
-    g_display_position = (80 * 6 + 2 * 0) * 2;
+    g_dispPosition = (80 * 6 + 2 * 0) * 2;
     low_print("#{init_c}-->called\n");
 
     /* 建立保护机制以及中断表 */
-    protect_init();
+    init_protect();
+
+    /* 初始化硬件中断机制 */
+    init_8259A();
 
     /* 加载引导参数 */
     u32_t* p_bootParam = (u32_t*)BOOT_PARAM_ADDR;
     /* 断言：魔数正常 */
-//    assert(p_bootParam[BP_MAGIC] == BOOT_PARAM_MAGIC);
+    assert(p_bootParam[BP_MAGIC_INDEX] == BOOT_PARAM_MAGIC);
     /* 魔数正常，让我们的引导参数指针指向它 */
     gp_bootParam = (BootParam*)(BOOT_PARAM_ADDR + 4);
-
 }
 
 

@@ -23,6 +23,9 @@ typedef unsigned int vir_addr;
 /* 寄存器数据类型，32位无符号 */
 typedef unsigned int reg_t;
 
+/* 端口数据类型，用于访问I/O端口 */
+typedef unsigned port_t;
+
 /**
  * 类型size_t包含sizeof操作符的所有结果。乍一看，似乎很明显它应该是无符号整数，但情况
  * 并不总是如此。例如，有些时候(例如在68000处理器的机器上)有32位指针和16位整数。当要求

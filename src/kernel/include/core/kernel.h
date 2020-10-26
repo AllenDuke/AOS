@@ -19,7 +19,7 @@
 #define _SYSTEM            1	/* tell headers that this is the kernel */
 
 #include "config.h"                 /* 这个头文件应该第一个引入，做一些检查和设定，但不是必要的 */
-#include "../ansi.h"               /* 应该第二个 */
+#include "../ansi.h"                /* 应该第二个 */
 #include "constant.h"
 #include "../types.h"
 #include "../cstring.h"
@@ -31,4 +31,5 @@
 
 #include "prototype.h"
 #include "global.h"
+#include "stdio.h"
 

@@ -39,7 +39,7 @@
  * 引导参数由加载程序存储，它们应该放在内核正在运行时也不应该去覆盖的地方， 因为内核可能随时使用它们。
  */
 #define BOOT_PARAM_ADDR     0x700   /* 物理地址 */
-#define BOOT_PARAM_MAGIC    0x123   /* 引导参数魔数 */
+#define BOOT_PARAM_MAGIC    0x0123   /* 引导参数魔数 */
 /* 参数对应的索引号 */
 #define BP_MAGIC_INDEX            0
 #define BP_MEMORY_SIZE_INDEX      1

@@ -40,16 +40,16 @@ PUBLIC void exception_handler(int int_vector, int error_no){
 
     /* 非屏蔽中断，我们不予理睬 */
     if(int_vector == 2){
-        low_print("忽略非屏蔽中断！\n");
+        printf("忽略非屏蔽中断！\n");
         return;
     }
 
     /* 简单点，内核发生异常，我们准备宕机 */
     if(sp_exceptionInfos[int_vector] == NULL){
-        low_print("Fount a exception, but it not in table!\n");
+        printf("Fount a exception, but it not in table!\n");
     } else {
-        low_print(sp_exceptionInfos[int_vector]);
-        low_print("\n");
+        printf(sp_exceptionInfos[int_vector]);
+        printf(", %d\n",int_vector);
     }
 
     while (TRUE){}
