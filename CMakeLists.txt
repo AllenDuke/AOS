@@ -17,7 +17,6 @@ add_executable(
 
         src/kernel/include/ansi.h
         src/kernel/include/core/errno.h
-        src/kernel/include/core/limit.h
         src/kernel/include/core/stddef.h
         src/kernel/include/unistd.h
 
@@ -33,6 +32,6 @@ add_executable(
         src/kernel/lib/ansi/cstring.c
 
 
-        src/kernel/lib/stdio/sprintf.c
-        src/kernel/lib/stdio/vsprintf.c
-)
+        src/kernel/lib/stdio/printf.c
+
+        src/kernel/clock.c)

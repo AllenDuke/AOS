@@ -7,5 +7,6 @@
 void aos_main(void) {
 
     printf("aos_main\n");
+    int a=1/0;
     while (1) {}
 }

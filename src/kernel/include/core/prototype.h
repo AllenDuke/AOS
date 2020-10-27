@@ -93,4 +93,6 @@ _PROTOTYPE( void	hwint13, (void) );
 _PROTOTYPE( void	hwint14, (void) );
 _PROTOTYPE( void	hwint15, (void) );
 
+_PROTOTYPE( void	softIntTest, (void) );
+
 #endif //AOS_PROTOTYPE_H

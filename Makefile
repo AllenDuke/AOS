@@ -175,7 +175,6 @@ $(tk)/panic.o: $(sk)/panic.c
 
 $(tk)/i8259.o: $(sk)/i8259.c
 	$(CC) $(CFlags) -o $@ $<
-
 # ======= 库  =======
 $(tl)/ansi/string.o: $(lansi)/string.asm
 	$(ASM) $(ASMFlagsOfKernel) -o $@ $<

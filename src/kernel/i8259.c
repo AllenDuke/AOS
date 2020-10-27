@@ -14,6 +14,12 @@ PUBLIC void init_8259A(){
 
     printf("#{init_8259A}->called\n");
 
+    /* 初始化前先将中断响应关闭 */
+    interrupt_lock();
+
+    /**
+     * 这里的具体意思参考，《自己动手写操作系统》P112
+     */
     /* 1  向端口20H(主片)和a0H(从片)写入ICW1 */
     out_byte(INT_M_CTL, 0x11);
     out_byte(INT_S_CTL, 0x11);
@@ -75,4 +81,8 @@ PUBLIC void put_irq_handler(int irq, irq_handler handler){
 PRIVATE int default_irq_handler(int irq){
     printf("I am a interrupt, my name is int %d\n", irq);
     return DISABLE; /* 如果是键盘这样的中断，需要持续地响应，即响应完毕后要重新打开中断，这样的话要返回非0 */
+}
+
+PUBLIC void softIntTest(){
+    printf("soft\n");
 }

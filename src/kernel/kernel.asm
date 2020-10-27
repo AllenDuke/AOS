@@ -77,6 +77,12 @@ pre_c:
     mov ax, TSS_SELECTOR
     ltr ax
 
+;    int 0
+;    int 2
+;    int 33
+    int 48
+;    jmp 0x40:0
+
     ; 跳入C语言编写的主函数，在这之后我们内核的开发工作主要用C开发了
     ; 这一步，我们迎来了质的飞跃，汇编虽然好，只是不够骚！
     jmp aos_main
