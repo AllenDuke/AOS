@@ -40,6 +40,11 @@ _PROTOTYPE( void interrupt_unlock, (void) );
 _PROTOTYPE( int disable_irq, (int int_request) );
 _PROTOTYPE( void enable_irq, (int int_request) );
 
+/*================================================================================================*/
+/* clock.c */
+/*================================================================================================*/
+_PROTOTYPE(void clock_task,(void));
+
 /* 硬件（异常）中断处理函数原型 相当于声明函数指针 int_handler_t 不能如此声明 void int_handler_t (void) 有点多态的意思*/
 typedef _PROTOTYPE( void (*int_handler), (void) );
 /* 中断请求处理函数原型 */

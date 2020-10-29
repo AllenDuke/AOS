@@ -457,7 +457,7 @@ enable_ok:
     mov al, EOI
     out INT_M_CTL, al       ; 设置 EOI 位，重新启用 主8259A
     nop
-    sti                     ; 重新启动中断响应
+    sti                     ; 重新启动中断响应，允许其他中断嵌套
 
     ; 3 现在调用中断处理例程
     push %1                 ; 压入中断向量号作为参数
@@ -474,6 +474,7 @@ enable_ok:
     out INT_M_CTL_MASK, al   ; 输出新的屏蔽位图，启用该中断
 .0:
     ; 这个 ret 指令将会跳转到我们 save 中手动保存的地址，restart 或 restart_reenter
+    sti                     ; 允许中断
     ret
 %endmacro
 

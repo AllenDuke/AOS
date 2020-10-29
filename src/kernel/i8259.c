@@ -14,9 +14,6 @@ PUBLIC void init_8259A(){
 
     printf("#{init_8259A}->called\n");
 
-    /* 初始化前先将中断响应关闭 */
-    interrupt_lock();
-
     /**
      * 这里的具体意思参考，《自己动手写操作系统》P112
      */

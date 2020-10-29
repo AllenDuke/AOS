@@ -7,6 +7,6 @@
 void aos_main(void) {
 
     printf("aos_main\n");
-    int a=1/0;
+    clock_task();
     while (1) {}
 }
