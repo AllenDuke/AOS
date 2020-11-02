@@ -34,4 +34,4 @@ add_executable(
 
         src/kernel/lib/stdio/printf.c
 
-        src/kernel/clock.c)
+        src/kernel/clock.c src/kernel/include/core/process.h src/kernel/process.c)

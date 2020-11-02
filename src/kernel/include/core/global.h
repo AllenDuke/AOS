@@ -5,7 +5,7 @@
 #ifndef AOS_GLOBAL_H
 #define AOS_GLOBAL_H
 
-#include "protect.h"
+#include "../include/core/kernel.h"
 
 /* 全局描述符表GDT */
 SegDescriptor g_gdt[];
@@ -19,6 +19,14 @@ u8_t gp_idt[6];                             /* IDT指针，同上 */
 int g_dispPosition;                        /* low_print函数需要它标识显示位置 */
 
 irq_handler g_irqHandlers[NR_IRQ_VECTORS];
+
+/* 内核内存 */
+MemoryMap g_kernelMap;      /* 内核内存映像 */
+
+/* 多进程相关 */
+struct process_s *gp_curProc; /* 当前正在运行的进程 */
+
+u8_t kernel_reenter;         /* 记录内核中断重入次数 */
 
 /* 其他 */
 BootParam *gp_bootParam;   /* 引导参数指针 */

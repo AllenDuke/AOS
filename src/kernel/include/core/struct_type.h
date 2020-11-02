@@ -8,9 +8,8 @@
 #define AOS_STRUCT_TYPE_H
 
 #ifndef AOS_TYPES_H
-#include "types.h"
+#include "../include/types.h"
 #endif
-
 
 /* 引导参数 */
 typedef struct{
@@ -18,10 +17,12 @@ typedef struct{
     phys_addr kernel_file;     /* 内核所在绝对物理地址 */
 } BootParam;
 
-/* StackFrame定义了如何将寄存器值保存到堆栈上的数据结构
+/**
+ * StackFrame定义了如何将寄存器值保存到堆栈上的数据结构
  * 这个结构非常重要-在进程被投入运行状态或被脱开运行状态时,它被用来保
  * 存和恢复CPU的内部状态。将其定义成可以用汇编语言高速读写的格式,这将
  * 减少进程上下文切换的时间，进程指针必须指向这里。
+ * 严格要求顺序
  */
 typedef struct{
     /* 低地址 */
@@ -53,5 +54,37 @@ typedef struct{
     /* =========================================== */
     /* 高地址 */
 } StackFrame;
+
+/* 内存映像
+ * 这个结构能够描述一个内存块信息
+ */
+typedef struct{
+    phys_addr base;    /* 这块内存的基地址 */
+    phys_addr size;    /* 这块内存有多大？ */
+} MemoryMap;
+
+/* 定义6种消息域将使得更易于在不同的体系结构上重新编译。 */
+typedef struct {int m1i1, m1i2, m1i3; char *m1p1, *m1p2, *m1p3;} mess_union1;
+typedef struct {int m2i1, m2i2, m2i3; long m2l1, m2l2; char *m2p1;} mess_union2;
+typedef struct {int m3i1, m3i2; char *m3p1; char m3ca1[M3_STRING];} mess_union3;
+typedef struct {long m4l1, m4l2, m4l3, m4l4, m4l5;} mess_union4;
+typedef struct {char m5c1, m5c2; int m5i1, m5i2; long m5l1, m5l2, m5l3;}mess_union5;
+typedef struct {int m6i1, m6i2, m6i3; long m6l1; sighandler_t m6f1;} mess_union6;
+
+/* 消息，Flyanx中的进程通信的根本，同时也是客户端和服务端通信的根本
+ * 此数据结构来源自MINIX
+ */
+typedef struct{
+    int source;         /* 谁发送的消息 */
+    int type;           /* 消息的类型，用于判断告诉对方意图 */
+    union {             /* 消息域，一共可以是六种消息域类型之一 */
+        mess_union1 m_u1;
+        mess_union2 m_u2;
+        mess_union3 m_u3;
+        mess_union4 m_u4;
+        mess_union5 m_u5;
+        mess_union6 m_u6;
+    } m_u;
+} Message;
 
 #endif //AOS_STRUCT_TYPE_H

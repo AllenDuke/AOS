@@ -25,7 +25,7 @@
 #include "../cstring.h"
 #include "struct_type.h"
 #include "protect.h"
-
+#include "process.h"
 #include "limit.h"
 #include "errno.h"
 

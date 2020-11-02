@@ -28,10 +28,10 @@ CSREG               equ   PCREG + 4
 PWSREG              equ   CSREG + 4
 ESPREG              equ   PWSREG + 4
 SSREG               equ   ESPREG + 4
-P_STACKTOP          equ   SSREG + 4       ; 栈顶
+P_STACKTOP          equ   SSREG + 4       ; 栈顶，这里其实也是LDT选择子的偏移量
 P_LDT_SEL           equ   P_STACKTOP      ; LDT选择子
 P_LDT               equ   P_LDT_SEL + 4   ; LDT
-; TSS::SP0 的偏移
+; SP0 在TSS中的偏移
 TSS3_S_SP0          equ   4
 
 ; 硬件中断处理相关 
