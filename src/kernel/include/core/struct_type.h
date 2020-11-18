@@ -7,12 +7,9 @@
 #ifndef AOS_STRUCT_TYPE_H
 #define AOS_STRUCT_TYPE_H
 
-#ifndef AOS_TYPES_H
-#include "../include/types.h"
-#endif
 
 /* 引导参数 */
-typedef struct{
+typedef struct boot_params_s{
     u32_t memory_size;          /* 内存大小 */
     phys_addr kernel_file;     /* 内核所在绝对物理地址 */
 } BootParam;
@@ -24,7 +21,7 @@ typedef struct{
  * 减少进程上下文切换的时间，进程指针必须指向这里。
  * 严格要求顺序
  */
-typedef struct{
+typedef struct stackframe_s{
     /* 低地址 */
     /* =========== 所有的特殊段寄存器，我们手动压入 =========== */
     reg_t	gs;
@@ -58,10 +55,24 @@ typedef struct{
 /* 内存映像
  * 这个结构能够描述一个内存块信息
  */
-typedef struct{
+typedef struct memory_map{
     phys_addr base;    /* 这块内存的基地址 */
     phys_addr size;    /* 这块内存有多大？ */
 } MemoryMap;
+
+
+typedef void task_t(void);
+typedef void (*WatchDog)(void);
+/* 系统进程表项定义
+ *
+ * 一个表项可以存放一个系统级别的进程，在这里我们和用户进程表项分开定义了
+ * 因为它们特权级不同，待遇也不同，就这个理解就应该让我们区别对待。
+ */
+typedef struct sys_proc {
+    task_t *initial_eip;        /* 系统进程的处理句柄，即 eip */
+    int     stack_size;         /* 系统进程的栈大小 */
+    char    name[16];           /* 系统进程名称 */
+} SysProc_t;
 
 /* 定义6种消息域将使得更易于在不同的体系结构上重新编译。 */
 typedef struct {int m1i1, m1i2, m1i3; char *m1p1, *m1p2, *m1p3;} mess_union1;
@@ -74,7 +85,7 @@ typedef struct {int m6i1, m6i2, m6i3; long m6l1; sighandler_t m6f1;} mess_union6
 /* 消息，Flyanx中的进程通信的根本，同时也是客户端和服务端通信的根本
  * 此数据结构来源自MINIX
  */
-typedef struct{
+typedef struct message_s{
     int source;         /* 谁发送的消息 */
     int type;           /* 消息的类型，用于判断告诉对方意图 */
     union {             /* 消息域，一共可以是六种消息域类型之一 */

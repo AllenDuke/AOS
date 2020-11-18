@@ -28,6 +28,7 @@ global interrupt_lock               ; 关闭中断响应，即锁中断
 global interrupt_unlock             ; 打开中断响应，即解锁中断
 global disable_irq                  ; 屏蔽一个特定的中断
 global enable_irq                   ; 启用一个特定的中断
+global restart
 
 ; 所有的异常处理入口
 global divide_error
@@ -470,7 +471,8 @@ enable_ok:
     out INT_M_CTL_MASK, al   ; 输出新的屏蔽位图，启用该中断
 .0:
     ; 这个 ret 指令将会跳转到我们 save 中手动保存的地址，restart 或 restart_reenter
-    sti                     ; 允许中断
+    ; 这里不使用sti，因为最后中断返回时使用了iret，最后也恢复了if位
+;    sti                     ; 允许中断
     ret
 %endmacro
 
@@ -594,8 +596,10 @@ save:
     mov es, dx
     mov esi, esp                        ; esi 指向进程的栈帧开始处
 
+    ; 相当于add [kernel_reenter], 1，但inc速度快，占用空间小
     inc byte [kernel_reenter]           ; 发生了一次中断，中断重入计数++
-    ; 现在判断是不是嵌套中断，是的话就无需切换堆栈到内核栈了
+    ; 判断是不是嵌套中断，是的话就无需切换堆栈到内核栈了
+    cmp	byte [kernel_reenter], 0
     jnz .reenter                        ; 嵌套中断
     ; 从一个进程进入的中断，需要切换到内核栈
     mov esp, STACK_TOP
@@ -621,7 +625,7 @@ restart:
 	mov dword [g_tss + TSS3_S_SP0], eax
 restart_reenter:
 	; 在这一点上，kernel_reenter 被减1，因为一个中断已经处理完毕
-	dec byte [kernel_reenter]
+	dec byte [kernel_reenter]           ; 第一次调用restart后，kernel_reenter为-1
 	; 将该进程的栈帧中的所有寄存器信息恢复
     pop gs
     pop fs
@@ -630,7 +634,7 @@ restart_reenter:
 	popad
 	; 跳过压入的 save 的返回地址
 	add esp, 4
-	; 中断返回：恢复eip cs eflags esp ss
+	; 中断返回：恢复中断时压入的eip cs eflags esp ss
 	iretd
 ; ======================================================================================================================
 

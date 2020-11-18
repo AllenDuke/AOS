@@ -17,87 +17,94 @@
 /*================================================================================================*/
 /* init_c.c */
 /*================================================================================================*/
-_PROTOTYPE( void init_c, (void) );
+void init_c(void);
 
 /*================================================================================================*/
 /* protect.c */
 /*================================================================================================*/
-_PROTOTYPE( void init_segment_desc, (SegDescriptor *p_desc, phys_addr base,u32_t limit, u16_t attribute) );
-_PROTOTYPE( void init_protect, (void) );
+void init_segment_desc(SegDescriptor *p_desc, phys_addr base,u32_t limit, u16_t attribute);
+void init_protect(void);
 
 /*================================================================================================*/
 /* kernel_i386lib.asm */
 /*================================================================================================*/
-_PROTOTYPE( void phys_copy, (phys_addr src, phys_addr dest, u32_t size) );
-_PROTOTYPE( void low_print, (char* _str) );
-_PROTOTYPE( void cpu_halt, (void) );
-_PROTOTYPE( u8_t in_byte, (port_t port) );
-_PROTOTYPE( void out_byte, (port_t port, U8_t value) );
-_PROTOTYPE( u16_t in_word, (port_t port) );
-_PROTOTYPE( void out_word, (port_t port, U16_t value) );
-_PROTOTYPE( void interrupt_lock, (void) );
-_PROTOTYPE( void interrupt_unlock, (void) );
-_PROTOTYPE( int disable_irq, (int int_request) );
-_PROTOTYPE( void enable_irq, (int int_request) );
-
+void phys_copy(phys_addr src, phys_addr dest, u32_t size);
+void low_print(char* _str);
+void cpu_halt(void);
+u8_t in_byte(port_t port);
+void out_byte(port_t port, u8_t value);
+u16_t in_word(port_t port);
+void out_word(port_t port, u16_t value);
+void interrupt_lock(void);
+void interrupt_unlock(void);
+int disable_irq(int int_request);
+void enable_irq(int int_request);
+void restart(void);
 /*================================================================================================*/
 /* clock.c */
 /*================================================================================================*/
-_PROTOTYPE(void clock_task,(void));
+void clock_task(void);
 
 /* 硬件（异常）中断处理函数原型 相当于声明函数指针 int_handler_t 不能如此声明 void int_handler_t (void) 有点多态的意思*/
-typedef _PROTOTYPE( void (*int_handler), (void) );
+typedef void (*int_handler)(void);
 /* 中断请求处理函数原型 */
-typedef _PROTOTYPE( int (*irq_handler), (int irq) );
+typedef int (*irq_handler)(int irq);
 /* 系统调用函数原型 */
-typedef _PROTOTYPE( void (*aos_syscall),  (void) );
+typedef void (*aos_syscall)(void);
 
 /*================================================================================================*/
 /* i8259.c */
 /*================================================================================================*/
-_PROTOTYPE( void init_8259A, (void) );
-_PROTOTYPE( void put_irq_handler, (int irq, irq_handler handler) );
+void init_8259A(void);
+void put_irq_handler(int irq, irq_handler handler);
 
 /*================================================================================================*/
 /* 异常处理入口例程 */
 /*================================================================================================*/
-_PROTOTYPE( void divide_error, (void) );
-_PROTOTYPE( void debug_exception, (void) );
-_PROTOTYPE( void non_maskable_int, (void) );
-_PROTOTYPE( void break_point, (void) );
-_PROTOTYPE( void over_flow, (void) );
-_PROTOTYPE( void out_of_bounds, (void) );
-_PROTOTYPE( void invalid_opcode, (void) );
-_PROTOTYPE( void dev_not_available, (void) );
-_PROTOTYPE( void double_fault, (void) );
-_PROTOTYPE( void coop_proc_seg_oob, (void) );
-_PROTOTYPE( void invalid_tss, (void) );
-_PROTOTYPE( void segment_not_present, (void) );
-_PROTOTYPE( void stack_exception, (void) );
-_PROTOTYPE( void general_protection, (void) );
-_PROTOTYPE( void page_fault, (void) );
-_PROTOTYPE( void math_fault, (void) );
+void divide_error(void);
+void debug_exception(void);
+void non_maskable_int(void);
+void break_point(void);
+void over_flow(void);
+void out_of_bounds(void);
+void invalid_opcode(void);
+void dev_not_available(void);
+void double_fault(void);
+void coop_proc_seg_oob(void);
+void invalid_tss(void);
+void segment_not_present(void);
+void stack_exception(void);
+void general_protection(void);
+void page_fault(void);
+void math_fault(void);
 
 /*================================================================================================*/
 /*  硬件中断处理程序。 */
 /*================================================================================================*/
-_PROTOTYPE( void    hwint00, (void) );
-_PROTOTYPE( void	hwint01, (void) );
-_PROTOTYPE( void	hwint02, (void) );
-_PROTOTYPE( void	hwint03, (void) );
-_PROTOTYPE( void	hwint04, (void) );
-_PROTOTYPE( void	hwint05, (void) );
-_PROTOTYPE( void	hwint06, (void) );
-_PROTOTYPE( void	hwint07, (void) );
-_PROTOTYPE( void	hwint08, (void) );
-_PROTOTYPE( void	hwint09, (void) );
-_PROTOTYPE( void	hwint10, (void) );
-_PROTOTYPE( void	hwint11, (void) );
-_PROTOTYPE( void	hwint12, (void) );
-_PROTOTYPE( void	hwint13, (void) );
-_PROTOTYPE( void	hwint14, (void) );
-_PROTOTYPE( void	hwint15, (void) );
+void    hwint00(void);
+void	hwint01(void);
+void	hwint02(void);
+void	hwint03(void);
+void	hwint04(void);
+void	hwint05(void);
+void	hwint06(void);
+void	hwint07(void);
+void	hwint08(void);
+void	hwint09(void);
+void	hwint10(void);
+void	hwint11(void);
+void	hwint12(void);
+void	hwint13(void);
+void	hwint14(void);
+void	hwint15(void);
 
-_PROTOTYPE( void	softIntTest, (void) );
+void	softIntTest(void);
+
+void panic(const char* msg, int error_no );
+void test_task_a(void);
+void test_task_b(void);
+
+int printf(const char *_fmt, ...);
+int fmt_string(char *_buf, const char *_fmt, ...);
 
 #endif //AOS_PROTOTYPE_H

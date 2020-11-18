@@ -4,7 +4,9 @@
  */
 
 
-#include "cstring.h"
+
+
+#include <types.h>
 
 /**
  * 比较两个字符串的前n个

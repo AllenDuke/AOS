@@ -31,23 +31,5 @@
 #define LONG_MAX  2147483647L	/* maximum value of a long */
 #define ULONG_MAX 0xFFFFFFFFL	/* maximum value of an unsigned long */
 
-/* POSIX P1003.1标准要求的最小尺寸（表2-3）。 */
-#ifdef _POSIX_SOURCE		/* these are only visible for POSIX */
-
-#define _POSIX_ARG_MAX    4096	/* exec() may have 4K worth of args */
-#define _POSIX_CHILD_MAX     6	/* a process may have 6 children */
-#define _POSIX_LINK_MAX      8	/* a file may have 8 links */
-#define _POSIX_MAX_CANON   255	/* size of the canonical input queue */
-#define _POSIX_MAX_INPUT   255	/* you can type 255 chars ahead */
-#define _POSIX_NAME_MAX     14	/* a file name may have 14 chars */
-#define _POSIX_NGROUPS_MAX   0	/* supplementary group IDs are optional */
-#define _POSIX_OPEN_MAX     16	/* a process may have 16 files open */
-#define _POSIX_PATH_MAX    255	/* a pathname may contain 255 chars */
-#define _POSIX_PIPE_BUF    512	/* pipes writes of 512 bytes must be atomic */
-#define _POSIX_STREAM_MAX    8	/* at least 8 FILEs can be open at once */
-#define _POSIX_TZNAME_MAX    3	/* time zone names can be at least 3 chars */
-#define _POSIX_SSIZE_MAX 32767	/* read() must support 32767 byte reads */
-
-#endif /* _POSIX_SOURCE */
 
 #endif //AOS_LIMIT_H

@@ -8,7 +8,7 @@
  *  - exception_handler:         异常公共处理例程，所有例程都会被中断到这
  */
 
-#include "include/core/kernel.h"
+#include "core/kernel.h"
 
 /* 异常信息表 */
 PRIVATE char* sp_exceptionInfos[] = {
@@ -46,12 +46,10 @@ PUBLIC void exception_handler(int int_vector, int error_no){
 
     /* 简单点，内核发生异常，我们准备宕机 */
     if(sp_exceptionInfos[int_vector] == NULL){
-        printf("Fount a exception, but it not in table!\n");
+        panic("Fount a exception, but it not in table!", PANIC_ERR_NUM);
     } else {
-        printf(sp_exceptionInfos[int_vector]);
-        printf(", %d\n",int_vector);
+        panic(sp_exceptionInfos[int_vector], error_no != 0xffffffff ? error_no : PANIC_ERR_NUM);
     }
 
-    while (TRUE){}
 
 }

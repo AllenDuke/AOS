@@ -45,23 +45,4 @@
 #define BP_MEMORY_SIZE_INDEX      1
 #define BP_KERNEL_FILE_INDEX      2
 
-#define MACHINE        		IBM_PC	/* Must be one of the names listed below */
-#define IBM_PC				1		/* any  8088 or 80x86-based system */
-#define SUN_4             	40		/* any Sun SPARC-based system */
-#define SUN_4_60	  		40		/* Sun-4/60 (aka SparcStation 1 or Campus) */
-#define AMIGA             	61		/* Commodore Amiga (68000) */
-#define MACINTOSH         	62		/* Apple Macintosh (68000) */
-
-/* Set the CHIP type based on the machine selected. The symbol CHIP is actually
- * indicative of more than just the CPU.  For example, machines for which
- * CHIP == INTEL are expected to have 8259A interrrupt controllers and the
- * other properties of IBM PC/XT/AT/386 types machines in general. */
-#define INTEL               1	/* CHIP type for PC, XT, AT, 386 and clones */
-#define M68000              2	/* CHIP type for Atari, Amiga, Macintosh    */
-#define SPARC               3	/* CHIP type for SUN-4 (e.g. SPARCstation)  */
-
-#if (MACHINE == IBM_PC)
-#define CHIP          INTEL     /* 暂时只考虑intel芯片 */
-#endif
-
 #endif //AOS_CONFIG_H

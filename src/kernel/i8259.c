@@ -3,16 +3,18 @@
 //
 
 #include "../include/core/kernel.h"
-#include "assert.h"
-INIT_ASSERT
+
 
 /* 本地函数声明 */
-FORWARD _PROTOTYPE( int default_irq_handler, (int irq) );
+FORWARD int default_irq_handler (int irq);
 
 /* 初始化中断 */
 PUBLIC void init_8259A(){
 
     printf("#{init_8259A}->called\n");
+
+    /* 初始化前先将中断响应关闭 */
+//    interrupt_lock();
 
     /**
      * 这里的具体意思参考，《自己动手写操作系统》P112
@@ -21,8 +23,8 @@ PUBLIC void init_8259A(){
     out_byte(INT_M_CTL, 0x11);
     out_byte(INT_S_CTL, 0x11);
     /* 2 向端口21H(主片)和a1H(从片)写入ICW2 */
-    out_byte(INT_M_CTL_MASK, INT_VECTOR_IRQ0);
-    out_byte(INT_S_CTL_MASK, INT_VECTOR_IRQ8);
+    out_byte(INT_M_CTL_MASK, INT_VECTOR_IRQ0); /* master对应中断向量32~39 */
+    out_byte(INT_S_CTL_MASK, INT_VECTOR_IRQ8); /* slave对应中断向量40~47 */
     /* 3 向端口21H(主片)或a1H(从片)写入ICW3 */
     out_byte(INT_M_CTL_MASK, 4);
     out_byte(INT_S_CTL_MASK, 2);
@@ -54,13 +56,13 @@ PUBLIC void put_irq_handler(int irq, irq_handler handler){
      */
 
     /* 断言：中断向量处于正常范围 */
-    assert(irq >= 0 && irq < NR_IRQ_VECTORS);
+
 
     /* 注册过了？那么什么也不做 */
     if(g_irqHandlers[irq] == handler) return;
 
     /* 断言：该中断已初始化过 */
-    assert(g_irqHandlers[irq] == default_irq_handler);
+
 
     /* 开始设置
      * 先关闭对应的中断，再将中断处理例程替换旧的

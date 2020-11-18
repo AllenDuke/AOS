@@ -10,22 +10,23 @@ include_directories(HEAD "src/kernel/include")
 add_executable(
         AOS
 
-        src/kernel/include/core/config.h
-        src/kernel/include/core/constant.h
-        src/kernel/include/core/struct_type.h
-        src/kernel/include/types.h
-
-        src/kernel/include/ansi.h
-        src/kernel/include/core/errno.h
-        src/kernel/include/core/stddef.h
-        src/kernel/include/unistd.h
-
-        src/kernel/include/assert.h
-        src/kernel/include/core/global.h
+#        src/kernel/include/core/config.h
+#        src/kernel/include/core/constant.h
+#        src/kernel/include/core/struct_type.h
+#        src/kernel/include/types.h
+#
+#        src/kernel/include/ansi.h
+#        src/kernel/include/core/errno.h
+#        src/kernel/include/core/stddef.h
+#        src/kernel/include/unistd.h
+#
+#        src/kernel/include/assert.h
+#        src/kernel/include/core/global.h
+#        src/kernel/include/core/protect.h
+#        src/kernel/include/core/prototype.h
+#        src/kernel/include/core/process.h
         src/kernel/main.c
-        src/kernel/include/core/protect.h
         src/kernel/protect.c
-        src/kernel/include/core/prototype.h
         src/kernel/init_c.c
 
         src/kernel/lib/ansi/memcmp.c
@@ -34,4 +35,5 @@ add_executable(
 
         src/kernel/lib/stdio/printf.c
 
-        src/kernel/clock.c src/kernel/include/core/process.h src/kernel/process.c)
+        src/kernel/clock.c
+        src/kernel/process.c)

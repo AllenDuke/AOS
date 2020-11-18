@@ -2,7 +2,9 @@
  * ansi标准函数memcmp实现。
  */
 
-#include "cstring.h"
+
+
+#include <types.h>
 
 /**
  * 比较两个内存区域的前n个字节

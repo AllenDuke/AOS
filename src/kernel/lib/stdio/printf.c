@@ -3,7 +3,6 @@
 //
 #include <core/kernel.h>
 #include <stdarg.h>
-#include <stdio.h>
 
 #define isdigit(c)    ((unsigned) ((c) - '0') <  (unsigned) 10)
 

@@ -5,8 +5,6 @@
 #ifndef AOS_PROCESS_H
 #define AOS_PROCESS_H
 
-#include "kernel.h"
-
 /* 进程，一个进程是包含 进程的寄存器信息(栈帧) 和 LDT(本地描述符表) 以及 自定义的一些属性
  * CPU 通过 PCB来调度进程
  */
@@ -65,6 +63,7 @@ typedef struct process_s{
     char name[32];                  /* 这个没啥好说的，就是进程的名称，记得起个好名字哦 */
 } Process;
 
+
 /* 系统堆栈的保护字 */
 #define SYS_TASK_STACK_GUARD	((reg_t) (sizeof(reg_t) == 2 ? 0xBEEF : 0xDEADBEEF))    /* 任务的 */
 #define SYS_SERVER_STACK_GUARD	((reg_t) (sizeof(reg_t) == 2 ? 0xBFEF : 0xDEADCEEF))    /* 服务的 */
@@ -118,29 +117,7 @@ typedef struct process_s{
 #define proc_vir2phys(p, vir) \
     ((phys_bytes)(p)->map.base + (vir_bytes)(vir))
 
-/* 进程表，记录系统的所有进程
- * 大小是
- */
-EXTERN Process proc_table[NR_TASKS + NR_SERVERS + NR_PROCS];
-EXTERN Process* p_proc_addr[NR_TASKS + NR_SERVERS + NR_PROCS]; /* 因为进程表的访问非常频繁,并且计算数组中的一个地址需要
-                                                                  * 用到很慢的乘法操作, 所以使用一个指向进程表项的指针数组
-                                                                  * p_proc_addr 来加快操作速度。 */
 
-/* bill_proc指向正在对其CPU使用计费的进程。当一个用户进程调用文件系统,而文件系统正在运行
- * 时,curr_proc(在global.h中)指向文件系统进程,但是bill_proc将指向发出该调用的用户进程。因为文件系统使用的
- * CPU时间被作为调用者的系统时间来计费。
- */
-EXTERN Process* bill_proc;
-
-/* 两个数组ready_head和ready_tail用来维护调度队列。例如,ready_head[TASK_Q]指向就绪任务队列中的第一个进程。
- * 就绪进程队列一共分为三个
- * ready_head[TASK_QUEUE]：就绪系统任务队列
- * ready_head[SERVER_QUEUE]：就绪服务进程队列
- * ready_head[USER_QUEUE]：就绪用户进程队列
- * 再举个例子，我们需要拿到用户进程队列的第3个进程，则应该这么拿：ready_head[USER_QUEUE]->next_ready->next_ready，简单吧？
- */
-EXTERN Process* ready_head[NR_PROC_QUEUE];
-EXTERN Process* ready_tail[NR_PROC_QUEUE];
 
 
 #endif //AOS_PROCESS_H

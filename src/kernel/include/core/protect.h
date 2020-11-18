@@ -12,7 +12,7 @@
 #define AOS_PROTECT_H
 
 /* 描述符表指针结构 */
-typedef struct{
+typedef struct descriptor_s{
     char limit[sizeof(u16_t)];
     char base[sizeof(u32_t)];		/* really u24_t + pad for 286 */
 } DescriptorTablePtr;
@@ -20,7 +20,7 @@ typedef struct{
 #define DESCRIPTOR_SIZE    8   /* 描述符大小，字节为单位 */
 
 /* 段描述符 8字节 64位 */
-typedef struct{
+typedef struct seg_descriptor_s{
     u16_t limit_low;        /* 段界限低16位 */
     u16_t base_low;         /* 段基址低16位 */
     u8_t base_middle;       /* 段基址中8位 */
@@ -30,7 +30,7 @@ typedef struct{
 } SegDescriptor;
 
 /* 门描述符 */
-typedef struct{
+typedef struct gate_s{
     u16_t	offset_low;	/* Offset Low */
     u16_t	selector;	/* Selector */
     u8_t	dcount;		    /* 该字段只在调用门描述符中有效。
@@ -42,7 +42,7 @@ typedef struct{
 } GateDescriptor;
 
 /* 任务状态段 共104字节 */
-typedef struct{
+typedef struct tss_s{
     reg_t   backLink;       /* 低16位存储一个任务的链接，高16位保留为0 */
     reg_t	esp0;	        /* 特权级0所用的堆栈 */
     reg_t	ss0;	        /* 高16位保留为0 */

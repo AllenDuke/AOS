@@ -63,7 +63,7 @@ GateInfo s_initGateInfos[] = {
 };
 
 /* 本地函数 */
-FORWARD _PROTOTYPE(void init_gate_desc, (GateInfo *gateInfo, u8_t desc_type, GateDescriptor *p));
+FORWARD void init_gate_desc (GateInfo *gateInfo, u8_t desc_type, GateDescriptor *p);
 
 /* 保护模式初始化 */
 PUBLIC void init_protect(void) {
@@ -103,6 +103,15 @@ PUBLIC void init_protect(void) {
     g_tss.ss0 = KERNEL_DS_SELECTOR;
     init_segment_desc(&g_gdt[TSS_INDEX], vir2phys(&g_tss), sizeof(g_tss) - 1, DA_386TSS);
     g_tss.ioMapBase = sizeof(g_tss);           /* 空 I/O 位图 */
+
+    /* 为每个进程分配唯一的 LDT */
+    Process *proc = BEG_PROC_ADDR;
+    for(int ldtI = LDT_FIRST_INDEX; proc < END_PROC_ADDR; proc++, ldtI++) {
+        memset(proc, 0, sizeof(Process)); /* clean */
+        init_segment_desc(&g_gdt[ldtI], vir2phys(proc->ldt), sizeof(proc->ldt) - 1, DA_LDT);
+        proc->ldt_sel = ldtI * DESCRIPTOR_SIZE;
+    }
+
     printf("already init protect mode\n");
 }
 
