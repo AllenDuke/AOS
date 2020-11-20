@@ -56,13 +56,13 @@ PUBLIC void put_irq_handler(int irq, irq_handler handler){
      */
 
     /* 断言：中断向量处于正常范围 */
-
+//    assert(irq >= 0 && irq < NR_IRQ_VECTORS);
 
     /* 注册过了？那么什么也不做 */
     if(g_irqHandlers[irq] == handler) return;
 
     /* 断言：该中断已初始化过 */
-
+//    assert(irq_handler_table[irq] == default_irq_handler);
 
     /* 开始设置
      * 先关闭对应的中断，再将中断处理例程替换旧的

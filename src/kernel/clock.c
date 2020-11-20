@@ -4,8 +4,9 @@
 
 #include "../include/core/kernel.h"
 
-FORWARD void clock_init (void);
+PRIVATE clock_t ticks;          /* 时钟运行的时间(滴答数)，也是开机后时钟运行的时间 */
 
+FORWARD void clock_init (void);
 FORWARD int clock_handler (int irq);
 
 //需要设置好idt
@@ -15,6 +16,19 @@ PUBLIC void clock_task(void) {
     clock_init();
 //    interrupt_unlock();
 
+}
+
+PRIVATE int clock_handler(int irq) {
+    ticks++;
+    if (ticks % 100 == 0) {
+        printf(">");
+        gp_curProc++;
+        /* 超出我们的系统进程，拉回来 */
+        if (gp_curProc > proc_addr(LOW_USER)) {
+            gp_curProc = proc_addr(-NR_TASKS);
+        }
+    }
+    return ENABLE;  /* 返回ENABLE，使其再能发生时钟中断 */
 }
 
 PRIVATE void clock_init(void) {
@@ -33,18 +47,4 @@ PRIVATE void clock_init(void) {
     put_irq_handler(CLOCK_IRQ, clock_handler);
     enable_irq(CLOCK_IRQ);
 
-}
-
-PRIVATE clock_t ticks;          /* 时钟运行的时间(滴答数)，也是开机后时钟运行的时间 */
-PRIVATE int clock_handler(int irq) {
-    ticks++;
-    if (ticks % 100 == 0) {
-        printf(">");
-        gp_curProc++;
-        /* 超出我们的系统进程，拉回来 */
-        if (gp_curProc > proc_addr(LOW_USER)) {
-            gp_curProc = proc_addr(-NR_TASKS);
-        }
-    }
-    return ENABLE;  /* 返回ENABLE，使其再能发生时钟中断 */
 }

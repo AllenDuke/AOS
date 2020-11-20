@@ -10,7 +10,7 @@
  * @param error_num
  */
 PUBLIC void panic(const char *msg, int error_num) {
-    if (msg != NULL) {
+    if (msg != NIL_PTR) {
         printf("AOS kernel is panicky for: %s !\n", msg);
         if (error_num != PANIC_ERR_NUM)
             printf("panic error num: 0x%x !\n", error_num);

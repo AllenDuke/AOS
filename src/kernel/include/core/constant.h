@@ -19,7 +19,8 @@
 
 #define TRUE            1	            /* 布尔值：真 */
 #define FALSE           0	            /* 布尔值：假 */
-#define NULL            ((void *)0)     /* 空指针 */
+#define NULL            (void *)0       /* 空指针 */
+#define NIL_PTR   (char *) 0	        /* 一般且有用的表达，空指针 */
 
 #define INIT_PSW      0x202	    /* initial psw :IF=1, 位2一直是1 */
 #define INIT_TASK_PSW 0x1202	/* initial psw for tasks (with IOPL 1) : IF=1, IOPL=1, 位2一直是1*/

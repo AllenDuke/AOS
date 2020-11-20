@@ -28,7 +28,7 @@ PRIVATE char* sp_exceptionInfos[] = {
         "#GP General Protection",                           /* 常规保护错误 */
         "#PF Page Fault",                                   /* 页错误 */
         "—   (Intel reserved. Do not use.)",                /* Intel保留，不使用 */
-        "#MF x87 FPU Floating-Point Error (Math Fault)"    /* x87FPU浮点数(数学错误) */
+        "#MF x87 FPU Floating-Point Error (Math Fault)",    /* x87FPU浮点数(数学错误) */
 };
 
 /**
@@ -45,7 +45,7 @@ PUBLIC void exception_handler(int int_vector, int error_no){
     }
 
     /* 简单点，内核发生异常，我们准备宕机 */
-    if(sp_exceptionInfos[int_vector] == NULL){
+    if(sp_exceptionInfos[int_vector] == NIL_PTR){
         panic("Fount a exception, but it not in table!", PANIC_ERR_NUM);
     } else {
         panic(sp_exceptionInfos[int_vector], error_no != 0xffffffff ? error_no : PANIC_ERR_NUM);

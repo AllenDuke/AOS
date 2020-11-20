@@ -11,7 +11,7 @@
 PRIVATE GateDescriptor s_idt[IDT_SIZE];
 
 /* 中断门信息 */
-typedef struct {
+typedef struct gate_desc_s{
     u8_t vector;            /* 中断向量号 */
     int_handler handler;  /* 处理例程，这相当于一个32位的函数指针 */
     u8_t privilege;         /* 门权限 */

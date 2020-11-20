@@ -131,120 +131,120 @@ LOAD target/lib/stdio/printf.o
 .plt
  *(.plt)
 
-.text           0x00001000     0x1673
+.text           0x00001000     0x1683
  *(.text .stub .text.* .gnu.linkonce.t.*)
  .text          0x00001000       0x3f target/kernel/kernel.o
                 0x00001000                _start
  *fill*         0x0000103f        0x1 90909090
- .text          0x00001040      0x309 target/kernel/main.o
-                0x000010de                aos_main
-                0x0000108f                test_task_b
-                0x00001040                test_task_a
- *fill*         0x00001349        0x7 90909090
- .text          0x00001350      0x6bf target/kernel/kernel_i386lib.o
-                0x000014eb                cpu_halt
-                0x000017c0                hwint08
-                0x00001435                invalid_opcode
-                0x000013bd                divide_error
-                0x0000146c                coop_proc_seg_oob
-                0x00001350                phys_copy
-                0x000018c0                hwint12
-                0x000014ad                general_protection
-                0x0000140d                over_flow
-                0x00001590                enable_irq
-                0x00001520                out_word
-                0x00001900                hwint13
-                0x00001800                hwint09
-                0x00001980                hwint15
-                0x000015c0                hwint00
-                0x00001680                hwint03
-                0x0000148f                segment_not_present
-                0x000014cb                math_fault
-                0x00001540                interrupt_unlock
-                0x00001840                hwint10
-                0x000013f9                break_point
-                0x00001600                hwint01
-                0x00001500                out_byte
-                0x000013d1                debug_exception
-                0x00001640                hwint02
-                0x0000145d                double_fault
-                0x00001380                low_print
-                0x00001700                hwint05
-                0x000013e5                non_maskable_int
-                0x00001940                hwint14
-                0x000014f0                in_byte
-                0x000014bc                page_fault
-                0x00001421                out_of_bounds
-                0x00001740                hwint06
-                0x00001510                in_word
-                0x000016c0                hwint04
-                0x00001480                invalid_tss
-                0x000019e7                restart
-                0x00001780                hwint07
-                0x0000149e                stack_exception
-                0x00001530                interrupt_lock
-                0x00001880                hwint11
-                0x00001449                dev_not_available
-                0x00001550                disable_irq
- *fill*         0x00001a0f        0x1 90909090
- .text          0x00001a10      0x270 target/kernel/protect.o
-                0x00001c0d                init_segment_desc
-                0x00001a10                init_protect
- .text          0x00001c80       0x39 target/kernel/init_c.o
-                0x00001c80                init_c
- *fill*         0x00001cb9        0x3 90909090
- .text          0x00001cbc       0x6e target/kernel/exception.o
-                0x00001cbc                exception_handler
- *fill*         0x00001d2a        0x2 90909090
- .text          0x00001d2c       0xbc target/kernel/panic.o
-                0x00001d2c                panic
-                0x00001dab                bad_compare
-                0x00001d6e                bad_assertion
- .text          0x00001de8      0x160 target/kernel/i8259.o
-                0x00001f34                softIntTest
-                0x00001de8                init_8259A
-                0x00001ee5                put_irq_handler
- .text          0x00001f48       0xf7 target/kernel/clock.o
-                0x00001f48                clock_task
- *fill*         0x0000203f        0x1 90909090
- .text          0x00002040       0x81 target/lib/ansi/memcmp.o
-                0x00002040                memcmp
- *fill*         0x000020c1        0x3 90909090
- .text          0x000020c4      0x12b target/lib/ansi/cstring.o
-                0x000020c4                strncmp
-                0x0000216a                strcmp
- *fill*         0x000021ef        0x1 90909090
- .text          0x000021f0      0x483 target/lib/stdio/printf.o
-                0x000021f0                printf
-                0x0000222a                fmt_string
+ .text          0x00001040      0x31f target/kernel/main.o
+                0x00001040                aos_main
+                0x00001310                test_task_b
+                0x000012c1                test_task_a
+ *fill*         0x0000135f        0x1 90909090
+ .text          0x00001360      0x6bf target/kernel/kernel_i386lib.o
+                0x000014fb                cpu_halt
+                0x000017d0                hwint08
+                0x00001445                invalid_opcode
+                0x000013cd                divide_error
+                0x0000147c                coop_proc_seg_oob
+                0x00001360                phys_copy
+                0x000018d0                hwint12
+                0x000014bd                general_protection
+                0x0000141d                over_flow
+                0x000015a0                enable_irq
+                0x00001530                out_word
+                0x00001910                hwint13
+                0x00001810                hwint09
+                0x00001990                hwint15
+                0x000015d0                hwint00
+                0x00001690                hwint03
+                0x0000149f                segment_not_present
+                0x000014db                math_fault
+                0x00001550                interrupt_unlock
+                0x00001850                hwint10
+                0x00001409                break_point
+                0x00001610                hwint01
+                0x00001510                out_byte
+                0x000013e1                debug_exception
+                0x00001650                hwint02
+                0x0000146d                double_fault
+                0x00001390                low_print
+                0x00001710                hwint05
+                0x000013f5                non_maskable_int
+                0x00001950                hwint14
+                0x00001500                in_byte
+                0x000014cc                page_fault
+                0x00001431                out_of_bounds
+                0x00001750                hwint06
+                0x00001520                in_word
+                0x000016d0                hwint04
+                0x00001490                invalid_tss
+                0x000019f7                restart
+                0x00001790                hwint07
+                0x000014ae                stack_exception
+                0x00001540                interrupt_lock
+                0x00001890                hwint11
+                0x00001459                dev_not_available
+                0x00001560                disable_irq
+ *fill*         0x00001a1f        0x1 90909090
+ .text          0x00001a20      0x270 target/kernel/protect.o
+                0x00001c1d                init_segment_desc
+                0x00001a20                init_protect
+ .text          0x00001c90       0x39 target/kernel/init_c.o
+                0x00001c90                init_c
+ *fill*         0x00001cc9        0x3 90909090
+ .text          0x00001ccc       0x6e target/kernel/exception.o
+                0x00001ccc                exception_handler
+ *fill*         0x00001d3a        0x2 90909090
+ .text          0x00001d3c       0xbc target/kernel/panic.o
+                0x00001d3c                panic
+                0x00001dbb                bad_compare
+                0x00001d7e                bad_assertion
+ .text          0x00001df8      0x160 target/kernel/i8259.o
+                0x00001f44                softIntTest
+                0x00001df8                init_8259A
+                0x00001ef5                put_irq_handler
+ .text          0x00001f58       0xf7 target/kernel/clock.o
+                0x00001f58                clock_task
+ *fill*         0x0000204f        0x1 90909090
+ .text          0x00002050       0x81 target/lib/ansi/memcmp.o
+                0x00002050                memcmp
+ *fill*         0x000020d1        0x3 90909090
+ .text          0x000020d4      0x12b target/lib/ansi/cstring.o
+                0x000020d4                strncmp
+                0x0000217a                strcmp
+ *fill*         0x000021ff        0x1 90909090
+ .text          0x00002200      0x483 target/lib/stdio/printf.o
+                0x00002200                printf
+                0x0000223a                fmt_string
  *(.text.*personality*)
  *(.gnu.warning)
 
 .fini
  *(.fini)
-                0x00002673                PROVIDE (__etext, .)
-                0x00002673                PROVIDE (_etext, .)
-                0x00002673                PROVIDE (etext, .)
+                0x00002683                PROVIDE (__etext, .)
+                0x00002683                PROVIDE (_etext, .)
+                0x00002683                PROVIDE (etext, .)
 
-.rodata         0x00002674      0x4d4
+.rodata         0x00002684      0x4d4
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x00002674       0x2c target/kernel/main.o
- .rodata        0x000026a0       0x35 target/kernel/protect.o
- .rodata        0x000026d5       0x14 target/kernel/init_c.o
- *fill*         0x000026e9        0x3 00
- .rodata        0x000026ec      0x1f8 target/kernel/exception.o
- .rodata        0x000028e4       0xb7 target/kernel/panic.o
- *fill*         0x0000299b        0x1 00
- .rodata        0x0000299c       0x43 target/kernel/i8259.o
- .rodata        0x000029df       0x19 target/kernel/clock.o
- .rodata        0x000029f8      0x150 target/lib/stdio/printf.o
+ .rodata        0x00002684       0x2c target/kernel/main.o
+ .rodata        0x000026b0       0x35 target/kernel/protect.o
+ .rodata        0x000026e5       0x14 target/kernel/init_c.o
+ *fill*         0x000026f9        0x3 00
+ .rodata        0x000026fc      0x1f8 target/kernel/exception.o
+ .rodata        0x000028f4       0xb7 target/kernel/panic.o
+ *fill*         0x000029ab        0x1 00
+ .rodata        0x000029ac       0x43 target/kernel/i8259.o
+ .rodata        0x000029ef       0x19 target/kernel/clock.o
+ .rodata        0x00002a08      0x150 target/lib/stdio/printf.o
 
-.lib            0x00002b48       0x7e
- .lib           0x00002b48       0x7e target/lib/ansi/string.o
-                0x00002b98                strcpy
-                0x00002b48                memcpy
-                0x00002b74                memset
-                0x00002bb0                strlen
+.lib            0x00002b58       0x7e
+ .lib           0x00002b58       0x7e target/lib/ansi/string.o
+                0x00002ba8                strcpy
+                0x00002b58                memcpy
+                0x00002b84                memset
+                0x00002bc0                strlen
 
 .rodata1
  *(.rodata1)
@@ -257,8 +257,8 @@ LOAD target/lib/stdio/printf.o
 
 .gcc_except_table
  *(.gcc_except_table .gcc_except_table.*)
-                0x00002bc6                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
-                0x00003bc6                . = (0x1000 DATA_SEGMENT_ALIGN 0x1000)
+                0x00002bd6                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
+                0x00003bd6                . = (0x1000 DATA_SEGMENT_ALIGN 0x1000)
 
 .eh_frame
  *(.eh_frame)
@@ -273,22 +273,22 @@ LOAD target/lib/stdio/printf.o
  *(.tbss .tbss.* .gnu.linkonce.tb.*)
  *(.tcommon)
 
-.preinit_array  0x00003bc6        0x0
-                0x00003bc6                PROVIDE (__preinit_array_start, .)
+.preinit_array  0x00003bd6        0x0
+                0x00003bd6                PROVIDE (__preinit_array_start, .)
  *(.preinit_array)
-                0x00003bc6                PROVIDE (__preinit_array_end, .)
+                0x00003bd6                PROVIDE (__preinit_array_end, .)
 
-.init_array     0x00003bc6        0x0
-                0x00003bc6                PROVIDE (__init_array_start, .)
+.init_array     0x00003bd6        0x0
+                0x00003bd6                PROVIDE (__init_array_start, .)
  *(SORT(.init_array.*))
  *(.init_array)
-                0x00003bc6                PROVIDE (__init_array_end, .)
+                0x00003bd6                PROVIDE (__init_array_end, .)
 
-.fini_array     0x00003bc6        0x0
-                0x00003bc6                PROVIDE (__fini_array_start, .)
+.fini_array     0x00003bd6        0x0
+                0x00003bd6                PROVIDE (__fini_array_start, .)
  *(.fini_array)
  *(SORT(.fini_array.*))
-                0x00003bc6                PROVIDE (__fini_array_end, .)
+                0x00003bd6                PROVIDE (__fini_array_end, .)
 
 .ctors
  *crtbegin.o(.ctors)
@@ -316,7 +316,7 @@ LOAD target/lib/stdio/printf.o
 
 .got
  *(.got)
-                0x00003bc6                . = (. DATA_SEGMENT_RELRO_END 0xc)
+                0x00003bd6                . = (. DATA_SEGMENT_RELRO_END 0xc)
 
 .got.plt
  *(.got.plt)
