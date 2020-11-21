@@ -66,7 +66,7 @@ void aos_main(void) {
             rpl = privilege = SERVER_PRIVILEGE;
         }
         /* 堆栈基地址 + 分配的栈大小 = 栈顶 */
-        reg_t sys_proc_stack_top = sys_proc_stack_base + sys_proc->stack_size;
+        sys_proc_stack_base += sys_proc->stack_size;
 
         /* ================= 初始化系统进程的 LDT ================= */
         proc->ldt[CS_LDT_INDEX] = g_gdt[TEXT_INDEX];  /* 和内核公用段 */
@@ -83,7 +83,7 @@ void aos_main(void) {
         proc->regs.es = proc->regs.fs = proc->regs.ss = proc->regs.ds;  /* C 语言不加以区分这几个段寄存器 */
         proc->regs.gs = (KERNEL_GS_SELECTOR & SA_RPL_MASK | rpl);       /* gs 指向显存 */
         proc->regs.eip = (reg_t) sys_proc->task;                        /* eip 指向要执行的代码首地址 */
-        proc->regs.esp = sys_proc_stack_top;                           /* 设置栈顶 */
+        proc->regs.esp = sys_proc_stack_base;                           /* 设置栈顶 */
         proc->regs.eflags = is_task_proc(proc) ? INIT_TASK_PSW : INIT_PSW; /* 设置if位 */
 
         /* 进程刚刚初始化，让它处于可运行状态，所以标志位上没有1 */
