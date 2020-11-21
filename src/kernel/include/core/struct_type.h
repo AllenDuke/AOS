@@ -61,18 +61,18 @@ typedef struct memory_map{
 } MemoryMap;
 
 
-typedef void task_t(void);
-typedef void (*WatchDog)(void);
-/* 系统进程表项定义
- *
+typedef void (*SysTask) (void);
+typedef void (*WatchDog) (void);
+/**
+ * 系统进程表项定义
  * 一个表项可以存放一个系统级别的进程，在这里我们和用户进程表项分开定义了
  * 因为它们特权级不同，待遇也不同，就这个理解就应该让我们区别对待。
  */
 typedef struct sys_proc {
-    task_t *initial_eip;        /* 系统进程的处理句柄，即 eip */
-    int     stack_size;         /* 系统进程的栈大小 */
-    char    name[16];           /* 系统进程名称 */
-} SysProc_t;
+    SysTask task;           /* 这是一个函数指针，指向实际要执行的任务 */
+    int     stack_size;     /* 系统进程的栈大小 */
+    char    name[16];       /* 系统进程名称 */
+} SysProc;
 
 /* 定义6种消息域将使得更易于在不同的体系结构上重新编译。 */
 typedef struct {int m1i1, m1i2, m1i3; char *m1p1, *m1p2, *m1p3;} mess_union1;
@@ -82,7 +82,7 @@ typedef struct {long m4l1, m4l2, m4l3, m4l4, m4l5;} mess_union4;
 typedef struct {char m5c1, m5c2; int m5i1, m5i2; long m5l1, m5l2, m5l3;}mess_union5;
 typedef struct {int m6i1, m6i2, m6i3; long m6l1; sighandler_t m6f1;} mess_union6;
 
-/* 消息，Flyanx中的进程通信的根本，同时也是客户端和服务端通信的根本
+/* 消息，AOS中的进程通信的根本，同时也是客户端和服务端通信的根本
  * 此数据结构来源自MINIX
  */
 typedef struct message_s{

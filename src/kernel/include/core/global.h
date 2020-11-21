@@ -54,7 +54,6 @@ u8_t kernel_reenter;         /* 记录内核中断重入次数 */
 char* sys_proc_stack[TOTAL_TASK_STACK / sizeof(char *)];
 
 
-
 /* 其他 */
 BootParam *gp_bootParam;   /* 引导参数指针 */
 

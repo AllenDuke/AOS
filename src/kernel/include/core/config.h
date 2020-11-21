@@ -28,7 +28,7 @@
 #define KERNEL_TEXT_SEG_BASE    0
 #define KERNEL_DATA_SEG_BASE    0
 
-/* 进程表中的用户进程的槽数，这个配置决定了flyanx能同时运行多少个用户进程。 */
+/* 进程表中的用户进程的槽数，这个配置决定了 AOS 能同时运行多少个用户进程。 */
 #define NR_PROCS          32
 
 /* 控制器任务的数量（/dev/cN设备类）。 */

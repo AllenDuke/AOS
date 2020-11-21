@@ -6,7 +6,7 @@
 
 
 /* === 系统进程表，包含系统任务以及系统服务 === */
-SysProc_t sys_proc_table[] = {
+SysProc sys_proc_table[] = {
         /* ************************* 系统任务 ************************* */
         { test_task_a, SMALL_STACK, "testa" },
         { test_task_b, SMALL_STACK, "testb" }
@@ -16,10 +16,13 @@ SysProc_t sys_proc_table[] = {
 void aos_main(void) {
 
     printf("aos_main\n");
-    int i=1/0; /* 依然是页错误 */
+
+//    int i=1/0; /* 依然是页错误 */
+
     clock_task();
 
-    /* 进程表的所有表项都被标志为空闲;
+    /**
+     * 进程表的所有表项都被标志为空闲;
      * 对用于加快进程表访问的 p_proc_addr 数组进行初始化。
      */
     register Process *proc;
@@ -27,19 +30,20 @@ void aos_main(void) {
     for(proc = BEG_PROC_ADDR, logic_nr = -NR_TASKS; proc < END_PROC_ADDR; proc++, logic_nr++) {
         if(logic_nr > 0)    /* 系统服务和用户进程 */
             strcpy(proc->name, "unused");
-        proc->logic_nr = logic_nr;
+        proc->logic_nr = logic_nr; /* 系统服务的逻辑号从-NR_TASKS到-1 */
         p_proc_addr[logic_nr_2_index(logic_nr)] = proc;
     }
 
-    /* 初始化多任务支持
+    /**
+     * 初始化多任务支持
      * 为系统任务和系统服务设置进程表，它们的堆栈被初始化为数据空间中的数组
      */
-    SysProc_t *sys_proc;
+    SysProc *sys_proc;
     reg_t sys_proc_stack_base = (reg_t) sys_proc_stack;
     u8_t  privilege;        /* CPU 权限 */
     u8_t rpl;               /* 段访问权限 */
-    for(logic_nr = -NR_TASKS; logic_nr <= LOW_USER; logic_nr++) {   /* 遍历整个系统进程 */
-        proc = proc_addr(logic_nr);                                 /* 拿到系统进程对应应该放在的进程指针 */
+    for(logic_nr = -NR_TASKS; logic_nr <= LOW_USER; logic_nr++) {   /* 遍历整个系统任务 */
+        proc = proc_addr(logic_nr);                                 /* 拿到系统任务对应应该放在的进程指针 */
         sys_proc = &sys_proc_table[logic_nr_2_index(logic_nr)];     /* 系统进程项 */
         strcpy(proc->name, sys_proc->name);                         /* 拷贝名称 */
         /* 判断是否是系统任务还是系统服务 */
@@ -62,7 +66,7 @@ void aos_main(void) {
             rpl = privilege = SERVER_PRIVILEGE;
         }
         /* 堆栈基地址 + 分配的栈大小 = 栈顶 */
-        sys_proc_stack_base += sys_proc->stack_size;
+        reg_t sys_proc_stack_top = sys_proc_stack_base + sys_proc->stack_size;
 
         /* ================= 初始化系统进程的 LDT ================= */
         proc->ldt[CS_LDT_INDEX] = g_gdt[TEXT_INDEX];  /* 和内核公用段 */
@@ -78,8 +82,8 @@ void aos_main(void) {
         proc->regs.ds = ((DS_LDT_INDEX * DESCRIPTOR_SIZE) | SA_TIL | rpl);
         proc->regs.es = proc->regs.fs = proc->regs.ss = proc->regs.ds;  /* C 语言不加以区分这几个段寄存器 */
         proc->regs.gs = (KERNEL_GS_SELECTOR & SA_RPL_MASK | rpl);       /* gs 指向显存 */
-        proc->regs.eip = (reg_t) sys_proc->initial_eip;                 /* eip 指向要执行的代码首地址 */
-        proc->regs.esp = sys_proc_stack_base;                           /* 设置栈顶 */
+        proc->regs.eip = (reg_t) sys_proc->task;                        /* eip 指向要执行的代码首地址 */
+        proc->regs.esp = sys_proc_stack_top;                           /* 设置栈顶 */
         proc->regs.eflags = is_task_proc(proc) ? INIT_TASK_PSW : INIT_PSW; /* 设置if位 */
 
         /* 进程刚刚初始化，让它处于可运行状态，所以标志位上没有1 */
@@ -91,11 +95,10 @@ void aos_main(void) {
      * 控制权从此不再返回到main。
      *
      * restart 作用是引发一个上下文切换,这样 curr_proc 所指向的进程将运行。
-     * 当 restart 执行了第一次时,我们可以说 Flyanx 正在运行-它在执行一个进程。
+     * 当 restart 执行了第一次时,我们可以说 AOS 正在运行-它在执行一个进程。
      * restart 被反复地执行,每当系统任务、服务器进程或用户进程放弃运行机会挂
      * 起时都要执行 restart,无论挂起原因是等待输入还是在轮到其他进程运行时将控制权转交给它们。
      */
-    printf("123\n");
     restart();
 }
 

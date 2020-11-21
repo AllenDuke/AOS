@@ -45,7 +45,7 @@ void restart(void);
 /*================================================================================================*/
 void clock_task(void);
 
-/* 硬件（异常）中断处理函数原型 相当于声明函数指针 int_handler_t 不能如此声明 void int_handler_t (void) 有点多态的意思*/
+/* 硬件（异常）中断处理函数原型 相当于声明函数指针 int_handler_t 不能如此声明 void int_handler_t (void) */
 typedef void (*int_handler)(void);
 /* 中断请求处理函数原型 */
 typedef int (*irq_handler)(int irq);
