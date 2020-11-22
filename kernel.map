@@ -136,11 +136,11 @@ LOAD target/lib/stdio/printf.o
  .text          0x00001000       0x3f target/kernel/kernel.o
                 0x00001000                _start
  *fill*         0x0000103f        0x1 90909090
- .text          0x00001040      0x2fd target/kernel/main.o
+ .text          0x00001040      0x2fa target/kernel/main.o
                 0x00001040                aos_main
-                0x000012ee                test_task_b
-                0x0000129f                test_task_a
- *fill*         0x0000133d        0x3 90909090
+                0x000012eb                test_task_b
+                0x0000129c                test_task_a
+ *fill*         0x0000133a        0x6 90909090
  .text          0x00001340      0x6bf target/kernel/kernel_i386lib.o
                 0x000014db                cpu_halt
                 0x000017b0                hwint08

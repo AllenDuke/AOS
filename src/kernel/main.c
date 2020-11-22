@@ -65,11 +65,11 @@ void aos_main(void) {
             proc->priority = PROC_PRI_SERVER;
             rpl = privilege = SERVER_PRIVILEGE;
         }
-        /* 堆栈基地址 + 分配的栈大小 = 栈顶 */
+        /* 堆栈基地址 + 分配的栈大小 = 栈顶，此时又成为了下一个进程栈顶 */
         sys_proc_stack_base += sys_proc->stack_size;
 
         /* ================= 初始化系统进程的 LDT ================= */
-        proc->ldt[CS_LDT_INDEX] = g_gdt[TEXT_INDEX];  /* 和内核公用段 */
+        proc->ldt[CS_LDT_INDEX] = g_gdt[TEXT_INDEX];  /* 这里是深拷贝 和内核公用段 */
         proc->ldt[DS_LDT_INDEX] = g_gdt[DATA_INDEX];
         /* ================= 改变DPL描述符特权级 ================= */
         proc->ldt[CS_LDT_INDEX].access = (DA_CR | (privilege << 5));

@@ -33,7 +33,7 @@ typedef struct process_s{
     /* flags 状态标志位图域中的标志位标识进程的状态。如果其中任一位被置位,则进程将被堵塞
      * 无法运行。各种标志被定义和描述请往下看，如果该进程表项未被使用,则P_SLOT_FREE被置位。
      */
-    int flags;
+    u8_t flags;
     pid_t pid;                      /* 进程号，用户可见的 */
     u8_t priority;                  /* 权限：任务0/服务1/用户进程3 */
     struct process_s* next_ready;   /* 指向下一个就绪的进程，形成一个队列 */
