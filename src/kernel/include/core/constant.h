@@ -32,7 +32,7 @@
 //  保护模式相关
 //----------------------------------------------------------------------------------------------------------------------
 /* 系统任务数量 */
-#define NR_TASKS    (2 + NR_CONTROLLERS)
+#define NR_TASKS    (1 + NR_CONTROLLERS)
 #define NR_SERVERS  0
 
 #define INT_VECTOR_SYS_CALL         0x94        /* AOS 系统调用向量 */
@@ -56,6 +56,8 @@
 #define INT_VECTOR_BIOS_IRQ8        0x10
 #define	INT_VECTOR_IRQ0				0x20    // 32
 #define	INT_VECTOR_IRQ8				0x28    // 40
+
+#define INT_VECTOR_LEVEL0           0x30
 
 /* 硬件中断数量 */
 #define NR_IRQ_VECTORS      16      /* 中断请求的数量 */
@@ -160,7 +162,11 @@
 /* 这是一个普通堆栈大小，1KB */
 #define NORMAL_STACK (256 * sizeof(char*))
 
+/* 待机任务堆栈 */
+#define IDLE_TASK_STACK     SMALL_STACK
+
 /* 所有系统进程的栈空间总大小 */
 #define TOTAL_TASK_STACK    (SMALL_STACK+SMALL_STACK)
+
 
 #endif //AOS_CONSTANT_H

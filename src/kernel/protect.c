@@ -59,7 +59,7 @@ GateInfo s_initGateInfos[] = {
         { INT_VECTOR_IRQ8 + 7, hwint15, KERNEL_PRIVILEGE },
 
         /* 软件中断 */
-        {0x30,softIntTest,KERNEL_PRIVILEGE}
+        {INT_VECTOR_LEVEL0,level0_sys_call,TASK_PRIVILEGE}
 };
 
 /* 本地函数 */

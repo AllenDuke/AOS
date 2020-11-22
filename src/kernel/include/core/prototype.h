@@ -98,7 +98,6 @@ void	hwint13(void);
 void	hwint14(void);
 void	hwint15(void);
 
-void	softIntTest(void);
 
 void panic(const char* msg, int error_no );
 void test_task_a(void);
@@ -107,4 +106,8 @@ void test_task_b(void);
 int printf(const char *_fmt, ...);
 int fmt_string(char *_buf, const char *_fmt, ...);
 
+void idle_task(void);
+void level0(aos_syscall level0_func);
+void halt(void);
+void level0_sys_call(void);
 #endif //AOS_PROTOTYPE_H

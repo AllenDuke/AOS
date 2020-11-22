@@ -81,7 +81,3 @@ PRIVATE int default_irq_handler(int irq){
     printf("I am a interrupt, my name is int %d\n", irq);
     return DISABLE; /* 如果是键盘这样的中断，需要持续地响应，即响应完毕后要重新打开中断，这样的话要返回非0 */
 }
-
-PUBLIC void softIntTest(){
-    printf("soft\n");
-}

@@ -56,5 +56,5 @@ char* sys_proc_stack[TOTAL_TASK_STACK / sizeof(char *)];
 
 /* 其他 */
 BootParam *gp_bootParam;   /* 引导参数指针 */
-
+aos_syscall level0_func;/* 提权成功的函数指针放在这里 */
 #endif // AOS_GLOBAL_H
