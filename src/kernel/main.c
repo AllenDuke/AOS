@@ -17,7 +17,7 @@ void aos_main(void) {
 
     printf("aos_main\n");
 
-//    int i=1/0; /* 依然是页错误 */
+//    int i=1/0; /* 除法错误正常 */
 
     clock_task();
 
