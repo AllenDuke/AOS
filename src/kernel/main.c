@@ -8,9 +8,11 @@
 /* === 系统进程表，包含系统任务以及系统服务 === */
 SysProc sys_proc_table[] = {
         /* ************************* 系统任务 ************************* */
+        { clock_task, CLOCK_TASK_STACK, "CLOCK" },
         /* 待机任务 */
         { idle_task, IDLE_TASK_STACK, "IDLE" },
-        /* ************************* 系统服务 ************************* */
+        /* 虚拟硬件任务，只是占个位置 - 用作判断硬件中断 */
+        { 0, HARDWARE_STACK, "HARDWARE" },
 };
 
 void aos_main(void) {
@@ -19,7 +21,7 @@ void aos_main(void) {
 
 //    int i=1/0; /* 除法错误正常 */
 
-    clock_task();
+//    clock_task();
 
     /**
      * 进程表的所有表项都被标志为空闲;
@@ -88,9 +90,21 @@ void aos_main(void) {
 
         /* 进程刚刚初始化，让它处于可运行状态，所以标志位上没有1 */
         proc->flags = CLEAN_MAP;
+
+        /* 如果该进程不是待机任务 或 虚拟硬件，就绪它 */
+        if(!is_idle_hardware(logic_nr)) ready(proc);
     }
-    /* 启动 A */
-    gp_curProc = proc_addr(-1);
+
+    /* 设置消费进程，它需要一个初值。因为系统闲置刚刚启动，所以此时闲置进程是一个最合适的选择。
+ * 随后在调用下一个函数 lock_hunter 进行第一次进程狩猎时可能会选择其他进程。
+ */
+    bill_proc = proc_addr(IDLE_TASK);
+    proc_addr(IDLE_TASK)->priority = PROC_PRI_IDLE;
+    lock_hunter();      /* 让我们看看，有什么进程那么幸运的被抓出来第一个执行 */
+
+//    /* 启动 A */
+//    gp_curProc = proc_addr(-1);
+
     /* 最后,main 的工作至此结束。它的工作到初始化结束为止。restart 的调用将启动第一个任务，
      * 控制权从此不再返回到main。
      *
@@ -114,6 +128,11 @@ PUBLIC void idle_task(void) {
      * 中都会保持中断开启，保证待机时间内随时可以响应活动。
      */
     printf("idle...\n");
+    /* 测试系统调用 */
+    Message msg;
+    io_box(&msg);
+    sen_rec(CLOCK_TASK);
+    printf("send_rec, get type: %d\n", msg.type);
     while (TRUE)
         level0(halt);
 }

@@ -40,6 +40,9 @@ void interrupt_unlock(void);
 int disable_irq(int int_request);
 void enable_irq(int int_request);
 void restart(void);
+void aos_sys_call(void);
+void msg_copy(phys_addr msg_phys, phys_addr dest_phys);
+
 /*================================================================================================*/
 /* clock.c */
 /*================================================================================================*/
@@ -110,4 +113,23 @@ void idle_task(void);
 void level0(aos_syscall level0_func);
 void halt(void);
 void level0_sys_call(void);
+
+/* 公有函数声明 */
+/*================================================================================================*/
+/* process.c */
+/*================================================================================================*/
+void lock_schedule(void);
+void lock_unready(struct process_s *proc);
+void lock_ready(struct process_s *proc);
+void lock_hunter(void);
+void schedule_stop(void );
+void ready(struct process_s *proc);
+void unready(struct process_s *proc);
+
+/*================================================================================================*/
+/* ipc_msg.c */
+/*================================================================================================*/
+int flyanx_send(struct process_s *caller, int dest, Message *msg_phys);
+int flyanx_receive(struct process_s *caller, int src, Message *msg_phys);
+
 #endif //AOS_PROTOTYPE_H

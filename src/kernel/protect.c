@@ -58,8 +58,9 @@ GateInfo s_initGateInfos[] = {
         { INT_VECTOR_IRQ8 + 6, hwint14, KERNEL_PRIVILEGE },
         { INT_VECTOR_IRQ8 + 7, hwint15, KERNEL_PRIVILEGE },
 
-        /* 软件中断 */
-        {INT_VECTOR_LEVEL0,level0_sys_call,TASK_PRIVILEGE}
+        /* ************* 软件中断 *************** */
+        {INT_VECTOR_LEVEL0,level0_sys_call,TASK_PRIVILEGE}, /* 提供给系统任务的系统调用：提权 */
+        { INT_VECTOR_SYS_CALL, aos_sys_call, USER_PRIVILEGE },
 };
 
 /* 本地函数 */

@@ -91,7 +91,7 @@ typedef struct process_s{
 #define BEG_USER_PROC_ADDR  (&proc_table[NR_TASKS + NR_SERVERS +LOW_USER])
 
 /* 下面的这些宏能帮助我们快速做一些进程判断等简单的工作 */
-#define NIL_PROC          ((Process_t *) 0)       /* 空进程指针 */
+#define NIL_PROC          ((Process *) 0)       /* 空进程指针 */
 #define logic_nr_2_index(n) (NR_TASKS + n)
 #define is_idle_hardware(n) ((n) == IDLE_TASK || (n) == HARDWARE)   /* 是空闲进程 或 硬件（特殊进程）？ */
 #define is_ok_proc_nr(n)      ((unsigned) ((n) + NR_TASKS) < NR_PROCS + NR_TASKS + NR_SERVERS)   /* 是个合法的进程索引号？ */
@@ -114,7 +114,7 @@ typedef struct process_s{
 #define cproc_addr(n)     (&(proc_table + NR_TASKS)[(n)])  /* 得到进程的地址 */
 /* 进程的虚拟地址转物理地址 */
 #define proc_vir2phys(p, vir) \
-    ((phys_bytes)(p)->map.base + (vir_bytes)(vir))
+    ((phys_addr)(p)->map.base + (vir_addr)(vir))
 
 
 

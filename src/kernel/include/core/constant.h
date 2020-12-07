@@ -32,7 +32,7 @@
 //  保护模式相关
 //----------------------------------------------------------------------------------------------------------------------
 /* 系统任务数量 */
-#define NR_TASKS    (1 + NR_CONTROLLERS)
+#define NR_TASKS    (3 + NR_CONTROLLERS)
 #define NR_SERVERS  0
 
 #define INT_VECTOR_SYS_CALL         0x94        /* AOS 系统调用向量 */
@@ -125,6 +125,10 @@
 #define M4                 4        /* 同上 */
 #define M3_STRING         15        /* 消息类型3携带字符串的长度 */
 
+/* 消息常用宏定义 */
+#define MESSAGE_SIZE    (sizeof(Message))   /* 一个消息的字节大小 */
+#define NIL_MESSAGE     ((Message *) 0)     /* 空消息 */
+
 /* 下面定义了进程调度的三个优先级队列 */
 #define TASK_QUEUE             0	/* 就绪的系统任务通过队列0调度 */
 #define SERVER_QUEUE           1	/* 就绪的系统服务通过队列1调度 */
@@ -137,6 +141,20 @@
 #define FLY_PROC_NR        2    	/* FLY */
 #define ORIGIN_PROC_NR	   3		/* 初始化 -- 将会fork为多用户进程 */
 #define LOW_USER           -1  /* 第一个用户进程不是操作系统的一部分 */
+
+/* 系统调用例程可以支持的操作 */
+#define SEND            0x1    	/* 0001: 发送一条消息 */
+#define RECEIVE         0x2    	/* 0010: 接收一条消息 */
+#define SEND_REC        0x3    	/* 0011: 发送一条消息并等待对方响应一条消息 */
+#define IN_OUTBOX       0x4   	/* 0100: 设置固定收发件箱  */
+#define ANY             0x3ea   /* 魔数，它是一个不存在的进程逻辑编号，用于表示任何进程
+                                 *      receive(ANY, msg_buf) 表示接收任何进程的消息
+                                 */
+
+/* 每个系统任务的任务号和它的功能服务号(消息类型)以及回复代码，将在下面开始定义 */
+#define CLOCK_TASK          -3  /* 时钟任务 */
+#define IDLE_TASK           -2  /* 待机任务 */
+#define HARDWARE            -1  /* 代表硬件，用于生成软件生成硬件中断，并不存在实际的任务 */
 //======================================================================================================================
 
 //======================================================================================================================
@@ -154,6 +172,12 @@
 #define tick2sec(t)   ((time_t)tick2ms(t) / 1000)   /* 滴答 转化为 秒 */
 
 #define bytes2round_k(n)    ((unsigned) (((n + 512) >> 10)))    /* 字节 转换为 KB */
+
+/* 为了消息通信调用的简洁 */
+#define sen(n)              send(n, NIL_MESSAGE)
+#define rec(n)              receive(n, NIL_MESSAGE)
+#define sen_rec(n)          send_rec(n, NIL_MESSAGE)
+#define io_box(vir)         in_outbox(vir, vir);
 //======================================================================================================================
 
 /* === 堆栈相关 === */
@@ -162,9 +186,12 @@
 /* 这是一个普通堆栈大小，1KB */
 #define NORMAL_STACK (256 * sizeof(char*))
 
+/* 时钟任务栈 */
+#define CLOCK_TASK_STACK    SMALL_STACK
 /* 待机任务堆栈 */
 #define IDLE_TASK_STACK     SMALL_STACK
-
+/* 虚拟硬件栈 */
+#define HARDWARE_STACK  0
 /* 所有系统进程的栈空间总大小 */
 #define TOTAL_TASK_STACK    (SMALL_STACK+SMALL_STACK)
 

@@ -5,6 +5,7 @@
 #include "../include/core/kernel.h"
 
 PRIVATE clock_t ticks;          /* 时钟运行的时间(滴答数)，也是开机后时钟运行的时间 */
+PRIVATE Message msg;
 
 FORWARD void clock_init (void);
 FORWARD int clock_handler (int irq);
@@ -16,17 +17,32 @@ PUBLIC void clock_task(void) {
     clock_init();
 //    interrupt_unlock();
 
+    /* 初始化收发件箱 */
+    io_box(&msg);
+
+    printf("#{CLOCK}-> Working...\n");
+    while(TRUE) {
+        /* 等待外界消息 */
+        rec(ANY);
+
+        /* 为外界提供服务 */
+        printf("#{CLOCK}-> get message from %d\n", msg.source);
+
+        /* 根据处理结果，发送回复消息 */
+        msg.type = 666;
+        sen(msg.source);
+    }
 }
 
 PRIVATE int clock_handler(int irq) {
     ticks++;
     if (ticks % 100 == 0) {
         printf(">");
-        gp_curProc++;
-        /* 超出我们的系统进程，拉回来 */
-        if (gp_curProc > proc_addr(LOW_USER)) {
-            gp_curProc = proc_addr(-NR_TASKS);
-        }
+//        gp_curProc++;
+//        /* 超出我们的系统进程，拉回来 */
+//        if (gp_curProc > proc_addr(LOW_USER)) {
+//            gp_curProc = proc_addr(-NR_TASKS);
+//        }
     }
     return ENABLE;  /* 返回ENABLE，使其再能发生时钟中断 */
 }

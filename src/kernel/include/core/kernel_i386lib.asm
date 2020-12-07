@@ -13,6 +13,7 @@ extern g_tss
 extern kernel_reenter               ; 记录内核重入次数
 extern STACK_TOP
 extern level0_func
+extern sys_call                     ; 系统调用处理函数
 
 ; 导入函数
 extern exception_handler            ; 异常统一处理例程
@@ -33,6 +34,8 @@ global restart
 global level0
 global level0_sys_call
 global halt
+global aos_sys_call
+global msg_copy
 
 ; 所有的异常处理入口
 global divide_error
@@ -615,7 +618,42 @@ save:
     jmp [esi + RETADDR - P_STACKBASE]   ; 回到 call save() 之后继续处理中断
 ; ======================================================================================================================
 
+;============================================================================
+;   flyanx的系统调用
+; 函数原型：void flyanx_386_sys_call(void);
+; 系统调用流程：进程A进行系统调用（发送或接收一条消息），系统调用完成后，CPU控制权还是回到进程A手中，除非被调度程序调度。
+;----------------------------------------------------------------------------
+aos_sys_call:
+    ; 这一部分是 save 函数的精简版，为了效率；但其实直接 call save 也没有任何问题
+    push dword 0x3ea      ; 压入一个假的 ret_addr
+    pushad
+    push ds
+    push es
+    push fs
+    push gs
+    mov dx, ss
+    mov ds, dx
+    mov es, dx
+    mov esi, esp                ; esi 指向进程的栈帧开始处
+    inc byte [kernel_reenter]  ; 发生了一次中断，中断重入计数++
+    mov esp, STACK_TOP
+    ; 重新开启中断,注：软件中断与硬件中断的相似之处还包括它们都会自动关中断
+    sti
+    ; 进行调用前，先保存进程的栈帧开始地址
+    push esi
 
+    ; 这里是重点，将所需参数压入栈中（现在处于核心栈），然后调用 sys_call 去真正调用实际的系统调用例程
+    push ebx        ; msg_ptr
+    push eax        ; src_dest_msgp
+    push ecx        ; op
+    call sys_call
+    add esp, 4 * 3  ; clean
+
+    ; 在完成进程恢复之前，关闭中断以保护即将被再次启动的进程的栈帧结构
+    pop esi
+    mov [esi + EAXREG - P_STACKBASE], eax   ; 将返回值放到调用进程的栈帧结构中的 eax 中
+    cli
+; 在这里，直接陷入 restart 的代码以重新启动进程/任务运行，这就是我们不需要完整 save 的原因
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
 ;   中断处理完毕，恢复gp_curProc指向的进程
@@ -670,4 +708,31 @@ level0:
     mov eax, [esp + 4]
     mov [level0_func], eax  ; 将提权函数指针放到 level0_func 中
     int LEVEL0_VECTOR	    ; 好的，调用提权调用去执行提权成功的例程
+    ret
+
+
+;*===========================================================================*
+;*				消息拷贝				     *
+; 函数原型：PUBLIC void msg_copy(phys_bytes msg_phys, phys_bytes dest_phys);
+; 虽然我们可以用 phys_copy 来进行消息的拷贝完成消息的传递，但是这样按字节传输的效率
+; 对于我们的邮局来说效率太低了，这个函数专门用于消息拷贝，它使用了 movsd(拷贝单位: dword)
+; 这样在 32位 模式下更快的传输指令，它能很大提升我们邮局的传信效率，但比起函数调用还是很慢。
+;*===========================================================================*
+align 16
+msg_copy:
+    push esi
+    push edi
+    push ecx
+
+      mov esi, [esp + 4 * 4]  ; msg_phys
+      mov edi, [esp + 4 * 5]  ; dest_phys
+
+      ; 开始拷贝消息
+      cld
+      mov ecx, MESSAGE_SIZE   ; 消息大小(dword)
+      rep movsd
+
+    pop ecx
+    pop edi
+    pop esi
     ret
