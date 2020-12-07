@@ -90,7 +90,7 @@ PUBLIC void init_protect(void) {
     *p_idt_limit = IDT_SIZE * sizeof(GateDescriptor) - 1;
     *p_idt_base = vir2phys(&s_idt);
     /* 初始化所有中断门描述符到 IDT中 */
-    for (GateInfo *p_gate = s_initGateInfos; p_gate < s_initGateInfos + sizeof(s_initGateInfos); p_gate++) {
+    for (GateInfo *p_gate = &s_initGateInfos[0]; p_gate < &s_initGateInfos[sizeof(s_initGateInfos)/sizeof(GateInfo)]; p_gate++) {
         init_gate_desc(p_gate, DA_386IGate, &s_idt[p_gate->vector]);
     }
 
