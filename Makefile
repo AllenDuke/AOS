@@ -59,13 +59,13 @@ AOSKernel    = $(tk)/kernel.bin
 # 内核，只实现基本功能
 KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/protect.o \
                   $(tk)/init_c.o $(tk)/exception.o $(tk)/panic.o $(tk)/i8259.o $(tk)/clock.o \
-                  $(tk)/process.o $(tk)/ipc_msg.o $(tk)/dump.o
+                  $(tk)/process.o $(tk)/ipc.o $(tk)/dump.o $(tk)/keyboard.o $(tk)/tty.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LibObjs         = $(AnsiObjs) $(StdioObjs) $(I386Objs)
 AnsiObjs        = $(tl)/ansi/string.o $(tl)/ansi/memcmp.o $(tl)/ansi/cstring.o
 StdioObjs       = $(tl)/stdio/printf.o
-I386Objs        = $(tl)/i386/ipc/ipc_msg.o
+I386Objs        = $(tl)/i386/ipc/ipc.o
 
 Objs            = $(KernelObjs) $(LibObjs)
 # ======================================================================================================================
@@ -183,10 +183,16 @@ $(tk)/clock.o: $(sk)/clock.c
 $(tk)/process.o: $(sk)/process.c
 	$(CC) $(CFlags) -o $@ $<
 
-$(tk)/ipc_msg.o: $(sk)/ipc_msg.c
+$(tk)/ipc.o: $(sk)/ipc.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tk)/dump.o: $(sk)/dump.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/keyboard.o: $(sk)/keyboard.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/tty.o: $(sk)/tty.c
 	$(CC) $(CFlags) -o $@ $<
 # ======= 库  =======
 $(tl)/ansi/string.o: $(lansi)/string.asm
@@ -201,6 +207,6 @@ $(tl)/ansi/cstring.o: $(lansi)/cstring.c
 $(tl)/stdio/printf.o: $(lstdio)/printf.c
 	$(CC) $(CFlags) -o $@ $<
 
-$(tl)/i386/ipc/ipc_msg.o: $(li386)/ipc/ipc_msg.asm
+$(tl)/i386/ipc/ipc.o: $(li386)/ipc/ipc.asm
 	$(ASM) $(ASMFlagsOfKernel) -o $@ $<
 #============================================================================

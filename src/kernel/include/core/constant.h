@@ -32,7 +32,7 @@
 //  保护模式相关
 //----------------------------------------------------------------------------------------------------------------------
 /* 系统任务数量 */
-#define NR_TASKS    (3 + NR_CONTROLLERS)
+#define NR_TASKS    (4 + NR_CONTROLLERS)
 #define NR_SERVERS  0
 
 #define INT_VECTOR_SYS_CALL         0x94        /* AOS 系统调用向量 */
@@ -173,6 +173,7 @@
                                  */
 
 /* 每个系统任务的任务号和它的功能服务号(消息类型)以及回复代码，将在下面开始定义 */
+#define TTY_TASK            -4
 #define CLOCK_TASK          -3  /* 时钟任务 */
 #define IDLE_TASK           -2  /* 待机任务 */
 #define HARDWARE            -1  /* 代表硬件，用于生成软件生成硬件中断，并不存在实际的任务 */
@@ -212,6 +213,8 @@
 /* 这是一个普通堆栈大小，1KB */
 #define NORMAL_STACK (256 * sizeof(char*))
 
+/* 终端任务 */
+#define TTY_TASK_STACK      (3 * SMALL_STACK)
 /* 时钟任务栈 */
 #define CLOCK_TASK_STACK    SMALL_STACK
 /* 待机任务堆栈 */
@@ -221,5 +224,25 @@
 /* 所有系统进程的栈空间总大小 */
 #define TOTAL_TASK_STACK    (SMALL_STACK+SMALL_STACK)
 
+/* AT keyboard */
+/* 8042 ports */
+#define	KB_DATA		0x60	/* I/O port for keyboard data
+					Read : Read Output Buffer
+					Write: Write Input Buffer(8042 Data&8048 Command) */
+#define	KB_CMD		0x64	/* I/O port for keyboard command
+					Read : Read Status Register
+					Write: Write Input Buffer(8042 Command) */
+#define	LED_CODE	0xED
+#define	KB_ACK		0xFA
+
+/* VGA */
+#define CRTC_ADDR_REG			0x3D4	/* CRT Controller Registers - Address Register */
+#define CRTC_DATA_REG			0x3D5	/* CRT Controller Registers - Data Registers */
+#define CRTC_DATA_IDX_START_ADDR_H	0xC	/* register index of video mem start address (MSB) */
+#define CRTC_DATA_IDX_START_ADDR_L	0xD	/* register index of video mem start address (LSB) */
+#define CRTC_DATA_IDX_CURSOR_H		0xE	/* register index of cursor position (MSB) */
+#define CRTC_DATA_IDX_CURSOR_L		0xF	/* register index of cursor position (LSB) */
+#define V_MEM_BASE			0xB8000	/* base of color video memory */
+#define V_MEM_SIZE			0x8000	/* 32K: B8000H -> BFFFFH */
 
 #endif //AOS_CONSTANT_H

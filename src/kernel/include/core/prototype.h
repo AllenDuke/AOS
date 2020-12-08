@@ -142,4 +142,9 @@ int flyanx_receive(struct process_s *caller, int src, Message *msg_phys);
 void proc_dump(void);
 void map_dump(void);
 
+int keyboard_handler(int irq);
+void keyboard_read();
+void in_process(u32_t key);
+void init_keyboard();
+void tty_task();
 #endif //AOS_PROTOTYPE_H

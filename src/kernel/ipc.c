@@ -1,10 +1,4 @@
-/* Copyright (C) 2007 Free Software Foundation, Inc. 
- * See the copyright notice in the file /usr/LICENSE.
- * Created by flyan on 2020/4/19.
- * QQ: 1341662010
- * QQ-Group:909830414
- * gitee: https://gitee.com/flyanh/
- *
+/**
  * IPC（Inter-Process Communication，进程间通信）
  * Flyanx提供了消息会合通信机制，即不管是发送还是接收消息，如果对方
  * 不能及时给出响应，那么进程都会进入到堵塞状态，直至等到对方有合适

@@ -8,6 +8,7 @@
 /* === 系统进程表，包含系统任务以及系统服务 === */
 SysProc sys_proc_table[] = {
         /* ************************* 系统任务 ************************* */
+        { tty_task, TTY_TASK_STACK, "TTY" },
         { clock_task, CLOCK_TASK_STACK, "CLOCK" },
         /* 待机任务 */
         { idle_task, IDLE_TASK_STACK, "IDLE" },
@@ -20,6 +21,8 @@ void aos_main(void) {
     printf("aos_main\n");
 
 //    int i=1/0; /* 除法错误正常 */
+
+
 
 //    clock_task();
 
@@ -102,8 +105,8 @@ void aos_main(void) {
     proc_addr(IDLE_TASK)->priority = PROC_PRI_IDLE;
     lock_hunter();      /* 让我们看看，有什么进程那么幸运的被抓出来第一个执行 */
 
-    proc_dump();
-    map_dump();
+//    proc_dump();
+//    map_dump();
 
 //    /* 启动 A */
 //    gp_curProc = proc_addr(-1);
@@ -130,7 +133,7 @@ PUBLIC void idle_task(void) {
      * 不至于像传统的死循环一样，消耗大量的 CPU 资源。而且在每个待机的过程
      * 中都会保持中断开启，保证待机时间内随时可以响应活动。
      */
-    printf("idle...\n");
+    printf("idle task work\n");
     while (TRUE)
         level0(halt);
 }
