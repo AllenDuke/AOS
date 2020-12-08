@@ -15,7 +15,8 @@ PUBLIC void panic(const char *msg, int error_num) {
         if (error_num != PANIC_ERR_NUM)
             printf("panic error num: 0x%x !\n", error_num);
     }
-    cpu_halt();
+    /* 好了，可以宕机了 */
+    level0(cpu_halt);
 }
 
 /**

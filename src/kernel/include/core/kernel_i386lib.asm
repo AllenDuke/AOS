@@ -17,6 +17,7 @@ extern sys_call                     ; 系统调用处理函数
 
 ; 导入函数
 extern exception_handler            ; 异常统一处理例程
+extern unhold                       ; 处理挂起的中断
 
 ; 导出函数
 global low_print                    ; 低特权级打印函数，只能支持打印ASCII码
@@ -36,6 +37,7 @@ global level0_sys_call
 global halt
 global aos_sys_call
 global msg_copy
+global cmos_read                ; 从 CMOS 读取数据
 
 ; 所有的异常处理入口
 global divide_error
@@ -660,6 +662,11 @@ aos_sys_call:
 ; 注意此时esp指向内核栈
 ; ----------------------------------------------------------------------------------------------------------------------
 restart:
+    ; 如果检测到存在被挂起的中断，这些中断是在处理其他中断期间到达的，
+    ; 则调用 unhold，这样就允许在任何进程被重新启动之前将所有挂起的中断转换为消息。
+    ; 这将暂时地重新关闭中断，但在 unhold 返回之前将再次打开中断。
+    call unhold
+over_unhold:
 	mov esp, [gp_curProc]	            ; 离开内核栈，指向运行进程的栈帧，现在的位置是 gs
 	lldt [esp + P_LDT_SEL]	            ; 每个进程有自己的 LDT，所以每次进程的切换都需要加载新的ldtr
 	; 把该进程栈帧栈顶地址保存到 tss.ss0 中，方便下次中断时的 save 将保存所有寄存器到该进程的栈帧中
@@ -735,4 +742,19 @@ msg_copy:
     pop ecx
     pop edi
     pop esi
+    ret
+
+;============================================================================
+;   从 CMOS 读取数据
+; 函数原型： u8_t cmos_read(u8_t addr);
+;----------------------------------------------------------------------------
+cmos_read:
+    push edx
+        mov al, [esp + 4 * 2]   ; 要输出的字节
+        out CLK_ELE, al         ; al -> CMOS ELE port
+        nop                     ; 一点延迟
+        xor eax, eax
+        in al, CLK_IO           ; port -> al
+        nop                     ; 一点延迟
+    pop edx
     ret

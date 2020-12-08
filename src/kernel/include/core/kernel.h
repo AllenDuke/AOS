@@ -22,6 +22,7 @@
 #include "constant.h"
 #include "../errno.h"
 #include "../types.h"
+#include "../times.h"
 #include "../cstring.h"
 #include "struct_type.h"
 #include "protect.h"

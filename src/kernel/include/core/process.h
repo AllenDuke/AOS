@@ -116,7 +116,4 @@ typedef struct process_s{
 #define proc_vir2phys(p, vir) \
     ((phys_addr)(p)->map.base + (vir_addr)(vir))
 
-
-
-
 #endif //AOS_PROCESS_H

@@ -42,11 +42,13 @@ void enable_irq(int int_request);
 void restart(void);
 void aos_sys_call(void);
 void msg_copy(phys_addr msg_phys, phys_addr dest_phys);
-
+u8_t cmos_read(u8_t addr);
 /*================================================================================================*/
 /* clock.c */
 /*================================================================================================*/
 void clock_task(void);
+void get_rtc_time(struct rtc_time *p_time);
+void milli_delay(time_t delay_ms);
 
 /* 硬件（异常）中断处理函数原型 相当于声明函数指针 int_handler_t 不能如此声明 void int_handler_t (void) */
 typedef void (*int_handler)(void);
@@ -125,11 +127,19 @@ void lock_hunter(void);
 void schedule_stop(void );
 void ready(struct process_s *proc);
 void unready(struct process_s *proc);
+void interrupt(int task);
+void unhold(void);
 
 /*================================================================================================*/
 /* ipc_msg.c */
 /*================================================================================================*/
 int flyanx_send(struct process_s *caller, int dest, Message *msg_phys);
 int flyanx_receive(struct process_s *caller, int src, Message *msg_phys);
+
+/*================================================================================================*/
+/* dump.c */
+/*================================================================================================*/
+void proc_dump(void);
+void map_dump(void);
 
 #endif //AOS_PROTOTYPE_H

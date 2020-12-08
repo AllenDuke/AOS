@@ -48,6 +48,10 @@ Process* bill_proc;
 Process* ready_head[NR_PROC_QUEUE];
 Process* ready_tail[NR_PROC_QUEUE];
 
+struct process_s *held_head; /* 中断挂起队列头指针 */
+struct process_s *held_tail; /* 中断挂起队列尾指针 */
+
+
 u8_t kernel_reenter;         /* 记录内核中断重入次数 */
 
 /* 所有系统进程堆栈的堆栈空间。 （声明为（char *）使其对齐。） */

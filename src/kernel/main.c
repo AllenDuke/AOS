@@ -83,7 +83,7 @@ void aos_main(void) {
         proc->regs.cs = ((CS_LDT_INDEX * DESCRIPTOR_SIZE) | SA_TIL | rpl);
         proc->regs.ds = ((DS_LDT_INDEX * DESCRIPTOR_SIZE) | SA_TIL | rpl);
         proc->regs.es = proc->regs.fs = proc->regs.ss = proc->regs.ds;  /* C 语言不加以区分这几个段寄存器 */
-        proc->regs.gs = (KERNEL_GS_SELECTOR & SA_RPL_MASK | rpl);       /* gs 指向显存 */
+        proc->regs.gs = ((KERNEL_GS_SELECTOR | rpl) & SA_RPL_MASK);     /* gs 指向显存 */
         proc->regs.eip = (reg_t) sys_proc->task;                        /* eip 指向要执行的代码首地址 */
         proc->regs.esp = sys_proc_stack_base;                           /* 设置栈顶 */
         proc->regs.eflags = is_task_proc(proc) ? INIT_TASK_PSW : INIT_PSW; /* 设置if位 */
@@ -101,6 +101,9 @@ void aos_main(void) {
     bill_proc = proc_addr(IDLE_TASK);
     proc_addr(IDLE_TASK)->priority = PROC_PRI_IDLE;
     lock_hunter();      /* 让我们看看，有什么进程那么幸运的被抓出来第一个执行 */
+
+    proc_dump();
+    map_dump();
 
 //    /* 启动 A */
 //    gp_curProc = proc_addr(-1);
@@ -128,11 +131,6 @@ PUBLIC void idle_task(void) {
      * 中都会保持中断开启，保证待机时间内随时可以响应活动。
      */
     printf("idle...\n");
-    /* 测试系统调用 */
-    Message msg;
-    io_box(&msg);
-    sen_rec(CLOCK_TASK);
-    printf("send_rec, get type: %d\n", msg.type);
     while (TRUE)
         level0(halt);
 }

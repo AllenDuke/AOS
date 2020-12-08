@@ -36,4 +36,6 @@ add_executable(
         src/kernel/lib/stdio/printf.c
         src/kernel/ipc_msg.c
         src/kernel/clock.c
-        src/kernel/process.c)
+        src/kernel/process.c
+        src/kernel/dump.c
+)

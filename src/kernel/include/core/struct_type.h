@@ -98,4 +98,50 @@ typedef struct message_s{
     } m_u;
 } Message;
 
+/* 以下定义提供了消息中消息域有用成员的简短名称。 */
+/* 消息域1中的消息属性 */
+#define m1_i1   m_u.m_u1.m1i1
+#define m1_i2   m_u.m_u1.m1i2
+#define m1_i3   m_u.m_u1.m1i3
+#define m1_p1   m_u.m_u1.m1p1
+#define m1_p2   m_u.m_u1.m1p2
+#define m1_p3   m_u.m_u1.m1p3
+
+/* 消息域2中的消息属性 */
+#define m2_i1   m_u.m_u2.m2i1
+#define m2_i2   m_u.m_u2.m2i2
+#define m2_i3   m_u.m_u2.m2i3
+#define m2_l1   m_u.m_u2.m2l1
+#define m2_l2   m_u.m_u2.m2l2
+#define m2_p1   m_u.m_u2.m2p1
+
+/* 消息域3中的消息属性 */
+#define m3_i1   m_u.m_u3.m3i1
+#define m3_i2   m_u.m_u3.m3i2
+#define m3_p1   m_u.m_u3.m3p1
+#define m3_ca1  m_u.m_u3.m3ca1
+
+/* 消息域4中的消息属性 */
+#define m4_l1   m_u.m_u4.m4l1
+#define m4_l2   m_u.m_u4.m4l2
+#define m4_l3   m_u.m_u4.m4l3
+#define m4_l4   m_u.m_u4.m4l4
+#define m4_l5   m_u.m_u4.m4l5
+
+/* 消息域5中的消息属性 */
+#define m5_c1   m_u.m_u5.m5c1
+#define m5_c2   m_u.m_u5.m5c2
+#define m5_i1   m_u.m_u5.m5i1
+#define m5_i2   m_u.m_u5.m5i2
+#define m5_l1   m_u.m_u5.m5l1
+#define m5_l2   m_u.m_u5.m5l2
+#define m5_l3   m_u.m_u5.m5l3
+
+/* 消息域6中的消息属性 */
+#define m6_i1   m_u.m_u6.m6i1
+#define m6_i2   m_u.m_u6.m6i2
+#define m6_i3   m_u.m_u6.m6i3
+#define m6_l1   m_u.m_u6.m6l1
+#define m6_f1   m_u.m_u6.m6f1
+
 #endif //AOS_STRUCT_TYPE_H

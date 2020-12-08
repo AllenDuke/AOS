@@ -35,8 +35,7 @@ PUBLIC int sys_call(
         Message *msg_ptr  /* 消息指针 */
 ){
     register Process *caller;
-    Message *msg_phys;
-    vir_addr msg_vir;
+    Message *msg_phys, *msg_vir;
     int rs;
 
     caller = gp_curProc;     /* 获取调用者 */
@@ -49,8 +48,8 @@ PUBLIC int sys_call(
     /*      处理设置收发件箱        */
     /*==============================*/
     if(op == IN_OUTBOX) {
-        msg_vir = (vir_addr) src_dest_msgp;
-        if(msg_vir != 0)
+        msg_vir = (Message *) src_dest_msgp;
+        if(msg_vir != NIL_MESSAGE)
             caller->inbox = (Message *) proc_vir2phys(caller, msg_vir);
         if(msg_ptr != NIL_MESSAGE)
             caller->outbox = (Message *) proc_vir2phys(caller, msg_ptr);
@@ -88,6 +87,8 @@ PUBLIC int sys_call(
         else
             msg_phys = (Message *) proc_vir2phys(caller, msg_ptr);
 
+//        printf("msg_phys: %d\n", msg_phys);
+
         /* 设置消息源，即对方要知道是谁发来的这条消息，我们需要设置一下 */
         msg_phys->source = caller->logic_nr;
 
@@ -106,6 +107,8 @@ PUBLIC int sys_call(
         msg_phys = (Message *) caller->inbox;
     else
         msg_phys = (Message *) proc_vir2phys(caller, msg_ptr);
+
+//    printf("msg_phys: %d\n", msg_phys);
 
     /* 处理接收消息操作，同样的，也包括SEND_REC里的REC操作
      * 直接调用接收消息的函数，并返回操作代码，例程结束
