@@ -143,8 +143,9 @@ void proc_dump(void);
 void map_dump(void);
 
 int keyboard_handler(int irq);
-void keyboard_read();
-void in_process(u32_t key);
+void keyboard_read(TTY* p_tty);
+void in_process(u32_t key,TTY* p_tty);
 void init_keyboard();
 void tty_task();
+void out_char(CONSOLE* p_con, char ch);
 #endif //AOS_PROTOTYPE_H

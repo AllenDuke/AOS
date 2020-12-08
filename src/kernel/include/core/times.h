@@ -10,7 +10,7 @@
 typedef long clock_t;		/* 系统时钟计时单位 */
 #endif
 
-#include <cmos.h>
+#include <core/cmos.h>
 
 /* 系统硬件实时时间
  * 通过 CMOS 中获取的 RTC 时间

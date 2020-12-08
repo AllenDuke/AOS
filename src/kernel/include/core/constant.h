@@ -24,6 +24,7 @@
 
 #define INIT_PSW      0x202	    /* initial psw :IF=1, 位2一直是1 */
 #define INIT_TASK_PSW 0x1202	/* initial psw for tasks (with IOPL 1) : IF=1, IOPL=1, 位2一直是1*/
+
 //======================================================================================================================
 
 
@@ -244,5 +245,10 @@
 #define CRTC_DATA_IDX_CURSOR_L		0xF	/* register index of cursor position (LSB) */
 #define V_MEM_BASE			0xB8000	/* base of color video memory */
 #define V_MEM_SIZE			0x8000	/* 32K: B8000H -> BFFFFH */
+
+/* TTY相关 */
+#define TTY_FIRST	(tty_table)
+#define TTY_END		(tty_table + NR_CONSOLES)
+#define NR_CONSOLES 3
 
 #endif //AOS_CONSTANT_H
