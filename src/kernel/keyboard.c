@@ -125,7 +125,11 @@ PUBLIC void keyboard_read(TTY* p_tty){
             column = 0;
 
             bool_t caps = shift_l || shift_r;
-
+            if (!caps_lock) {
+                if ((keyrow[0] >= 'a') && (keyrow[0] <= 'z')){
+                    caps = !caps;
+                }
+            }
             if (caps) {
                 column = 1;
             }
