@@ -8,9 +8,9 @@ sys_proc_stack      0x400             target/kernel/main.o
 g_tss               0x68              target/kernel/main.o
 gp_bootParam        0x4               target/kernel/main.o
 gp_idt              0x6               target/kernel/main.o
-tty_table           0xc30             target/kernel/keyboard.o
+tty_table           0xc30             target/kernel/i8259.o
 bill_proc           0x4               target/kernel/main.o
-nr_current_console  0x4               target/kernel/keyboard.o
+nr_current_console  0x4               target/kernel/i8259.o
 level0_func         0x4               target/kernel/main.o
 g_dispPosition      0x4               target/kernel/main.o
 held_tail           0x4               target/kernel/main.o
@@ -20,7 +20,7 @@ g_irqHandlers       0x40              target/kernel/main.o
 ready_tail          0xc               target/kernel/main.o
 g_gdt               0x148             target/kernel/main.o
 ready_head          0xc               target/kernel/main.o
-console_table       0x30              target/kernel/keyboard.o
+console_table       0x30              target/kernel/i8259.o
 held_head           0x4               target/kernel/main.o
 p_proc_addr         0x90              target/kernel/main.o
 proc_table          0x1d40            target/kernel/main.o
@@ -156,7 +156,7 @@ LOAD target/lib/i386/ipc/ipc.o
 .plt
  *(.plt)
 
-.text           0x00001000     0x2ff3
+.text           0x00001000     0x3257
  *(.text .stub .text.* .gnu.linkonce.t.*)
  .text          0x00001000       0x3f target/kernel/kernel.o
                 0x00001000                _start
@@ -231,93 +231,95 @@ LOAD target/lib/i386/ipc/ipc.o
                 0x00001dda                bad_compare
                 0x00001d9d                bad_assertion
  *fill*         0x00001e17        0x1 90909090
- .text          0x00001e18      0x151 target/kernel/i8259.o
+ .text          0x00001e18      0x14c target/kernel/i8259.o
                 0x00001e18                init_8259A
-                0x00001f1a                put_irq_handler
- *fill*         0x00001f69        0x3 90909090
- .text          0x00001f6c      0x611 target/kernel/clock.o
-                0x00001f6c                clock_task
-                0x0000252e                milli_delay
-                0x00002292                get_rtc_time
- *fill*         0x0000257d        0x3 90909090
- .text          0x00002580      0x55c target/kernel/process.o
-                0x00002a64                lock_hunter
-                0x000028ba                schedule_stop
-                0x00002a7f                lock_ready
-                0x000029fe                unhold
-                0x000026ca                unready
-                0x00002ac1                lock_schedule
-                0x00002aa0                lock_unready
-                0x000028c9                interrupt
-                0x00002610                ready
- .text          0x00002adc      0x469 target/kernel/ipc.o
-                0x00002e10                flyanx_receive
-                0x00002c29                flyanx_send
-                0x00002adc                sys_call
- *fill*         0x00002f45        0x3 90909090
- .text          0x00002f48      0x324 target/kernel/dump.o
-                0x00002f48                proc_dump
-                0x000031a8                map_dump
- .text          0x0000326c      0x3e2 target/kernel/keyboard.o
-                0x0000326c                keyboard_handler
-                0x00003317                keyboard_read
-                0x000032d1                init_keyboard
- *fill*         0x0000364e        0x2 90909090
- .text          0x00003650      0x2af target/kernel/tty.o
-                0x0000371e                in_process
-                0x00003835                is_cur_console
-                0x00003650                tty_task
- *fill*         0x000038ff        0x1 90909090
- .text          0x00003900       0xbf target/kernel/console.o
-                0x00003900                out_char
- *fill*         0x000039bf        0x1 90909090
- .text          0x000039c0       0x81 target/lib/ansi/memcmp.o
-                0x000039c0                memcmp
- *fill*         0x00003a41        0x3 90909090
- .text          0x00003a44      0x12b target/lib/ansi/cstring.o
-                0x00003a44                strncmp
-                0x00003aea                strcmp
- *fill*         0x00003b6f        0x1 90909090
- .text          0x00003b70      0x483 target/lib/stdio/printf.o
-                0x00003b70                printf
-                0x00003baa                fmt_string
+                0x00001f15                put_irq_handler
+ .text          0x00001f64      0x611 target/kernel/clock.o
+                0x00001f64                clock_task
+                0x00002526                milli_delay
+                0x0000228a                get_rtc_time
+ *fill*         0x00002575        0x3 90909090
+ .text          0x00002578      0x55c target/kernel/process.o
+                0x00002a5c                lock_hunter
+                0x000028b2                schedule_stop
+                0x00002a77                lock_ready
+                0x000029f6                unhold
+                0x000026c2                unready
+                0x00002ab9                lock_schedule
+                0x00002a98                lock_unready
+                0x000028c1                interrupt
+                0x00002608                ready
+ .text          0x00002ad4      0x469 target/kernel/ipc.o
+                0x00002e08                flyanx_receive
+                0x00002c21                flyanx_send
+                0x00002ad4                sys_call
+ *fill*         0x00002f3d        0x3 90909090
+ .text          0x00002f40      0x324 target/kernel/dump.o
+                0x00002f40                proc_dump
+                0x000031a0                map_dump
+ .text          0x00003264      0x3e2 target/kernel/keyboard.o
+                0x00003264                keyboard_handler
+                0x0000330f                keyboard_read
+                0x000032c9                init_keyboard
+ *fill*         0x00003646        0x2 90909090
+ .text          0x00003648      0x2d6 target/kernel/tty.o
+                0x000036f4                in_process
+                0x00003854                is_cur_console
+                0x00003648                tty_task
+ *fill*         0x0000391e        0x2 90909090
+ .text          0x00003920      0x303 target/kernel/console.o
+                0x00003afc                select_console
+                0x000039db                init_screen
+                0x00003bab                scroll_screen
+                0x00003920                out_char
+ *fill*         0x00003c23        0x1 90909090
+ .text          0x00003c24       0x81 target/lib/ansi/memcmp.o
+                0x00003c24                memcmp
+ *fill*         0x00003ca5        0x3 90909090
+ .text          0x00003ca8      0x12b target/lib/ansi/cstring.o
+                0x00003ca8                strncmp
+                0x00003d4e                strcmp
+ *fill*         0x00003dd3        0x1 90909090
+ .text          0x00003dd4      0x483 target/lib/stdio/printf.o
+                0x00003dd4                printf
+                0x00003e0e                fmt_string
  *(.text.*personality*)
  *(.gnu.warning)
 
 .fini
  *(.fini)
-                0x00003ff3                PROVIDE (__etext, .)
-                0x00003ff3                PROVIDE (_etext, .)
-                0x00003ff3                PROVIDE (etext, .)
+                0x00004257                PROVIDE (__etext, .)
+                0x00004257                PROVIDE (_etext, .)
+                0x00004257                PROVIDE (etext, .)
 
-.rodata         0x00003ff4      0x6c0
+.rodata         0x00004258      0x6c0
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x00003ff4       0x21 target/kernel/main.o
- .rodata        0x00004015       0x35 target/kernel/protect.o
- .rodata        0x0000404a       0x14 target/kernel/init_c.o
- *fill*         0x0000405e        0x2 00
- .rodata        0x00004060      0x1f8 target/kernel/exception.o
- .rodata        0x00004258       0xb7 target/kernel/panic.o
- *fill*         0x0000430f        0x1 00
- .rodata        0x00004310       0x3d target/kernel/i8259.o
- *fill*         0x0000434d        0x3 00
- .rodata        0x00004350       0xf6 target/kernel/clock.o
- .rodata        0x00004446       0x22 target/kernel/process.o
- .rodata        0x00004468       0xe4 target/kernel/dump.o
- .rodata        0x0000454c       0x18 target/kernel/keyboard.o
- .rodata        0x00004564      0x150 target/lib/stdio/printf.o
+ .rodata        0x00004258       0x21 target/kernel/main.o
+ .rodata        0x00004279       0x35 target/kernel/protect.o
+ .rodata        0x000042ae       0x14 target/kernel/init_c.o
+ *fill*         0x000042c2        0x2 00
+ .rodata        0x000042c4      0x1f8 target/kernel/exception.o
+ .rodata        0x000044bc       0xb7 target/kernel/panic.o
+ *fill*         0x00004573        0x1 00
+ .rodata        0x00004574       0x3d target/kernel/i8259.o
+ *fill*         0x000045b1        0x3 00
+ .rodata        0x000045b4       0xf6 target/kernel/clock.o
+ .rodata        0x000046aa       0x22 target/kernel/process.o
+ .rodata        0x000046cc       0xe4 target/kernel/dump.o
+ .rodata        0x000047b0       0x18 target/kernel/keyboard.o
+ .rodata        0x000047c8      0x150 target/lib/stdio/printf.o
 
-.lib            0x000046b4       0xb6
- .lib           0x000046b4       0x7e target/lib/ansi/string.o
-                0x00004704                strcpy
-                0x000046b4                memcpy
-                0x000046e0                memset
-                0x0000471c                strlen
- .lib           0x00004732       0x38 target/lib/i386/ipc/ipc.o
-                0x0000474a                send_rec
-                0x00004732                send
-                0x0000473e                receive
-                0x00004756                in_outbox
+.lib            0x00004918       0xb6
+ .lib           0x00004918       0x7e target/lib/ansi/string.o
+                0x00004968                strcpy
+                0x00004918                memcpy
+                0x00004944                memset
+                0x00004980                strlen
+ .lib           0x00004996       0x38 target/lib/i386/ipc/ipc.o
+                0x000049ae                send_rec
+                0x00004996                send
+                0x000049a2                receive
+                0x000049ba                in_outbox
 
 .rodata1
  *(.rodata1)
@@ -330,7 +332,7 @@ LOAD target/lib/i386/ipc/ipc.o
 
 .gcc_except_table
  *(.gcc_except_table .gcc_except_table.*)
-                0x0000476a                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
+                0x000049ce                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
                 0x00005000                . = (0x1000 DATA_SEGMENT_ALIGN 0x1000)
 
 .eh_frame
@@ -475,7 +477,7 @@ LOAD target/lib/i386/ipc/ipc.o
                 0x00006e54                held_head
                 0x00006e60                p_proc_addr
                 0x00006f00                proc_table
- COMMON         0x00008c40      0xc70 target/kernel/keyboard.o
+ COMMON         0x00008c40      0xc70 target/kernel/i8259.o
                 0x00008c40                tty_table
                 0x00009870                nr_current_console
                 0x00009880                console_table

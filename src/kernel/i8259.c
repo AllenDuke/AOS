@@ -41,8 +41,6 @@ PUBLIC void init_8259A(){
         g_irqHandlers[i] = default_irq_handler;
     }
 
-    init_keyboard();
-
 }
 
 /**

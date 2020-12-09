@@ -148,4 +148,8 @@ void in_process(u32_t key,TTY* p_tty);
 void init_keyboard();
 void tty_task();
 void out_char(CONSOLE* p_con, char ch);
+
+void init_screen(TTY* p_tty);
+void select_console(int nr_console);
+void scroll_screen(CONSOLE* p_con, int direction);
 #endif //AOS_PROTOTYPE_H
