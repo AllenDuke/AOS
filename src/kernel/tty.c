@@ -9,7 +9,7 @@
 PRIVATE void	init_tty(TTY* p_tty);
 PRIVATE void	tty_do_read(TTY* p_tty);
 PRIVATE void	tty_do_write(TTY* p_tty);
-
+PRIVATE void put_key(TTY* p_tty, u32_t key);
 
 PUBLIC void tty_task()
 {
@@ -48,27 +48,19 @@ PUBLIC void in_process(u32_t key,TTY* p_tty)
 {
     char output[2]={'\0','\0'};
     if (!(key & FLAG_EXT)) {
-        if(p_tty->inbuf_count< TTY_IN_BYTES){
-            *(p_tty->p_inbuf_head) =key;
-            p_tty->p_inbuf_head++;
-            if(p_tty->p_inbuf_head == p_tty->in_buf+TTY_IN_BYTES){
-                p_tty->p_inbuf_head=p_tty->in_buf;
-            }
-            p_tty->inbuf_count++;
-        }
+        put_key(p_tty,key);
     }else {
         int raw_code = key & MASK_RAW;
         switch(raw_code) {
+            case ENTER:
+                put_key(p_tty, '\n');
+                break;
+            case BACKSPACE:
+                put_key(p_tty, '\b');
+                break;
             case UP:
                 if ((key & FLAG_SHIFT_L) || (key & FLAG_SHIFT_R)) {	/* Shift + Up 上滚5行 */
-//                    interrupt_lock();
-//                    out_byte(CRTC_ADDR_REG,CRTC_DATA_IDX_START_ADDR_H);
-//                    out_byte(CRTC_DATA_REG,((80*5)>>8)&0xFF); /* 每个字符对应2字节 */
-//                    out_byte(CRTC_ADDR_REG,CRTC_DATA_IDX_START_ADDR_L);
-//                    out_byte(CRTC_DATA_REG,(80*5)&0xFF);
-//                    interrupt_unlock();
                     scroll_screen(p_tty->p_console, SCROLL_SCREEN_UP);
-//                    low_print("scroll_screen called");
                 }
                 break;
             case DOWN:
@@ -119,5 +111,18 @@ PRIVATE void tty_do_write(TTY* p_tty)
 
         //disp_int(ch);
         out_char(p_tty->p_console, ch);
+    }
+}
+
+
+PRIVATE void put_key(TTY* p_tty, u32_t key)
+{
+    if (p_tty->inbuf_count < TTY_IN_BYTES) {
+        *(p_tty->p_inbuf_head) = key;
+        p_tty->p_inbuf_head++;
+        if (p_tty->p_inbuf_head == p_tty->in_buf + TTY_IN_BYTES) {
+            p_tty->p_inbuf_head = p_tty->in_buf;
+        }
+        p_tty->inbuf_count++;
     }
 }

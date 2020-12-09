@@ -156,7 +156,7 @@ LOAD target/lib/i386/ipc/ipc.o
 .plt
  *(.plt)
 
-.text           0x00001000     0x3257
+.text           0x00001000     0x35e7
  *(.text .stub .text.* .gnu.linkonce.t.*)
  .text          0x00001000       0x3f target/kernel/kernel.o
                 0x00001000                _start
@@ -257,69 +257,70 @@ LOAD target/lib/i386/ipc/ipc.o
  .text          0x00002f40      0x324 target/kernel/dump.o
                 0x00002f40                proc_dump
                 0x000031a0                map_dump
- .text          0x00003264      0x3e2 target/kernel/keyboard.o
+ .text          0x00003264      0x637 target/kernel/keyboard.o
                 0x00003264                keyboard_handler
-                0x0000330f                keyboard_read
+                0x00003329                keyboard_read
                 0x000032c9                init_keyboard
- *fill*         0x00003646        0x2 90909090
- .text          0x00003648      0x2d6 target/kernel/tty.o
-                0x000036f4                in_process
-                0x00003854                is_cur_console
-                0x00003648                tty_task
- *fill*         0x0000391e        0x2 90909090
- .text          0x00003920      0x303 target/kernel/console.o
-                0x00003afc                select_console
-                0x000039db                init_screen
-                0x00003bab                scroll_screen
-                0x00003920                out_char
- *fill*         0x00003c23        0x1 90909090
- .text          0x00003c24       0x81 target/lib/ansi/memcmp.o
-                0x00003c24                memcmp
- *fill*         0x00003ca5        0x3 90909090
- .text          0x00003ca8      0x12b target/lib/ansi/cstring.o
-                0x00003ca8                strncmp
-                0x00003d4e                strcmp
- *fill*         0x00003dd3        0x1 90909090
- .text          0x00003dd4      0x483 target/lib/stdio/printf.o
-                0x00003dd4                printf
-                0x00003e0e                fmt_string
+ *fill*         0x0000389b        0x1 90909090
+ .text          0x0000389c      0x301 target/kernel/tty.o
+                0x00003948                in_process
+                0x00003a65                is_cur_console
+                0x0000389c                tty_task
+ *fill*         0x00003b9d        0x3 90909090
+ .text          0x00003ba0      0x411 target/kernel/console.o
+                0x00003e67                select_console
+                0x00003d46                init_screen
+                0x00003f16                scroll_screen
+                0x00003ba0                out_char
+ *fill*         0x00003fb1        0x3 90909090
+ .text          0x00003fb4       0x81 target/lib/ansi/memcmp.o
+                0x00003fb4                memcmp
+ *fill*         0x00004035        0x3 90909090
+ .text          0x00004038      0x12b target/lib/ansi/cstring.o
+                0x00004038                strncmp
+                0x000040de                strcmp
+ *fill*         0x00004163        0x1 90909090
+ .text          0x00004164      0x483 target/lib/stdio/printf.o
+                0x00004164                printf
+                0x0000419e                fmt_string
  *(.text.*personality*)
  *(.gnu.warning)
 
 .fini
  *(.fini)
-                0x00004257                PROVIDE (__etext, .)
-                0x00004257                PROVIDE (_etext, .)
-                0x00004257                PROVIDE (etext, .)
+                0x000045e7                PROVIDE (__etext, .)
+                0x000045e7                PROVIDE (_etext, .)
+                0x000045e7                PROVIDE (etext, .)
 
-.rodata         0x00004258      0x6c0
+.rodata         0x000045e8      0x79c
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x00004258       0x21 target/kernel/main.o
- .rodata        0x00004279       0x35 target/kernel/protect.o
- .rodata        0x000042ae       0x14 target/kernel/init_c.o
- *fill*         0x000042c2        0x2 00
- .rodata        0x000042c4      0x1f8 target/kernel/exception.o
- .rodata        0x000044bc       0xb7 target/kernel/panic.o
- *fill*         0x00004573        0x1 00
- .rodata        0x00004574       0x3d target/kernel/i8259.o
- *fill*         0x000045b1        0x3 00
- .rodata        0x000045b4       0xf6 target/kernel/clock.o
- .rodata        0x000046aa       0x22 target/kernel/process.o
- .rodata        0x000046cc       0xe4 target/kernel/dump.o
- .rodata        0x000047b0       0x18 target/kernel/keyboard.o
- .rodata        0x000047c8      0x150 target/lib/stdio/printf.o
+ .rodata        0x000045e8       0x21 target/kernel/main.o
+ .rodata        0x00004609       0x35 target/kernel/protect.o
+ .rodata        0x0000463e       0x14 target/kernel/init_c.o
+ *fill*         0x00004652        0x2 00
+ .rodata        0x00004654      0x1f8 target/kernel/exception.o
+ .rodata        0x0000484c       0xb7 target/kernel/panic.o
+ *fill*         0x00004903        0x1 00
+ .rodata        0x00004904       0x3d target/kernel/i8259.o
+ *fill*         0x00004941        0x3 00
+ .rodata        0x00004944       0xf6 target/kernel/clock.o
+ .rodata        0x00004a3a       0x22 target/kernel/process.o
+ .rodata        0x00004a5c       0xe4 target/kernel/dump.o
+ .rodata        0x00004b40       0x64 target/kernel/keyboard.o
+ .rodata        0x00004ba4       0x90 target/kernel/tty.o
+ .rodata        0x00004c34      0x150 target/lib/stdio/printf.o
 
-.lib            0x00004918       0xb6
- .lib           0x00004918       0x7e target/lib/ansi/string.o
-                0x00004968                strcpy
-                0x00004918                memcpy
-                0x00004944                memset
-                0x00004980                strlen
- .lib           0x00004996       0x38 target/lib/i386/ipc/ipc.o
-                0x000049ae                send_rec
-                0x00004996                send
-                0x000049a2                receive
-                0x000049ba                in_outbox
+.lib            0x00004d84       0xb6
+ .lib           0x00004d84       0x7e target/lib/ansi/string.o
+                0x00004dd4                strcpy
+                0x00004d84                memcpy
+                0x00004db0                memset
+                0x00004dec                strlen
+ .lib           0x00004e02       0x38 target/lib/i386/ipc/ipc.o
+                0x00004e1a                send_rec
+                0x00004e02                send
+                0x00004e0e                receive
+                0x00004e26                in_outbox
 
 .rodata1
  *(.rodata1)
@@ -332,7 +333,7 @@ LOAD target/lib/i386/ipc/ipc.o
 
 .gcc_except_table
  *(.gcc_except_table .gcc_except_table.*)
-                0x000049ce                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
+                0x00004e3a                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
                 0x00005000                . = (0x1000 DATA_SEGMENT_ALIGN 0x1000)
 
 .eh_frame
@@ -448,13 +449,13 @@ LOAD target/lib/i386/ipc/ipc.o
  .bss           0x00006640       0x90 target/kernel/ipc.o
  .bss           0x000066d0        0x0 target/kernel/dump.o
  *fill*         0x000066d0       0x10 00
- .bss           0x000066e0       0x52 target/kernel/keyboard.o
- *fill*         0x00006732        0x2 00
- .bss           0x00006734        0x0 target/kernel/tty.o
- .bss           0x00006734        0x0 target/kernel/console.o
- .bss           0x00006734        0x0 target/lib/ansi/memcmp.o
- .bss           0x00006734        0x0 target/lib/ansi/cstring.o
- *fill*         0x00006734        0xc 00
+ .bss           0x000066e0       0x55 target/kernel/keyboard.o
+ *fill*         0x00006735        0x3 00
+ .bss           0x00006738        0x0 target/kernel/tty.o
+ .bss           0x00006738        0x0 target/kernel/console.o
+ .bss           0x00006738        0x0 target/lib/ansi/memcmp.o
+ .bss           0x00006738        0x0 target/lib/ansi/cstring.o
+ *fill*         0x00006738        0x8 00
  .bss           0x00006740       0xa0 target/lib/stdio/printf.o
  *(COMMON)
  COMMON         0x000067e0     0x30e0 target/kernel/main.o

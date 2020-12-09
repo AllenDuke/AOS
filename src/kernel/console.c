@@ -5,16 +5,39 @@
 
 PRIVATE void set_cursor(unsigned int position);
 PRIVATE void set_video_start_addr(u32_t addr);
+PRIVATE void	flush(CONSOLE* p_con);
 
 PUBLIC void out_char(CONSOLE* p_con, char ch)
 {
-    u8_t * p_vmem = (u8_t *)(V_MEM_BASE + p_con->cursor*2);
+    u8_t * p_vmem = (u8_t *)(V_MEM_BASE + p_con->cursor * 2);
 
-    *p_vmem++ = ch;
-    *p_vmem++ =DEFAULT_CHAR_COLOR;
-    p_con->cursor++;
+    switch(ch) {
+        case '\n':
+            if (p_con->cursor < p_con->original_addr + p_con->v_mem_limit - SCREEN_WIDTH) {
+                p_con->cursor = p_con->original_addr + SCREEN_WIDTH * ((p_con->cursor - p_con->original_addr) / SCREEN_WIDTH + 1);
+            }
+            break;
+        case '\b':
+            if (p_con->cursor > p_con->original_addr) {
+                p_con->cursor--;
+                *(p_vmem-2) = ' ';
+                *(p_vmem-1) = DEFAULT_CHAR_COLOR;
+            }
+            break;
+        default:
+            if (p_con->cursor < p_con->original_addr + p_con->v_mem_limit - 1) {
+                *p_vmem++ = ch;
+                *p_vmem++ = DEFAULT_CHAR_COLOR;
+                p_con->cursor++;
+            }
+            break;
+    }
 
-    set_cursor(p_con->cursor);
+    while (p_con->cursor >= p_con->current_start_addr + SCREEN_SIZE) {
+        scroll_screen(p_con, SCROLL_SCREEN_DOWN);
+    }
+
+    flush(p_con);
 }
 
 PRIVATE void set_cursor(unsigned int position)
@@ -100,4 +123,11 @@ PUBLIC void scroll_screen(CONSOLE* p_con, int direction)
 
     set_video_start_addr(p_con->current_start_addr);
     set_cursor(p_con->cursor);
+}
+
+PRIVATE void flush(CONSOLE* p_con)
+{
+    set_cursor(p_con->cursor);
+    set_video_start_addr(p_con->current_start_addr);
+
 }
