@@ -55,7 +55,7 @@ PUBLIC void clock_task(void) {
 
     /* 测试毫秒级延迟函数 */
     printf("i am zangsan, i am man!\n");
-    milli_delay(sec2ms(5));
+    milli_delay(sec2ms(1));
     printf("i am zangsan, no!\n");
     printf("#{CLOCK}-> Working...\n");
     while(TRUE) {
@@ -82,6 +82,7 @@ PUBLIC void clock_task(void) {
     }
 }
 
+/* 10ms发生一次时钟中断 */
 PRIVATE int clock_handler(int irq) {
     register Process *target;
 
@@ -96,6 +97,11 @@ PRIVATE int clock_handler(int irq) {
 
     /* 记账：给使用了系统资源的用户进程记账 */
     target->user_time++;        /* 用户时间记账 */
+
+    if(gp_curProc==proc_addr(IDLE_TASK)&&gp_curProc->user_time%10==0) {
+        lock_hunter();
+    }
+
     if(target != bill_proc && target != proc_addr(HARDWARE))
         bill_proc->sys_time++;  /* 当前进程不是计费的用户进程，那么它应该是使用了系统调用陷入了内核，记录它的系统时间 */
 

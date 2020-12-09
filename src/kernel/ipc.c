@@ -119,6 +119,7 @@ PUBLIC int flyanx_send(
         int dest,               /* 目标，即准备发消息给谁？ */
         Message *msg_phys    /* 调用者物理消息指针 */
 ){
+    printf("%d2%d",caller->logic_nr,dest);
     /* 发送一条消息从发送进程到接收进程，消息在发送进程的数据空间中，所以我们
      * 需要将其复制到接收进程的数据空间的消息缓冲中。
      */

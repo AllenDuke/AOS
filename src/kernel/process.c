@@ -32,10 +32,10 @@ PRIVATE void hunter(void){
         bill_proc = gp_curProc = prey;
         return;
     }
+
     /* 咳咳，本次狩猎失败了，那么只能狩猎 IDLE 待机进程了 */
     prey = proc_addr(IDLE_TASK);
     bill_proc = gp_curProc = prey;
-
     /* 本例程只负责狩猎，狩猎到一个可以执行的进程，而进程执行完毕后的删除或更改在队列中的位置
      * 这种事情我们安排在其他地方去做。
      */
@@ -49,6 +49,7 @@ PRIVATE void hunter(void){
 PUBLIC void ready(
         register Process* proc    /* 要就绪的进程 */
 ){
+
     if(is_task_proc(proc)){
         if(ready_head[TASK_QUEUE] != NIL_PROC){
             /* 就绪队列非空，挂到队尾 */
@@ -57,6 +58,7 @@ PUBLIC void ready(
             /* 就绪队列是空的，那么这个进程直接就可以运行，并挂在就绪队列头上 */
             gp_curProc = ready_head[TASK_QUEUE] = proc;
         }
+        printf("l_%d->",proc->logic_nr);
         // 队尾指针指向新就绪的进程
         ready_tail[TASK_QUEUE] = proc;      /* 队尾指针 --> 新就绪的进程 */
         proc->next_ready = NIL_PROC;        /* 新条目没有后继就绪进程 */
@@ -106,6 +108,8 @@ PUBLIC void unready(
         if(xp == proc){
             /* 如果就绪队列头的进程就是我们要让之堵塞的进程，那么我们将它移除出就绪队列 */
             ready_head[TASK_QUEUE] = xp->next_ready;
+            printf("xp_%d ",xp->logic_nr);
+            printf("h_%d",ready_head[TASK_QUEUE]->logic_nr);
             if(proc == gp_curProc) {
                 /* 如果堵塞的进程就是当前正在运行的进程，那么我们需要重新狩猎以得到一个新的运行进程 */
                 hunter();

@@ -10,6 +10,7 @@ PRIVATE void	init_tty(TTY* p_tty);
 PRIVATE void	tty_do_read(TTY* p_tty);
 PRIVATE void	tty_do_write(TTY* p_tty);
 PRIVATE void put_key(TTY* p_tty, u32_t key);
+PRIVATE Message msg;
 
 PUBLIC void tty_task()
 {
@@ -18,6 +19,9 @@ PUBLIC void tty_task()
 
     init_keyboard();
 
+    /* 初始化收发件箱 */
+    io_box(&msg);
+
     for (p_tty=TTY_FIRST;p_tty<TTY_END;p_tty++) {
         init_tty(p_tty);
     }
@@ -25,6 +29,8 @@ PUBLIC void tty_task()
     select_console(0);
 
     while (1) {
+        /* 等待外界消息 */
+        rec(ANY);
         for (p_tty=TTY_FIRST;p_tty<TTY_END;p_tty++) {
             tty_do_read(p_tty);
             tty_do_write(p_tty);
@@ -46,7 +52,6 @@ PRIVATE void init_tty(TTY* p_tty)
  *======================================================================*/
 PUBLIC void in_process(u32_t key,TTY* p_tty)
 {
-    char output[2]={'\0','\0'};
     if (!(key & FLAG_EXT)) {
         put_key(p_tty,key);
     }else {

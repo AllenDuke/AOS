@@ -26,6 +26,8 @@ PRIVATE void	set_leds();
 PRIVATE void	kb_wait();
 PRIVATE void	kb_ack();
 
+PRIVATE Message msg;
+
 /*======================================================================*
                             keyboard_handler
  *======================================================================*/
@@ -40,6 +42,11 @@ PUBLIC int keyboard_handler(int irq)
             kb_in.p_head = kb_in.buf;
         }
         kb_in.count++;
+    }
+    printf("kb ");
+    if(kb_in.count>=2) {
+        send(-4,&msg);
+        printf("awake\n");
     }
     
     return ENABLE;
@@ -62,6 +69,10 @@ PUBLIC void init_keyboard()
 
     put_irq_handler(KEYBOARD_IRQ, keyboard_handler);	/* 设定键盘中断处理程序 */
     enable_irq(KEYBOARD_IRQ);				/* 开键盘中断 */
+}
+
+PUBLIC int kb_in_count(){
+    return kb_in.count;
 }
 
 PUBLIC void keyboard_read(TTY* p_tty){

@@ -152,4 +152,5 @@ void out_char(CONSOLE* p_con, char ch);
 void init_screen(TTY* p_tty);
 void select_console(int nr_console);
 void scroll_screen(CONSOLE* p_con, int direction);
+int kb_in_count();
 #endif //AOS_PROTOTYPE_H
