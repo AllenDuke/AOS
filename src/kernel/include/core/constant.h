@@ -215,7 +215,7 @@
 #define NORMAL_STACK (256 * sizeof(char*))
 
 /* 终端任务 */
-#define TTY_TASK_STACK      (3 * SMALL_STACK)
+#define TTY_TASK_STACK      (32 * NORMAL_STACK)
 /* 时钟任务栈 */
 #define CLOCK_TASK_STACK    SMALL_STACK
 /* 待机任务堆栈 */

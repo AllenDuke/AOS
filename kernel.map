@@ -8,9 +8,9 @@ sys_proc_stack      0x400             target/kernel/main.o
 g_tss               0x68              target/kernel/main.o
 gp_bootParam        0x4               target/kernel/main.o
 gp_idt              0x6               target/kernel/main.o
-tty_table           0xc30             target/kernel/i8259.o
+tty_table           0xc30             target/kernel/main.o
 bill_proc           0x4               target/kernel/main.o
-nr_current_console  0x4               target/kernel/i8259.o
+nr_current_console  0x4               target/kernel/main.o
 level0_func         0x4               target/kernel/main.o
 g_dispPosition      0x4               target/kernel/main.o
 held_tail           0x4               target/kernel/main.o
@@ -20,7 +20,7 @@ g_irqHandlers       0x40              target/kernel/main.o
 ready_tail          0xc               target/kernel/main.o
 g_gdt               0x148             target/kernel/main.o
 ready_head          0xc               target/kernel/main.o
-console_table       0x30              target/kernel/i8259.o
+console_table       0x30              target/kernel/main.o
 held_head           0x4               target/kernel/main.o
 p_proc_addr         0x90              target/kernel/main.o
 proc_table          0x1d40            target/kernel/main.o
@@ -430,7 +430,7 @@ LOAD target/lib/i386/ipc/ipc.o
                 0x00005902                PROVIDE (edata, .)
                 0x00005902                __bss_start = .
 
-.bss            0x00005920     0x3f90
+.bss            0x00005920     0x3fa0
  *(.dynbss)
  *(.bss .bss.* .gnu.linkonce.b.*)
  .bss           0x00005920      0x800 target/kernel/kernel.o
@@ -457,36 +457,35 @@ LOAD target/lib/i386/ipc/ipc.o
  *fill*         0x00006734        0xc 00
  .bss           0x00006740       0xa0 target/lib/stdio/printf.o
  *(COMMON)
- COMMON         0x000067e0     0x2460 target/kernel/main.o
+ COMMON         0x000067e0     0x30e0 target/kernel/main.o
                 0x000067e0                gp_curProc
                 0x000067e4                kernel_reenter
                 0x00006800                sys_proc_stack
                 0x00006c00                g_tss
                 0x00006c68                gp_bootParam
                 0x00006c6c                gp_idt
-                0x00006c74                bill_proc
-                0x00006c78                level0_func
-                0x00006c7c                g_dispPosition
-                0x00006c80                held_tail
-                0x00006c84                gp_gdt
-                0x00006c8c                g_kernelMap
-                0x00006ca0                g_irqHandlers
-                0x00006ce0                ready_tail
-                0x00006d00                g_gdt
-                0x00006e48                ready_head
-                0x00006e54                held_head
-                0x00006e60                p_proc_addr
-                0x00006f00                proc_table
- COMMON         0x00008c40      0xc70 target/kernel/i8259.o
-                0x00008c40                tty_table
-                0x00009870                nr_current_console
-                0x00009880                console_table
-                0x000098b0                . = ALIGN ((. != 0x0)?0x4:0x1)
-                0x000098b0                . = ALIGN (0x4)
-                0x000098b0                . = ALIGN (0x4)
-                0x000098b0                _end = .
-                0x000098b0                PROVIDE (end, .)
-                0x000098b0                . = DATA_SEGMENT_END (.)
+                0x00006c80                tty_table
+                0x000078b0                bill_proc
+                0x000078b4                nr_current_console
+                0x000078b8                level0_func
+                0x000078bc                g_dispPosition
+                0x000078c0                held_tail
+                0x000078c4                gp_gdt
+                0x000078cc                g_kernelMap
+                0x000078e0                g_irqHandlers
+                0x00007920                ready_tail
+                0x00007940                g_gdt
+                0x00007a88                ready_head
+                0x00007aa0                console_table
+                0x00007ad0                held_head
+                0x00007ae0                p_proc_addr
+                0x00007b80                proc_table
+                0x000098c0                . = ALIGN ((. != 0x0)?0x4:0x1)
+                0x000098c0                . = ALIGN (0x4)
+                0x000098c0                . = ALIGN (0x4)
+                0x000098c0                _end = .
+                0x000098c0                PROVIDE (end, .)
+                0x000098c0                . = DATA_SEGMENT_END (.)
 
 .stab
  *(.stab)
