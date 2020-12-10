@@ -27,6 +27,7 @@ PRIVATE void	kb_wait();
 PRIVATE void	kb_ack();
 
 PRIVATE Message msg;
+PRIVATE u8_t initCount=0;
 
 /*======================================================================*
                             keyboard_handler
@@ -43,11 +44,9 @@ PUBLIC int keyboard_handler(int irq)
         }
         kb_in.count++;
     }
-    printf("kb ");
-    if(kb_in.count>=2) {
-        send(-4,&msg);
-        printf("awake\n");
-    }
+    if(initCount>=1) { /* todo 初始时，莫名其妙产生的一次键盘中断 */
+        ready(proc_addr(TTY_TASK));
+    }else initCount++;
     
     return ENABLE;
 }

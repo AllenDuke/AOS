@@ -159,7 +159,10 @@ PUBLIC int flyanx_send(
         msg_copy((phys_addr) msg_phys, (phys_addr) target->transfer);
         /* 解除对方的堵塞状态 */
         target->flags &= ~RECEIVING;
-        if(target->flags == CLEAN_MAP) ready(target);
+        if(target->flags == CLEAN_MAP) {
+            ready(target);
+            printf("%d is ready",target->logic_nr);
+        }
     } else {
         /* 如果对方并没有堵塞，或者他被堵塞但不是在等待我
          * 那么堵塞我自己（发送消息的人）并开始排队。

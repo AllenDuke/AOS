@@ -35,12 +35,18 @@ PRIVATE int month_map[12] = {
 };
 
 
-FORWARD void clock_init (void);
-FORWARD int clock_handler (int irq);
+FORWARD void clock_init(void);
+
+FORWARD int clock_handler(int irq);
+
 FORWARD time_t mktime(RTCTime_t *p_time);
+
 FORWARD void do_get_uptime(void);
+
 FORWARD void do_get_time(void);
+
 FORWARD void do_set_time(void);
+
 FORWARD void do_clock_int(void);
 
 //需要设置好idt
@@ -58,7 +64,7 @@ PUBLIC void clock_task(void) {
     milli_delay(sec2ms(1));
     printf("i am zangsan, no!\n");
     printf("#{CLOCK}-> Working...\n");
-    while(TRUE) {
+    while (TRUE) {
         /* 等待外界消息 */
         rec(ANY);
 
@@ -69,11 +75,20 @@ PUBLIC void clock_task(void) {
 
         /* 提供服务 */
         switch (msg.type) {
-            case HARD_INT:      do_clock_int();     break;
-            case GET_UPTIME:    do_get_uptime();    break;
-            case GET_TIME:      do_get_time();      break;
-            case SET_TIME:      do_set_time();      break;
-            default:    panic("#{CLOCK}-> Clock task got bad message request.\n", msg.type);
+            case HARD_INT:
+                do_clock_int();
+                break;
+            case GET_UPTIME:
+                do_get_uptime();
+                break;
+            case GET_TIME:
+                do_get_time();
+                break;
+            case SET_TIME:
+                do_set_time();
+                break;
+            default:
+                panic("#{CLOCK}-> Clock task got bad message request.\n", msg.type);
         }
 
         /* 根据处理结果，发送回复消息 */
@@ -87,38 +102,39 @@ PRIVATE int clock_handler(int irq) {
     register Process *target;
 
     /* 获取当前使用时钟的进程 */
-    if(kernel_reenter)  /* 发送中断重入，说明当前处于核心代码段，被中断的进程使用虚拟硬件 */
+    if (kernel_reenter)  /* 发送中断重入，说明当前处于核心代码段，被中断的进程使用虚拟硬件 */
         target = proc_addr(HARDWARE);
     else                /* 正常中断，被中断的进程就是当前运行的进程 */
         target = gp_curProc;
+
 
     /* 计时 */
     ticks++;
 
     /* 记账：给使用了系统资源的用户进程记账 */
-    target->user_time++;        /* 用户时间记账 */
+    gp_curProc->user_time++;        /* 用户时间记账 */
 
-    if(gp_curProc==proc_addr(IDLE_TASK)&&gp_curProc->user_time%10==0) {
-        lock_hunter();
-    }
+//    if (gp_curProc == proc_addr(IDLE_TASK) && gp_curProc->user_time % 100 == 0) {
+//        lock_hunter();
+//    }
 
-    if(target != bill_proc && target != proc_addr(HARDWARE))
+    if (target != bill_proc && target != proc_addr(HARDWARE))
         bill_proc->sys_time++;  /* 当前进程不是计费的用户进程，那么它应该是使用了系统调用陷入了内核，记录它的系统时间 */
 
     /* 闹钟时间到了？产生一个时钟中断，唤醒时钟任务 */
-    if( next_alarm <= ticks ) {
+    if (next_alarm <= ticks) {
         interrupt(CLOCK_TASK);
         return ENABLE;
     }
 
     /* 毫秒级休眠函数退出闹钟响了？ */
-    if( delay_alarm <= ticks ) {
+    if (delay_alarm <= ticks) {
         delay_alarm = ULONG_MAX;    /* 关闭毫秒级延迟闹钟 */
     }
 
 
     /* 重置用户进程调度时间片 */
-    if(--schedule_ticks == 0) {
+    if (--schedule_ticks == 0) {
         schedule_ticks = SCHEDULE_TICKS;
         last_proc = bill_proc;  /* 记录最后一个消费进程 */
     }
@@ -193,13 +209,13 @@ PUBLIC void get_rtc_time(RTCTime_t *p_time) {
      * 如果是，我们还需要手动将 BCD 码转换成十进制。
      */
     status = cmos_read(CLK_STATUS);
-    if( (status & 0x4) == 0 ) {
+    if ((status & 0x4) == 0) {
         p_time->year = bcd2dec(p_time->year);
         p_time->month = bcd2dec(p_time->month);
         p_time->day = bcd2dec(p_time->day);
         p_time->hour = bcd2dec(p_time->hour);
         p_time->minute = bcd2dec(p_time->minute);
-        p_time->second =bcd2dec(p_time->second);
+        p_time->second = bcd2dec(p_time->second);
     }
     p_time->year += 2000;   /* CMOS 记录的年是从 2000 年开始的，我们补上 */
 }
@@ -222,10 +238,10 @@ PRIVATE time_t mktime(RTCTime_t *p_time) {
 
     year -= 1970;                   /* 从 1970 开始 */
     /* 为了获得正确的闰年数，这里需要这样一个魔幻偏值 year + 1 */
-    now = YEARS * year + DAYS * ( (year + 1) / 4 );     /* 这些年经过的秒数时间 + 每个闰年时多 1 天的秒数时间 */
+    now = YEARS * year + DAYS * ((year + 1) / 4);     /* 这些年经过的秒数时间 + 每个闰年时多 1 天的秒数时间 */
     now += month_map[mouth - 1];                        /* 再加上当年到当月的秒数 */
     /* 如果 (year + 2) 不是闰年，我们就需要进行调整（减去一天的秒数） */
-    if( mouth - 1 > 0 && ( (year + 2) % 4 ) ) {
+    if (mouth - 1 > 0 && ((year + 2) % 4)) {
         now -= DAYS;
     }
     now += DAYS * (day - 1);        /* 加上本月过去的天数的秒数 */
@@ -254,7 +270,7 @@ PUBLIC void milli_delay(time_t delay_ms) {
     /* 得出退出循环的闹钟时间 */
     delay_alarm = ticks + delay_ms / ONE_TICK_MILLISECOND;
     /* 只要检测到毫秒级闹钟未被关闭，说明时候未到，继续死循环 */
-    while ( delay_alarm != ULONG_MAX ) {  }
+    while (delay_alarm != ULONG_MAX) {}
 }
 
 /*===========================================================================*

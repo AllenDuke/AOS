@@ -29,12 +29,14 @@ PUBLIC void tty_task()
     select_console(0);
 
     while (1) {
-        /* 等待外界消息 */
-        rec(ANY);
+        if(kb_in_count()==0) {
+            rec(ANY);
+        }
         for (p_tty=TTY_FIRST;p_tty<TTY_END;p_tty++) {
             tty_do_read(p_tty);
             tty_do_write(p_tty);
         }
+
     }
 }
 

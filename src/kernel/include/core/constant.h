@@ -117,7 +117,7 @@
 #define ONE_TICK_MILLISECOND (1000 / HZ)  /* 一次滴答（中断）有多少毫秒，这个值由时钟频率决定 */
 
 /* 用户进程使用时间片轮转算法，这里可以对轮转时间进行配置 */
-#define SCHEDULE_MILLISECOND    130         /* 用户进程调度的频率（毫秒），根据喜好设置就行 */
+#define SCHEDULE_MILLISECOND    100         /* 用户进程调度的频率（毫秒），根据喜好设置就行 */
 #define SCHEDULE_TICKS          (SCHEDULE_MILLISECOND / ONE_TICK_MILLISECOND)  /* 用户进程调度的频率（滴答） */
 
 #define     GET_UPTIME      1   /* 获取时钟运行时间(tick) */
