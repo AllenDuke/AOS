@@ -13,12 +13,12 @@
 #define _POSIX_SOURCE      1
 
 /* 宏_AOS将为AOS所定义的扩展而"重载_POSIX_SOURCE"的作用 */
-#define _AOS             1
+#define _AOS               1
 
 /* 在编译系统代码时，如果要作与用户代码不同的事情，比如改变错误码的符号，则可以对_SYSTEM宏进行测试 */
 #define _SYSTEM            1	/* tell headers that this is the kernel */
 
-#include "config.h"                 /* 这个头文件应该第一个引入，做一些检查和设定，但不是必要的 */
+#include "config.h"             /* 这个头文件应该第一个引入，做一些检查和设定，但不是 */
 #include "constant.h"
 #include "../errno.h"
 #include "../types.h"

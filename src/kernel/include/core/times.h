@@ -12,7 +12,8 @@ typedef long clock_t;		/* 系统时钟计时单位 */
 
 #include <core/cmos.h>
 
-/* 系统硬件实时时间
+/**
+ * 系统硬件实时时间
  * 通过 CMOS 中获取的 RTC 时间
  */
 typedef struct rtc_time {
@@ -27,4 +28,4 @@ typedef struct rtc_time {
 /* BDC 码 转 十进制 */
 #define  bcd2dec(x)      ( (x >> 4) * 10 + (x & 0xf) )
 
-#endif //_FLYANX_TIMES_H
+#endif //AOS_TIMES_H

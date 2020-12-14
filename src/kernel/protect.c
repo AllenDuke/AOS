@@ -110,7 +110,7 @@ PUBLIC void init_protect(void) {
     for(int ldtI = LDT_FIRST_INDEX; proc < END_PROC_ADDR; proc++, ldtI++) {
         memset(proc, 0, sizeof(Process)); /* clean */
         init_segment_desc(&g_gdt[ldtI], vir2phys(proc->ldt), sizeof(proc->ldt) - 1, DA_LDT);
-        proc->ldt_sel = ldtI * DESCRIPTOR_SIZE;
+        proc->ldtSelector = ldtI * DESCRIPTOR_SIZE;
     }
 
     printf("already init protect mode\n");
@@ -123,11 +123,11 @@ PUBLIC void init_protect(void) {
  */
 PRIVATE void init_gate_desc(GateInfo *gateInfo, u8_t desc_type, GateDescriptor *p_gate) {
     u32_t base_addr = (u32_t) gateInfo->handler;
-    p_gate->offset_low = base_addr & 0xFFFF;
+    p_gate->offsetLow = base_addr & 0xFFFF;
     p_gate->selector = KERNEL_CS_SELECTOR;
     p_gate->dcount = 0;
     p_gate->attr = desc_type | (gateInfo->privilege << 5);
-    p_gate->offset_high = (base_addr >> 16) & 0xFFFF;
+    p_gate->offsetHigh = (base_addr >> 16) & 0xFFFF;
 }
 
 /**
@@ -138,11 +138,11 @@ PRIVATE void init_gate_desc(GateInfo *gateInfo, u8_t desc_type, GateDescriptor *
  * @param attribute 段属性
  */
 PUBLIC void init_segment_desc(SegDescriptor *p_desc, phys_addr base, u32_t limit, u16_t attribute) {
-    p_desc->limit_low = limit & 0x0FFFF;                                        /* 段界限 1    (2 字节) */
-    p_desc->base_low = base & 0x0FFFF;                                          /* 段基址 1    (2 字节) */
-    p_desc->base_middle = (base >> 16) & 0x0FF;                                 /* 段基址 2    (1 字节) */
+    p_desc->limitLow = limit & 0x0FFFF;                                        /* 段界限 1    (2 字节) */
+    p_desc->baseLow = base & 0x0FFFF;                                          /* 段基址 1    (2 字节) */
+    p_desc->baseMiddle = (base >> 16) & 0x0FF;                                 /* 段基址 2    (1 字节) */
     p_desc->access = attribute & 0xFF;                                          /* 属性 1 */
     p_desc->granularity = ((limit >> 16) & 0x0F) |((attribute >> 8) & 0xF0);    /* 段界限 2 + 属性 2 */
-    p_desc->base_high = (base >> 24) & 0x0FF;                                   /* 段基址 3    (1 字节) */
+    p_desc->baseHigh = (base >> 24) & 0x0FF;                                   /* 段基址 3    (1 字节) */
 }
 

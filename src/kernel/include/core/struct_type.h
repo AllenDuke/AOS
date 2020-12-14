@@ -7,11 +7,10 @@
 #ifndef AOS_STRUCT_TYPE_H
 #define AOS_STRUCT_TYPE_H
 
-
 /* 引导参数 */
 typedef struct boot_params_s{
-    u32_t memory_size;          /* 内存大小 */
-    phys_addr kernel_file;     /* 内核所在绝对物理地址 */
+    u32_t memorySize;          /* 内存大小 */
+    phys_addr kernelFileAddr;     /* 内核所在绝对物理地址 */
 } BootParam;
 
 /**
@@ -23,36 +22,41 @@ typedef struct boot_params_s{
  */
 typedef struct stackframe_s{
     /* 低地址 */
-    /* =========== 所有的特殊段寄存器，我们手动压入 =========== */
+
+    /* 所有的特殊段寄存器，手动压入 */
     reg_t	gs;
     reg_t	fs;
     reg_t	es;
     reg_t	ds;
-    /* ============== 所有的普通寄存器，我们通过 pushad 手动压入 ============== */
+
+    /* 所有的普通寄存器，通过 pushad 手动压入 */
     reg_t	edi;
     reg_t	esi;
     reg_t	ebp;
-    reg_t	kernel_esp;	/* pushad 压入的 esp，这个时候已经自动从低特权级到了 0 特权级，
-                         * 所以这个其实是从tss.esp0！而 popad 指令也会忽略这个，不会
-                         * 恢复它。
-                         */
+    /**
+     * pushad 压入的 esp，这个时候已经自动从低特权级到了 0 特权级，
+     * 所以这个其实是从tss.esp0！而 popad 指令也会忽略这个，不会恢复它。
+     */
+    reg_t	kernelEsp;
+
     reg_t	ebx;
     reg_t	edx;
     reg_t	ecx;
     reg_t	eax;
-    /* ======= call save()自动保存的返回地址 ======= */
-    reg_t	ret_addr;
-    /* ============ 中断自动压入的内容 ============= */
+    reg_t	retAddr;   /* call save()自动保存的返回地址 */
+
+    /* 中断自动压入的内容 */
     reg_t	eip;        /* 中断门和调用门有一点点不同，那就是中断门还会压入一个eflags */
     reg_t	cs;
     reg_t	eflags;     /* 中断门自动压入 */
     reg_t	esp;
     reg_t   ss;
-    /* =========================================== */
+
     /* 高地址 */
 } StackFrame;
 
-/* 内存映像
+/**
+ * 内存映像
  * 这个结构能够描述一个内存块信息
  */
 typedef struct memory_map{
@@ -70,7 +74,7 @@ typedef void (*WatchDog) (void);
  */
 typedef struct sys_proc {
     SysTask task;           /* 这是一个函数指针，指向实际要执行的任务 */
-    int     stack_size;     /* 系统进程的栈大小 */
+    int     stackSize;     /* 系统进程的栈大小 */
     char    name[16];       /* 系统进程名称 */
 } SysProc;
 
@@ -82,7 +86,8 @@ typedef struct {long m4l1, m4l2, m4l3, m4l4, m4l5;} mess_union4;
 typedef struct {char m5c1, m5c2; int m5i1, m5i2; long m5l1, m5l2, m5l3;}mess_union5;
 typedef struct {int m6i1, m6i2, m6i3; long m6l1; sighandler_t m6f1;} mess_union6;
 
-/* 消息，AOS中的进程通信的根本，同时也是客户端和服务端通信的根本
+/* *
+ * 消息，AOS中的进程通信的根本，同时也是客户端和服务端通信的根本
  * 此数据结构来源自MINIX
  */
 typedef struct message_s{

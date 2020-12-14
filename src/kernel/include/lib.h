@@ -7,12 +7,12 @@
 #define AOS_LIB_H
 
 /* AOS 用户和系统双用库 */
-int send_rec(int src, Message *io_msg);
-int in_outbox(Message *in_msg, Message *out_msg);
+int send_rec(int src, Message *p_msg);
+int in_outbox(Message *p_inMsg, Message *p_outMsg);
 
 /* AOS 系统库 */
-int send(int dest, Message* out_msg);
-int receive(int src, Message* in_msg);
+int send(int dest, Message* p_msg);
+int receive(int src, Message* p_msg);
 
 
 #endif //_FLYANX_SYSLIB_H

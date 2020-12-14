@@ -58,18 +58,28 @@ typedef unsigned long sigset_t;     	/* 信号集 */
 
 
 
-typedef unsigned char   u8_t;	   /* 8位类型 == db */
-typedef unsigned short u16_t;	   /* 16位类型 == dw */
-typedef unsigned int   u32_t;	   /* 32位类型 == dd */
+typedef unsigned char   u8_t;	    /* 8位类型 == db */
+typedef unsigned short u16_t;	    /* 16位类型 == dw */
+typedef unsigned int   u32_t;	    /* 32位类型 == dd */
 
-typedef char            i8_t;      /* 8位有符号类型 */
-typedef short          i16_t;      /* 16位有符号类型 */
-typedef long           i32_t;      /* 32位有符号类型 */
+typedef char            i8_t;       /* 8位有符号类型 */
+typedef short          i16_t;       /* 16位有符号类型 */
+typedef long           i32_t;       /* 32位有符号类型 */
 
-typedef unsigned char   bool_t; 	/* 布尔值 */
+typedef unsigned char   bool_t;     /* 布尔值 */
 
 typedef unsigned long long u64_t;
 
 /* 信号处理程序类型，例如SIG_IGN */
 typedef void (*sighandler_t) (int);
+
+/* 硬件（异常）中断处理函数原型 相当于声明函数指针 int_handler_t 不能如此声明 void int_handler_t (void) */
+typedef void (*int_handler)(void);
+
+/* 中断请求处理函数原型 */
+typedef int (*irq_handler)(int irq);
+
+/* 系统调用函数原型 */
+typedef void (*aos_syscall)(void);
+
 #endif //AOS_TYPES_H

@@ -17,28 +17,31 @@ typedef struct descriptor_s{
     char base[sizeof(u32_t)];		/* really u24_t + pad for 286 */
 } DescriptorTablePtr;
 
-#define DESCRIPTOR_SIZE    8   /* 描述符大小，字节为单位 */
+#define DESCRIPTOR_SIZE    8        /* 描述符大小，字节为单位 */
 
 /* 段描述符 8字节 64位 */
 typedef struct seg_descriptor_s{
-    u16_t limit_low;        /* 段界限低16位 */
-    u16_t base_low;         /* 段基址低16位 */
-    u8_t base_middle;       /* 段基址中8位 */
-    u8_t access;		    /* 访问权限：| P | DL | 1 | X | E | R | A | */
-    u8_t granularity;		/* 比较杂，最重要的有段粒度以及段界限的高4位| G | X  | 0 | A | LIMIT HIGHT | */
-    u8_t base_high;         /* 段基址高8位 */
+    u16_t limitLow;         /* 段界限低16位 */
+    u16_t baseLow;          /* 段基址低16位 */
+    u8_t baseMiddle;        /* 段基址中8位 */
+    u8_t access;	        /* 访问权限：| P | DL | 1 | X | E | R | A | */
+    u8_t granularity;       /* 比较杂，最重要的有段粒度以及段界限的高4位| G | X  | 0 | A | LIMIT HIGHT | */
+    u8_t baseHigh;          /* 段基址高8位 */
 } SegDescriptor;
 
 /* 门描述符 */
 typedef struct gate_s{
-    u16_t	offset_low;	/* Offset Low */
-    u16_t	selector;	/* Selector */
-    u8_t	dcount;		    /* 该字段只在调用门描述符中有效。
-                               如果在利用调用门调用子程序时引起特权级的转换和堆栈的改变，需要将外层堆栈中的参数复制到内层堆栈。
-				               该双字计数字段就是用于说明这种情况发生时，要复制的双字参数的数量。 */
+    u16_t	offsetLow;	    /* Offset Low */
+    u16_t	selector;	    /* Selector */
+    /**
+     * 该字段只在调用门描述符中有效。
+     * 如果在利用调用门调用子程序时引起特权级的转换和堆栈的改变，需要将外层堆栈中的参数复制到内层堆栈。
+     * 该双字计数字段就是用于说明这种情况发生时，要复制的双字参数的数量。
+     */
+    u8_t	dcount;
 
     u8_t	attr;		    /* P(1) DPL(2) DT(1) TYPE(4) */
-    u16_t	offset_high;	/* Offset High */
+    u16_t	offsetHigh;	    /* Offset High */
 } GateDescriptor;
 
 /* 任务状态段 共104字节 */
@@ -73,12 +76,13 @@ typedef struct tss_s{
 } TSS;
 
 /* 表大小 */
-#define GDT_SIZE (LDT_FIRST_INDEX + NR_TASKS + NR_PROCS) /* 全局描述符表 共40项*/
-#define IDT_SIZE (INT_VECTOR_SYS_CALL + 1)  /* 只取最高的向量 */
-#define LDT_SIZE         2	                /* AOS每个进程只有两个段，一个是正文段（代码段），
-                                             * 另一个是数据段，而堆栈段则和数据段共用，以后可能会分的更
-                                             * 细，但对于现在来说，这样就够了。
-                                             */
+#define GDT_SIZE (LDT_FIRST_INDEX + NR_TASKS + NR_PROCS)    /* 全局描述符表 共40项*/
+#define IDT_SIZE (INT_VECTOR_SYS_CALL + 1)                  /* 只取最高的向量 */
+/**
+ * AOS每个进程只有两个段，一个是正文段（代码段）
+ * 另一个是数据段，而堆栈段则和数据段共用，以后可能会分的更细，但对于现在来说，这样就够了。
+ */
+#define LDT_SIZE         2
 
 /* 固定的全局描述符索引 */
 #define DUMMY_INDEX         0   /* GDT的头，标志性，不可或缺，供cpu识别 */
@@ -165,9 +169,6 @@ typedef struct tss_s{
 #define	DA_386TGate		    0x8F	/* 386 陷阱门类型值			*/
 
 /* 宏：通过一个段描述符中的信息得到对应的物理地址，例如正文段的基地址。 */
-#define	reassembly(high, high_shift, mid, mid_shift, low)	\
-	(((high) << (high_shift)) |				\
-	 ((mid)  << (mid_shift)) |				\
-	 (low))
+#define	reassembly(high, high_shift, mid, mid_shift, low)   (((high) << (high_shift)) | ((mid)  << (mid_shift)) | (low))
 
 #endif //AOS_PROTECT_H

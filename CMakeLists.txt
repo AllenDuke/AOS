@@ -38,4 +38,4 @@ add_executable(
         src/kernel/clock.c
         src/kernel/process.c
         src/kernel/dump.c
-        src/kernel/keyboard.c src/kernel/tty.c)
+        src/kernel/keyboard.c src/kernel/tty.c src/kernel/idle.c)

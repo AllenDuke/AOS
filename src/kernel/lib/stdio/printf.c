@@ -17,10 +17,11 @@ PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg);
 PUBLIC int printf(const char *p_string, ...){
     va_list ap;
     int len;
-    static char buf[160];   /* 这里注意：必须是静态的不然这个函数每次调用都来个
-                             * 缓冲区，内核的内存根本不够它造，很快就溢出了！
-                             * 内核的打印不会超过两行，所以 160 就够了。
-                             */
+    /**
+     * 这里注意：必须是静态的不然这个函数每次调用都来个缓冲区，内核的内存根本不够它造，很快就溢出了！
+     * 内核的打印不会超过两行，所以 160 就够了。
+     */
+    static char buf[160];
 
     /* 准备开始访问可变参数 */
     va_start(ap, p_string);

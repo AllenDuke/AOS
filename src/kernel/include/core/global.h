@@ -49,20 +49,20 @@ Process* gp_billProc;
 Process* gp_readyHeads[NR_PROC_QUEUE];
 Process* gp_readyTails[NR_PROC_QUEUE];
 
-struct process_s *gp_heldHead;    /* 中断挂起队列头指针 */
-struct process_s *gp_heldTail;    /* 中断挂起队列尾指针 */
+struct process_s *gp_heldHead;      /* 中断挂起队列头指针 */
+struct process_s *gp_heldTail;      /* 中断挂起队列尾指针 */
 
-u8_t kernelReenter;            /* 记录内核中断重入次数 */
+u8_t kernelReenter;                 /* 记录内核中断重入次数 */
 
 /* 所有系统进程堆栈的堆栈空间。 （声明为（char *）使其对齐。） */
 char* sysProcStack[TOTAL_TASK_STACK / sizeof(char *)];
 
 TTY ttys[NR_CONSOLES];
 CONSOLE consoles[NR_CONSOLES];
-int nrCurConsole;     /* 表示当前的控制台 */
+int nrCurConsole;                   /* 表示当前的控制台 */
 
 /* 其他 */
-BootParam *gp_bootParam;    /* 引导参数指针 */
-aos_syscall level0Fn;    /* 提权成功的函数指针放在这里 */
+BootParam *gp_bootParam;            /* 引导参数指针 */
+aos_syscall level0Fn;               /* 提权成功的函数指针放在这里 */
 
 #endif // AOS_GLOBAL_H

@@ -5,19 +5,7 @@
 
 FORWARD char *proc_name(int proc_nr);
 
-/*===========================================================================*
- *				proc_name    				     *
- *			   得到进程名称
- *===========================================================================*/
-PRIVATE inline char *proc_name(int proc_nr) {
-    if (proc_nr == ANY) return "ANY";
-    return proc_addr(proc_nr)->name;
-}
-
-/*===========================================================================*
- *				proc_dmp    				     *
- *			   进程信息转储
- *===========================================================================*/
+/* 转储进程信息 */
 PUBLIC void proc_dump(void) {
     /* 为所有的进程显示基本的处理信息。 */
     register Process *target;
@@ -29,23 +17,23 @@ PUBLIC void proc_dump(void) {
         /* 空的进程请跳过 */
         if (is_empty_proc(target)) continue;
         if (++n > 20) break;
-        if (target->logic_nr < 0) {
-            printf("#{%3d}", target->logic_nr);
+        if (target->logicNum < 0) {
+            printf("#{%3d}", target->logicNum);
         } else {
-            printf("%5d", target->logic_nr);
+            printf("%5d", target->logicNum);
         }
         printf(" %5lx %6lx %2x %6lus %6lus %5uK %5uK ",
                (unsigned long) target->regs.eip,
                (unsigned long) target->regs.esp,
                target->flags,
-               tick2sec(target->user_time),
-               tick2sec(target->sys_time),
+               tick2sec(target->userTime),
+               tick2sec(target->sysTime),
                tick2sec(target->map.base),
                bytes2round_k(target->map.size));
         if (target->flags & RECEIVING) {
-            printf("%-7.7s", proc_name(target->get_form));
+            printf("%-7.7s", proc_name(target->getFrom));
         } else if (target->flags & SENDING) {
-            printf("S:%-5.5s", proc_name(target->send_to));
+            printf("S:%-5.5s", proc_name(target->sendTo));
         } else if (target->flags == CLEAN_MAP) {
             printf(" CLEAN ");
         }
@@ -56,10 +44,8 @@ PUBLIC void proc_dump(void) {
     printf("\n");
 }
 
-/*===========================================================================*
- *				map_dmp    				     *
- *			进程内存映像信息转储
- *===========================================================================*/
+
+/* 转储进程内存影响信息 */
 PUBLIC void map_dump(void) {
     /* 提供详细的内存使用信息。 */
     register Process *target;
@@ -71,7 +57,7 @@ PUBLIC void map_dump(void) {
         if (is_empty_proc(target)) continue;    /* 空进程跳过 */
         if (++n > 20) break;
         printf("%3d %s  %12xB  %5uK\n",
-               target->logic_nr,
+               target->logicNum,
                target->name,
                target->map.base,
                bytes2round_k(target->map.size));
@@ -79,4 +65,10 @@ PUBLIC void map_dump(void) {
     if (target == END_PROC_ADDR) target = cproc_addr(HARDWARE); else printf("--more--\r");
     old_proc = target;
     printf("\n");
+}
+
+/* 得到进程名字 */
+PRIVATE inline char *proc_name(int proc_nr) {
+    if (proc_nr == ANY) return "ANY";
+    return proc_addr(proc_nr)->name;
 }

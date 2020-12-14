@@ -9,11 +9,11 @@
  * @param msg 错误信息
  * @param error_num
  */
-PUBLIC void panic(const char *msg, int error_num) {
-    if (msg != NIL_PTR) {
-        printf("AOS kernel is panicky for: %s !\n", msg);
-        if (error_num != PANIC_ERR_NUM)
-            printf("panic error num: 0x%x !\n", error_num);
+PUBLIC void panic(const char *p_msg, int errorNum) {
+    if (p_msg != NIL_PTR) {
+        printf("AOS kernel is panicky for: %s !\n", p_msg);
+        if (errorNum != PANIC_ERR_NUM)
+            printf("panic error num: 0x%x !\n", errorNum);
     }
     /* 好了，可以宕机了 */
     level0(cpu_halt);
