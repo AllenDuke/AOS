@@ -5,13 +5,13 @@
 #ifndef AOS_CMOS_H
 #define AOS_CMOS_H
 
-/* CMOS */
-#define CLK_ELE		0x70	/* CMOS RAM address register port (write only)
-                             * Bit 7 = 1  NMI disable
-                             *	   0  NMI enable
-                             * Bits 6-0 = RAM address
-                             */
-
+/**
+* CMOS RAM address register port (write only)
+* Bit 7 = 1  NMI disable
+*	   0  NMI enable
+* Bits 6-0 = RAM address
+ */
+#define CLK_ELE		0x70
 #define CLK_IO		0x71	/* CMOS RAM data register port (read/write) */
 
 #define  YEAR             9	/* Clock register addresses in CMOS RAM	*/
@@ -21,15 +21,16 @@
 #define  MINUTE           2
 #define  SECOND           0
 #define  CLK_STATUS    0x0B	/* Status register B: RTC configuration	*/
-#define  CLK_HEALTH    0x0E	/* Diagnostic status: (should be set by Power
-                             * On Self-Test [POST])
-                             * Bit  7 = RTC lost power
-                             *	6 = Checksum (for addr 0x10-0x2d) bad
-                             *	5 = Config. Info. bad at POST
-                             *	4 = Mem. size error at POST
-                             *	3 = I/O board failed initialization
-                             *	2 = CMOS time invalid
-                             *    1-0 =     reserved
-                             */
-
+/**
+* Diagnostic status: (should be set by Power
+* On Self-Test [POST])
+* Bit  7 = RTC lost power
+*	6 = Checksum (for addr 0x10-0x2d) bad
+*	5 = Config. Info. bad at POST
+*	4 = Mem. size error at POST
+*	3 = I/O board failed initialization
+*	2 = CMOS time invalid
+*    1-0 =     reserved
+*/
+#define  CLK_HEALTH    0x0E
 #endif

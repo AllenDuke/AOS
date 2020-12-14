@@ -84,11 +84,11 @@ typedef struct process_s{
 #define PROC_PRI_IDLE	4	/* 空闲进程，一个特殊的进程，当系统没有正在活动的进程时被运行 */
 
 /* 对过程表地址操作的一些宏定义。 */
-#define BEG_PROC_ADDR       (&proc_table[0])
-#define END_PROC_ADDR       (&proc_table[NR_TASKS + NR_SERVERS + NR_PROCS])
-#define END_TASK_ADDR       (&proc_table[NR_TASKS])
-#define BEG_SERVER_ADDR     (&proc_table[NR_TASKS + NR_SERVERS])
-#define BEG_USER_PROC_ADDR  (&proc_table[NR_TASKS + NR_SERVERS +LOW_USER])
+#define BEG_PROC_ADDR       (&g_procs[0])
+#define END_PROC_ADDR       (&g_procs[NR_TASKS + NR_SERVERS + NR_PROCS])
+#define END_TASK_ADDR       (&g_procs[NR_TASKS])
+#define BEG_SERVER_ADDR     (&g_procs[NR_TASKS + NR_SERVERS])
+#define BEG_USER_PROC_ADDR  (&g_procs[NR_TASKS + NR_SERVERS +LOW_USER])
 
 /* 下面的这些宏能帮助我们快速做一些进程判断等简单的工作 */
 #define NIL_PROC          ((Process *) 0)       /* 空进程指针 */
@@ -110,8 +110,8 @@ typedef struct process_s{
  * proc = proc_addr(n);
  * 将进程n的进程表项地址赋给rp,无论它是正还是负。
  */
-#define proc_addr(n)      (p_proc_addr + NR_TASKS)[(n)]    /* 得到进程的指针 */
-#define cproc_addr(n)     (&(proc_table + NR_TASKS)[(n)])  /* 得到进程的地址 */
+#define proc_addr(n)      (gp_procs + NR_TASKS)[(n)]    /* 得到进程的指针 */
+#define cproc_addr(n)     (&(g_procs + NR_TASKS)[(n)])  /* 得到进程的地址 */
 /* 进程的虚拟地址转物理地址 */
 #define proc_vir2phys(p, vir) \
     ((phys_addr)(p)->map.base + (vir_addr)(vir))

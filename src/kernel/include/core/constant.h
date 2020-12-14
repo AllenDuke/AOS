@@ -84,15 +84,15 @@
 
 /* 8259A终端控制器端口 */
 #define INT_M_CTL           0x20    /* I/O port for interrupt controller         <Master> */
-#define INT_M_CTL_MASK       0x21    /* setting bits in this port disables ints   <Master> */
+#define INT_M_CTL_MASK      0x21    /* setting bits in this port disables ints   <Master> */
 #define INT_S_CTL           0xA0    /* I/O port for second interrupt controller  <Slave>  */
-#define INT_S_CTL_MASK       0xA1    /* setting bits in this port disables ints   <Slave>  */
+#define INT_S_CTL_MASK      0xA1    /* setting bits in this port disables ints   <Slave>  */
 /* 中断控制器的神奇数字EOI，可以用于控制中断的打开和关闭，当然，这个宏可以被类似功能的引用 */
 #define EOI                 0x20    /* EOI，发送给8259A端口1，以重新启用中断 */
 #define DISABLE             0       /* 用于在中断后保持当前中断关闭的代码 */
 #define ENABLE              EOI	    /* 用于在中断后重新启用当前中断的代码 */
 
-#   define HARD_INT         -1  /* 表示硬件中断，这是 HARDWARE 的唯一可能发送消息类型 */
+#define HARD_INT            -1     /* 表示硬件中断，这是 HARDWARE 的唯一可能发送消息类型 */
 //======================================================================================================================
 
 
@@ -108,32 +108,29 @@
 #define TIMER2          0x42	/* 定时器通道2的I/O端口 */
 #define TIMER_MODE      0x43	/* 用于定时器模式控制的I/O端口 */
 
-#define RATE_GENERATOR	    0x34	    /* 00-11-010-0 Counter0 - LSB the MSB - rate generator - binary */
-#define TIMER_FREQ		    1193182L    /* clock frequency for timer in PC and AT */
-#define TIMER_COUNT  (TIMER_FREQ / HZ)  /* initial value for counter*/
+#define RATE_GENERATOR	        0x34	                /* 00-11-010-0 Counter0 - LSB the MSB - rate generator - binary */
+#define TIMER_FREQ		        1193182L                /* clock frequency for timer in PC and AT */
+#define TIMER_COUNT             (TIMER_FREQ / HZ)       /* initial value for counter*/
 
-#define CLOCK_ACK_BIT	    0x80		/* PS/2 clock interrupt acknowledge bit */
+#define CLOCK_ACK_BIT	        0x80		            /* PS/2 clock interrupt acknowledge bit */
 
-#define ONE_TICK_MILLISECOND (1000 / HZ)  /* 一次滴答（中断）有多少毫秒，这个值由时钟频率决定 */
+#define ONE_TICK_MILLISECOND    (1000 / HZ)             /* 一次滴答（中断）有多少毫秒，这个值由时钟频率决定 */
 
 /* 用户进程使用时间片轮转算法，这里可以对轮转时间进行配置 */
-#define SCHEDULE_MILLISECOND    100         /* 用户进程调度的频率（毫秒），根据喜好设置就行 */
+#define SCHEDULE_MILLISECOND    100                     /* 用户进程调度的频率（毫秒），根据喜好设置就行 */
 #define SCHEDULE_TICKS          (SCHEDULE_MILLISECOND / ONE_TICK_MILLISECOND)  /* 用户进程调度的频率（滴答） */
 
-#define     GET_UPTIME      1   /* 获取时钟运行时间(tick) */
-#define     GET_TIME        2   /* 获取时钟实时时间(s) */
-#define     SET_TIME        3   /* 设置时钟实时时间(s) */
+#define GET_UPTIME              1   /* 获取时钟运行时间(tick) */
+#define GET_TIME                2   /* 获取时钟实时时间(s) */
+#define SET_TIME                3   /* 设置时钟实时时间(s) */
 
-#define MINUTES 60	                /* 1 分钟的秒数。 */
-#define HOURS   (60 * MINUTES)	    /* 1 小时的秒数。 */
-#define DAYS    (24 * HOURS)		/* 1 天的秒数。 */
-#define YEARS   (365 * DAYS)	    /* 1 年的秒数。 */
+#define MINUTES                 60	                /* 1 分钟的秒数。 */
+#define HOURS                   (60 * MINUTES)	    /* 1 小时的秒数。 */
+#define DAYS                    (24 * HOURS)		/* 1 天的秒数。 */
+#define YEARS                   (365 * DAYS)	    /* 1 年的秒数。 */
 
-/*===========================================================================*
- *				以下是所有需要的消息字段				     *
- *===========================================================================*/
 /* 时钟任务消息中使用的消息字段 */
-#define CLOCK_TIME      m6_l1	/* 时间值 */
+#define CLOCK_TIME              m6_l1	/* 时间值 */
 //======================================================================================================================
 
 
@@ -152,32 +149,31 @@
 #define NIL_MESSAGE     ((Message *) 0)     /* 空消息 */
 
 /* 下面定义了进程调度的三个优先级队列 */
-#define TASK_QUEUE             0	/* 就绪的系统任务通过队列0调度 */
-#define SERVER_QUEUE           1	/* 就绪的系统服务通过队列1调度 */
-#define USER_QUEUE             2	/* 就绪的系统服务通过队列2调度 */
-#define NR_PROC_QUEUE          3	/* 调度队列的数量 */
+#define TASK_QUEUE         0	    /* 就绪的系统任务通过队列0调度 */
+#define SERVER_QUEUE       1	    /* 就绪的系统服务通过队列1调度 */
+#define USER_QUEUE         2	    /* 就绪的系统服务通过队列2调度 */
+#define NR_PROC_QUEUE      3	    /* 调度队列的数量 */
 
 /* 一些重要进程的进程号 */
 #define MM_PROC_NR         0		/* 内存管理器 */
 #define FS_PROC_NR         1		/* 文件系统 */
 #define FLY_PROC_NR        2    	/* FLY */
 #define ORIGIN_PROC_NR	   3		/* 初始化 -- 将会fork为多用户进程 */
-#define LOW_USER           -1  /* 第一个用户进程不是操作系统的一部分 */
+#define LOW_USER           -1       /* 第一个用户进程不是操作系统的一部分 */
 
 /* 系统调用例程可以支持的操作 */
-#define SEND            0x1    	/* 0001: 发送一条消息 */
-#define RECEIVE         0x2    	/* 0010: 接收一条消息 */
-#define SEND_REC        0x3    	/* 0011: 发送一条消息并等待对方响应一条消息 */
-#define IN_OUTBOX       0x4   	/* 0100: 设置固定收发件箱  */
-#define ANY             0x3ea   /* 魔数，它是一个不存在的进程逻辑编号，用于表示任何进程
-                                 *      receive(ANY, msg_buf) 表示接收任何进程的消息
-                                 */
+#define SEND                0x1    	/* 0001: 发送一条消息 */
+#define RECEIVE             0x2    	/* 0010: 接收一条消息 */
+#define SEND_REC            0x3    	/* 0011: 发送一条消息并等待对方响应一条消息 */
+#define IN_OUTBOX           0x4   	/* 0100: 设置固定收发件箱  */
+/* 魔数，它是一个不存在的进程逻辑编号，用于表示任何进程receive(ANY, msg_buf) 表示接收任何进程的消息 */
+#define ANY                 0x3ea
 
 /* 每个系统任务的任务号和它的功能服务号(消息类型)以及回复代码，将在下面开始定义 */
 #define TTY_TASK            -4
-#define CLOCK_TASK          -3  /* 时钟任务 */
-#define IDLE_TASK           -2  /* 待机任务 */
-#define HARDWARE            -1  /* 代表硬件，用于生成软件生成硬件中断，并不存在实际的任务 */
+#define CLOCK_TASK          -3      /* 时钟任务 */
+#define IDLE_TASK           -2      /* 待机任务 */
+#define HARDWARE            -1      /* 代表硬件，用于生成软件生成硬件中断，并不存在实际的任务 */
 //======================================================================================================================
 
 //======================================================================================================================
@@ -188,16 +184,16 @@
 #define MIN(a, b)   ((a) < (b) ? (a) : (b))
 
 /* 将内核空间中的虚拟地址转换为物理地址。其实这里的内核数据段基址还是0 */
-#define	vir2phys(addr) ((phys_addr)(KERNEL_DATA_SEG_BASE + (vir_addr)(addr)))
+#define	vir2phys(addr)      ((phys_addr)(KERNEL_DATA_SEG_BASE + (vir_addr)(addr)))
 
-#define sec2ms(s) (s * 1000)                        /* 秒 转化为 毫秒 */
-#define tick2ms(t)  (t * ONE_TICK_MILLISECOND)      /* 滴答 转换为 毫秒 */
-#define tick2sec(t)   ((time_t)tick2ms(t) / 1000)   /* 滴答 转化为 秒 */
+#define sec2ms(s)           (s * 1000)                          /* 秒 转化为 毫秒 */
+#define tick2ms(t)          (t * ONE_TICK_MILLISECOND)          /* 滴答 转换为 毫秒 */
+#define tick2sec(t)         ((time_t)tick2ms(t) / 1000)          /* 滴答 转化为 秒 */
 
 /* 滴答 转换为 毫秒 */
-#define tick2ms(t)  (t * ONE_TICK_MILLISECOND)
+#define tick2ms(t)          (t * ONE_TICK_MILLISECOND)
 /* 滴答 转化为 秒 */
-#define tick2sec(t)   ((time_t)tick2ms(t) / 1000)
+#define tick2sec(t)         ((time_t)tick2ms(t) / 1000)
 /* 字节 转换为 KB */
 #define bytes2round_k(n)    ((unsigned) (((n + 512) >> 10)))
 
@@ -208,11 +204,15 @@
 #define io_box(vir)         in_outbox(vir, vir);
 //======================================================================================================================
 
-/* === 堆栈相关 === */
+
+//======================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------
+//  堆栈相关
+//----------------------------------------------------------------------------------------------------------------------
 /* 一个 512 字节 的小栈 */
-#define SMALL_STACK (128 * sizeof(char*))
+#define SMALL_STACK         (128 * sizeof(char*))
 /* 这是一个普通堆栈大小，1KB */
-#define NORMAL_STACK (256 * sizeof(char*))
+#define NORMAL_STACK        (256 * sizeof(char*))
 
 /* 终端任务 */
 #define TTY_TASK_STACK      (32 * NORMAL_STACK)
@@ -224,31 +224,53 @@
 #define HARDWARE_STACK  0
 /* 所有系统进程的栈空间总大小 */
 #define TOTAL_TASK_STACK    (SMALL_STACK+SMALL_STACK)
+//======================================================================================================================
 
-/* AT keyboard */
+
+//======================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------
+//  键盘相关
+//----------------------------------------------------------------------------------------------------------------------
 /* 8042 ports */
-#define	KB_DATA		0x60	/* I/O port for keyboard data
-					Read : Read Output Buffer
-					Write: Write Input Buffer(8042 Data&8048 Command) */
-#define	KB_CMD		0x64	/* I/O port for keyboard command
-					Read : Read Status Register
-					Write: Write Input Buffer(8042 Command) */
+/** I/O port for keyboard data
+ * Read : Read Output Buffer
+ * Write: Write Input Buffer(8042 Data&8048 Command)
+ */
+#define	KB_DATA		0x60
+/**
+ * I/O port for keyboard command
+ * Read : Read Status Register
+ * Write: Write Input Buffer(8042 Command)
+ */
+#define	KB_CMD		0x64
 #define	LED_CODE	0xED
 #define	KB_ACK		0xFA
+//======================================================================================================================
 
-/* VGA */
-#define CRTC_ADDR_REG			0x3D4	/* CRT Controller Registers - Address Register */
-#define CRTC_DATA_REG			0x3D5	/* CRT Controller Registers - Data Registers */
-#define CRTC_DATA_IDX_START_ADDR_H	0xC	/* register index of video mem start address (MSB) */
-#define CRTC_DATA_IDX_START_ADDR_L	0xD	/* register index of video mem start address (LSB) */
-#define CRTC_DATA_IDX_CURSOR_H		0xE	/* register index of cursor position (MSB) */
-#define CRTC_DATA_IDX_CURSOR_L		0xF	/* register index of cursor position (LSB) */
-#define V_MEM_BASE			0xB8000	/* base of color video memory */
-#define V_MEM_SIZE			0x8000	/* 32K: B8000H -> BFFFFH */
 
-/* TTY相关 */
-#define TTY_FIRST	(tty_table)
-#define TTY_END		(tty_table + NR_CONSOLES)
+
+//======================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------
+//  VGA相关
+//----------------------------------------------------------------------------------------------------------------------
+#define CRTC_ADDR_REG			    0x3D4	/* CRT Controller Registers - Address Register */
+#define CRTC_DATA_REG			    0x3D5	/* CRT Controller Registers - Data Registers */
+#define CRTC_DATA_IDX_START_ADDR_H  0xC	    /* register index of video mem start address (MSB) */
+#define CRTC_DATA_IDX_START_ADDR_L	0xD	    /* register index of video mem start address (LSB) */
+#define CRTC_DATA_IDX_CURSOR_H		0xE	    /* register index of cursor position (MSB) */
+#define CRTC_DATA_IDX_CURSOR_L		0xF	    /* register index of cursor position (LSB) */
+#define V_MEM_BASE			        0xB8000	/* base of color video memory */
+#define V_MEM_SIZE			        0x8000	/* 32K: B8000H -> BFFFFH */
+//======================================================================================================================
+
+
+//======================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------
+//  TTY相关
+//----------------------------------------------------------------------------------------------------------------------
+#define TTY_FIRST	(ttys)
+#define TTY_END		(ttys + NR_CONSOLES)
 #define NR_CONSOLES 3
+//======================================================================================================================
 
 #endif //AOS_CONSTANT_H

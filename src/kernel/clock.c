@@ -102,7 +102,7 @@ PRIVATE int clock_handler(int irq) {
     register Process *target;
 
     /* 获取当前使用时钟的进程 */
-    if (kernel_reenter)  /* 发送中断重入，说明当前处于核心代码段，被中断的进程使用虚拟硬件 */
+    if (kernelReenter)  /* 发送中断重入，说明当前处于核心代码段，被中断的进程使用虚拟硬件 */
         target = proc_addr(HARDWARE);
     else                /* 正常中断，被中断的进程就是当前运行的进程 */
         target = gp_curProc;
@@ -118,8 +118,8 @@ PRIVATE int clock_handler(int irq) {
 //        lock_hunter();
 //    }
 
-    if (target != bill_proc && target != proc_addr(HARDWARE))
-        bill_proc->sys_time++;  /* 当前进程不是计费的用户进程，那么它应该是使用了系统调用陷入了内核，记录它的系统时间 */
+    if (target != gp_billProc && target != proc_addr(HARDWARE))
+        gp_billProc->sys_time++;  /* 当前进程不是计费的用户进程，那么它应该是使用了系统调用陷入了内核，记录它的系统时间 */
 
     /* 闹钟时间到了？产生一个时钟中断，唤醒时钟任务 */
     if (next_alarm <= ticks) {
@@ -136,7 +136,7 @@ PRIVATE int clock_handler(int irq) {
     /* 重置用户进程调度时间片 */
     if (--schedule_ticks == 0) {
         schedule_ticks = SCHEDULE_TICKS;
-        last_proc = bill_proc;  /* 记录最后一个消费进程 */
+        last_proc = gp_billProc;  /* 记录最后一个消费进程 */
     }
     return ENABLE;  /* 返回ENABLE，使其再能发生时钟中断 */
 }

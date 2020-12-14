@@ -99,7 +99,7 @@ PUBLIC void in_process(u32_t key,TTY* p_tty)
 }
 
 PUBLIC bool_t is_cur_console(CONSOLE* p_con){
-    return (p_con == &console_table[nr_current_console]);
+    return (p_con == &consoles[nrCurConsole]);
 }
 
 PRIVATE void tty_do_read(TTY* p_tty){

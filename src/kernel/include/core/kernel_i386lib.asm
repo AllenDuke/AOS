@@ -10,9 +10,9 @@ extern g_dispPosition               ; 当前显存的显示位置
 extern g_irqHandlers                ; 硬件中断请求处理例程表
 extern gp_curProc                   ; 当前进程
 extern g_tss
-extern kernel_reenter               ; 记录内核重入次数
+extern kernelReenter               ; 记录内核重入次数
 extern STACK_TOP
-extern level0_func
+extern level0Fn
 extern sys_call                     ; 系统调用处理函数
 
 ; 导入函数
@@ -605,10 +605,10 @@ save:
     mov es, dx
     mov esi, esp                        ; esi 指向进程的栈帧开始处
 
-    ; 相当于add [kernel_reenter], 1，但inc速度快，占用空间小
-    inc byte [kernel_reenter]           ; 发生了一次中断，中断重入计数++
+    ; 相当于add [kernelReenter], 1，但inc速度快，占用空间小
+    inc byte [kernelReenter]           ; 发生了一次中断，中断重入计数++
     ; 判断是不是嵌套中断，是的话就无需切换堆栈到内核栈了
-    cmp	byte [kernel_reenter], 0
+    cmp	byte [kernelReenter], 0
     jnz .reenter                        ; 嵌套中断
     ; 从一个进程进入的中断，需要切换到内核栈
     mov esp, STACK_TOP
@@ -637,7 +637,7 @@ aos_sys_call:
     mov ds, dx
     mov es, dx
     mov esi, esp                ; esi 指向进程的栈帧开始处
-    inc byte [kernel_reenter]  ; 发生了一次中断，中断重入计数++
+    inc byte [kernelReenter]  ; 发生了一次中断，中断重入计数++
     mov esp, STACK_TOP
     ; 重新开启中断,注：软件中断与硬件中断的相似之处还包括它们都会自动关中断
     sti
@@ -673,8 +673,8 @@ over_unhold:
 	lea eax, [esp + P_STACKTOP]         ; 把栈帧的栈顶物理地址存入eax
 	mov dword [g_tss + TSS3_S_SP0], eax
 restart_reenter:
-	; 在这一点上，kernel_reenter 被减1，因为一个中断已经处理完毕
-	dec byte [kernel_reenter]           ; 第一次调用restart后，kernel_reenter为-1
+	; 在这一点上，kernelReenter 被减1，因为一个中断已经处理完毕
+	dec byte [kernelReenter]           ; 第一次调用restart后，kernelReenter为-1
 	; 将该进程的栈帧中的所有寄存器信息恢复
     pop gs
     pop fs
@@ -703,7 +703,7 @@ halt:
 ;----------------------------------------------------------------------------
 level0_sys_call:
     call save
-    jmp [level0_func]       ; 好的，提权成功，我们现在已经处于内核代码段，直接跳转到需要提权的函数执行它
+    jmp [level0Fn]       ; 好的，提权成功，我们现在已经处于内核代码段，直接跳转到需要提权的函数执行它
     ret
 
 ;============================================================================
@@ -713,7 +713,7 @@ level0_sys_call:
 align 16
 level0:
     mov eax, [esp + 4]
-    mov [level0_func], eax  ; 将提权函数指针放到 level0_func 中
+    mov [level0Fn], eax  ; 将提权函数指针放到 level0_func 中
     int LEVEL0_VECTOR	    ; 好的，调用提权调用去执行提权成功的例程
     ret
 

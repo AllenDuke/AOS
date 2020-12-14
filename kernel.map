@@ -2,28 +2,28 @@
 Allocating common symbols
 Common symbol       size              file
 
+level0Fn            0x4               target/kernel/main.o
+gp_readyHeads       0xc               target/kernel/main.o
 gp_curProc          0x4               target/kernel/main.o
-kernel_reenter      0x1               target/kernel/main.o
-sys_proc_stack      0x400             target/kernel/main.o
+gp_heldHead         0x4               target/kernel/main.o
+sysProcStack        0x400             target/kernel/main.o
+g_procs             0x1d40            target/kernel/main.o
 g_tss               0x68              target/kernel/main.o
 gp_bootParam        0x4               target/kernel/main.o
 gp_idt              0x6               target/kernel/main.o
-tty_table           0xc30             target/kernel/main.o
-bill_proc           0x4               target/kernel/main.o
-nr_current_console  0x4               target/kernel/main.o
-level0_func         0x4               target/kernel/main.o
+gp_billProc         0x4               target/kernel/main.o
+nrCurConsole        0x4               target/kernel/main.o
 g_dispPosition      0x4               target/kernel/main.o
-held_tail           0x4               target/kernel/main.o
+kernelReenter       0x1               target/kernel/main.o
+gp_procs            0x90              target/kernel/main.o
 gp_gdt              0x6               target/kernel/main.o
 g_kernelMap         0x8               target/kernel/main.o
 g_irqHandlers       0x40              target/kernel/main.o
-ready_tail          0xc               target/kernel/main.o
 g_gdt               0x148             target/kernel/main.o
-ready_head          0xc               target/kernel/main.o
-console_table       0x30              target/kernel/main.o
-held_head           0x4               target/kernel/main.o
-p_proc_addr         0x90              target/kernel/main.o
-proc_table          0x1d40            target/kernel/main.o
+consoles            0x30              target/kernel/main.o
+gp_readyTails       0xc               target/kernel/main.o
+ttys                0xc30             target/kernel/main.o
+gp_heldTail         0x4               target/kernel/main.o
 
 Discarded input sections
 
@@ -433,7 +433,7 @@ LOAD target/lib/i386/ipc/ipc.o
                 0x00005902                PROVIDE (edata, .)
                 0x00005902                __bss_start = .
 
-.bss            0x00005920     0x4020
+.bss            0x00005920     0x3ff4
  *(.dynbss)
  *(.bss .bss.* .gnu.linkonce.b.*)
  .bss           0x00005920      0x800 target/kernel/kernel.o
@@ -460,35 +460,35 @@ LOAD target/lib/i386/ipc/ipc.o
  *fill*         0x000067a4       0x1c 00
  .bss           0x000067c0       0xa0 target/lib/stdio/printf.o
  *(COMMON)
- COMMON         0x00006860     0x30e0 target/kernel/main.o
-                0x00006860                gp_curProc
-                0x00006864                kernel_reenter
-                0x00006880                sys_proc_stack
-                0x00006c80                g_tss
-                0x00006ce8                gp_bootParam
-                0x00006cec                gp_idt
-                0x00006d00                tty_table
-                0x00007930                bill_proc
-                0x00007934                nr_current_console
-                0x00007938                level0_func
-                0x0000793c                g_dispPosition
-                0x00007940                held_tail
-                0x00007944                gp_gdt
-                0x0000794c                g_kernelMap
-                0x00007960                g_irqHandlers
-                0x000079a0                ready_tail
-                0x000079c0                g_gdt
-                0x00007b08                ready_head
-                0x00007b20                console_table
-                0x00007b50                held_head
-                0x00007b60                p_proc_addr
-                0x00007c00                proc_table
-                0x00009940                . = ALIGN ((. != 0x0)?0x4:0x1)
-                0x00009940                . = ALIGN (0x4)
-                0x00009940                . = ALIGN (0x4)
-                0x00009940                _end = .
-                0x00009940                PROVIDE (end, .)
-                0x00009940                . = DATA_SEGMENT_END (.)
+ COMMON         0x00006860     0x30b4 target/kernel/main.o
+                0x00006860                level0Fn
+                0x00006864                gp_readyHeads
+                0x00006870                gp_curProc
+                0x00006874                gp_heldHead
+                0x00006880                sysProcStack
+                0x00006c80                g_procs
+                0x000089c0                g_tss
+                0x00008a28                gp_bootParam
+                0x00008a2c                gp_idt
+                0x00008a34                gp_billProc
+                0x00008a38                nrCurConsole
+                0x00008a3c                g_dispPosition
+                0x00008a40                kernelReenter
+                0x00008a60                gp_procs
+                0x00008af0                gp_gdt
+                0x00008af8                g_kernelMap
+                0x00008b00                g_irqHandlers
+                0x00008b40                g_gdt
+                0x00008ca0                consoles
+                0x00008cd0                gp_readyTails
+                0x00008ce0                ttys
+                0x00009910                gp_heldTail
+                0x00009914                . = ALIGN ((. != 0x0)?0x4:0x1)
+                0x00009914                . = ALIGN (0x4)
+                0x00009914                . = ALIGN (0x4)
+                0x00009914                _end = .
+                0x00009914                PROVIDE (end, .)
+                0x00009914                . = DATA_SEGMENT_END (.)
 
 .stab
  *(.stab)

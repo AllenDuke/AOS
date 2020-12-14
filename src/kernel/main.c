@@ -22,10 +22,6 @@ void aos_main(void) {
 
 //    int i=1/0; /* 除法错误正常 */
 
-
-
-//    clock_task();
-
     /**
      * 进程表的所有表项都被标志为空闲;
      * 对用于加快进程表访问的 p_proc_addr 数组进行初始化。
@@ -36,7 +32,7 @@ void aos_main(void) {
         if(logic_nr > 0)    /* 系统服务和用户进程 */
             strcpy(proc->name, "unused");
         proc->logic_nr = logic_nr; /* 系统服务的逻辑号从-NR_TASKS到-1 */
-        p_proc_addr[logic_nr_2_index(logic_nr)] = proc;
+        gp_procs[logic_nr_2_index(logic_nr)] = proc;
     }
 
     /**
@@ -44,7 +40,7 @@ void aos_main(void) {
      * 为系统任务和系统服务设置进程表，它们的堆栈被初始化为数据空间中的数组
      */
     SysProc *sys_proc;
-    reg_t sys_proc_stack_base = (reg_t) sys_proc_stack;
+    reg_t sys_proc_stack_base = (reg_t) sysProcStack;
     u8_t  privilege;        /* CPU 权限 */
     u8_t rpl;               /* 段访问权限 */
     for(logic_nr = -NR_TASKS; logic_nr <= LOW_USER; logic_nr++) {   /* 遍历整个系统任务 */
@@ -101,15 +97,9 @@ void aos_main(void) {
     /* 设置消费进程，它需要一个初值。因为系统闲置刚刚启动，所以此时闲置进程是一个最合适的选择。
  * 随后在调用下一个函数 lock_hunter 进行第一次进程狩猎时可能会选择其他进程。
  */
-    bill_proc = proc_addr(IDLE_TASK);
+    gp_billProc = proc_addr(IDLE_TASK);
     proc_addr(IDLE_TASK)->priority = PROC_PRI_IDLE;
     lock_hunter();      /* 让我们看看，有什么进程那么幸运的被抓出来第一个执行 */
-
-//    proc_dump();
-//    map_dump();
-
-//    /* 启动 A */
-//    gp_curProc = proc_addr(-1);
 
     /* 最后,main 的工作至此结束。它的工作到初始化结束为止。restart 的调用将启动第一个任务，
      * 控制权从此不再返回到main。

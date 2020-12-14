@@ -52,8 +52,8 @@ PRIVATE void set_cursor(unsigned int position)
 
 PUBLIC void init_screen(TTY* p_tty)
 {
-    int nr_tty = p_tty - tty_table;
-    p_tty->p_console = console_table + nr_tty;
+    int nr_tty = p_tty - ttys;
+    p_tty->p_console = consoles + nr_tty;
 
     int v_mem_size = V_MEM_SIZE >> 1;	/* 显存总大小 (in WORD) */
 
@@ -81,10 +81,10 @@ PUBLIC void select_console(int nr_console)	/* 0 ~ (NR_CONSOLES - 1) */
         return;
     }
 
-    nr_current_console = nr_console;
+    nrCurConsole = nr_console;
 
-    set_cursor(console_table[nr_console].cursor);
-    set_video_start_addr(console_table[nr_console].current_start_addr);
+    set_cursor(consoles[nr_console].cursor);
+    set_video_start_addr(consoles[nr_console].current_start_addr);
 }
 
 PRIVATE void set_video_start_addr(u32_t addr)

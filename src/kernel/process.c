@@ -20,23 +20,23 @@ PRIVATE void hunter(void){
 
     /* 从进程表中抓出一个作为下次运行的进程 */
     register Process* prey;      /* 准备运行的进程 */
-    if((prey = ready_head[TASK_QUEUE]) != NIL_PROC) {
+    if((prey = gp_readyHeads[TASK_QUEUE]) != NIL_PROC) {
         gp_curProc = prey;
         printf("%s hunter\n", gp_curProc->name);
         return;
     }
-    if((prey = ready_head[SERVER_QUEUE]) != NIL_PROC) {
+    if((prey = gp_readyHeads[SERVER_QUEUE]) != NIL_PROC) {
         gp_curProc = prey;
         return;
     }
-    if((prey = ready_head[USER_QUEUE]) != NIL_PROC) {
-        bill_proc = gp_curProc = prey;
+    if((prey = gp_readyHeads[USER_QUEUE]) != NIL_PROC) {
+        gp_billProc = gp_curProc = prey;
         return;
     }
 
     /* 咳咳，本次狩猎失败了，那么只能狩猎 IDLE 待机进程了 */
     prey = proc_addr(IDLE_TASK);
-    bill_proc = gp_curProc = prey;
+    gp_billProc = gp_curProc = prey;
     /* 本例程只负责狩猎，狩猎到一个可以执行的进程，而进程执行完毕后的删除或更改在队列中的位置
      * 这种事情我们安排在其他地方去做。
      */
@@ -55,9 +55,9 @@ PUBLIC void ready(
 ){
 
     if(is_task_proc(proc)){
-        if(ready_head[TASK_QUEUE] != NIL_PROC){
+        if(gp_readyHeads[TASK_QUEUE] != NIL_PROC){
             /* 就绪队列非空，挂到队尾 */
-            ready_tail[TASK_QUEUE]->next_ready = proc;
+            gp_readyTails[TASK_QUEUE]->next_ready = proc;
         } else{
             /**
              * IDLE与HARDWARE不参与ready。
@@ -65,33 +65,33 @@ PUBLIC void ready(
              */
 
             /* 就绪队列是空的，那么这个进程直接就可以运行，并挂在就绪队列头上 */
-            gp_curProc = ready_head[TASK_QUEUE] = proc;
+            gp_curProc = gp_readyHeads[TASK_QUEUE] = proc;
         }
 //        printf("l_%d->",proc->logic_nr);
         // 队尾指针指向新就绪的进程
-        ready_tail[TASK_QUEUE] = proc;      /* 队尾指针 --> 新就绪的进程 */
+        gp_readyTails[TASK_QUEUE] = proc;      /* 队尾指针 --> 新就绪的进程 */
         proc->next_ready = NIL_PROC;        /* 新条目没有后继就绪进程 */
         return;
     }
     if(is_serv_proc(proc)){
         /* 同上 */
-        if(ready_head[SERVER_QUEUE] != NIL_PROC){
-            ready_tail[SERVER_QUEUE]->next_ready = proc;
+        if(gp_readyHeads[SERVER_QUEUE] != NIL_PROC){
+            gp_readyTails[SERVER_QUEUE]->next_ready = proc;
         } else{
-            gp_curProc = ready_head[SERVER_QUEUE] = proc;
+            gp_curProc = gp_readyHeads[SERVER_QUEUE] = proc;
         }
-        ready_tail[SERVER_QUEUE] = proc;
+        gp_readyTails[SERVER_QUEUE] = proc;
         proc->next_ready = NIL_PROC;
         return;
     }
     /* 用户进程的处理稍微有所不同
      * 我们将用户进程添加到队列的最前面。（对于受I/O约束的进程来说更公平一些。）
      */
-    if(ready_head[USER_QUEUE] != NIL_PROC){
-        ready_tail[USER_QUEUE] = proc;
+    if(gp_readyHeads[USER_QUEUE] != NIL_PROC){
+        gp_readyTails[USER_QUEUE] = proc;
     }
-    proc->next_ready = ready_head[USER_QUEUE];
-    ready_head[USER_QUEUE] = proc;
+    proc->next_ready = gp_readyHeads[USER_QUEUE];
+    gp_readyHeads[USER_QUEUE] = proc;
 }
 
 /*===========================================================================*
@@ -112,13 +112,13 @@ PUBLIC void unready(
             panic("stack over run by task", proc->logic_nr);
         }
 
-        xp = ready_head[TASK_QUEUE];   /* 得到就绪队列头的进程 */
+        xp = gp_readyHeads[TASK_QUEUE];   /* 得到就绪队列头的进程 */
         if(xp == NIL_PROC) return;     /* 并无就绪的系统任务 */
         if(xp == proc){
             /* 如果就绪队列头的进程就是我们要让之堵塞的进程，那么我们将它移除出就绪队列 */
-            ready_head[TASK_QUEUE] = xp->next_ready;
+            gp_readyHeads[TASK_QUEUE] = xp->next_ready;
 //            printf("xp_%d ",xp->logic_nr);
-//            printf("h_%d",ready_head[TASK_QUEUE]->logic_nr);
+//            printf("h_%d",gp_readyHeads[TASK_QUEUE]->logic_nr);
             if(proc == gp_curProc) {
                 /* 如果堵塞的进程就是当前正在运行的进程，那么我们需要重新狩猎以得到一个新的运行进程 */
                 hunter();
@@ -133,13 +133,13 @@ PUBLIC void unready(
         /* 找到了，一样，从就绪队列中移除它 */
         xp->next_ready = xp->next_ready->next_ready;
         /* 如果之前队尾就是要堵塞的进程，那么现在我们需要重新调整就绪队尾指针（因为它现在指向了一个未就绪的进程） */
-        if (ready_tail[TASK_QUEUE] == proc) ready_tail[TASK_QUEUE] = xp;   /* 现在找到的xp进程是队尾 */
+        if (gp_readyTails[TASK_QUEUE] == proc) gp_readyTails[TASK_QUEUE] = xp;   /* 现在找到的xp进程是队尾 */
     } else if(is_serv_proc(proc)){     /* 系统服务 */
         /* 所作操作同上的系统任务一样 */
-        xp = ready_head[SERVER_QUEUE];
+        xp = gp_readyHeads[SERVER_QUEUE];
         if(xp == NIL_PROC) return;
         if(xp == proc){
-            ready_head[SERVER_QUEUE] = xp->next_ready;
+            gp_readyHeads[SERVER_QUEUE] = xp->next_ready;
             /* 这里注意，因为不是系统任务，我们不作那么严格的判断了 */
             hunter();
             return;
@@ -149,12 +149,12 @@ PUBLIC void unready(
             if (xp == NIL_PROC) return;
         }
         xp->next_ready = xp->next_ready->next_ready;
-        if (ready_tail[SERVER_QUEUE] == proc) ready_tail[SERVER_QUEUE] = xp;
+        if (gp_readyTails[SERVER_QUEUE] == proc) gp_readyTails[SERVER_QUEUE] = xp;
     } else {                           /* 用户进程 */
-        xp = ready_head[USER_QUEUE];
+        xp = gp_readyHeads[USER_QUEUE];
         if(xp == NIL_PROC) return;
         if(xp == proc){
-            ready_head[USER_QUEUE] = xp->next_ready;
+            gp_readyHeads[USER_QUEUE] = xp->next_ready;
             /* 这里注意，因为不是系统任务，我们不作那么严格的判断了 */
             hunter();
             return;
@@ -164,7 +164,7 @@ PUBLIC void unready(
             if (xp == NIL_PROC) return;
         }
         xp->next_ready = xp->next_ready->next_ready;
-        if (ready_tail[USER_QUEUE] == proc) ready_tail[USER_QUEUE] = xp;
+        if (gp_readyTails[USER_QUEUE] == proc) gp_readyTails[USER_QUEUE] = xp;
     }
 }
 
@@ -183,15 +183,15 @@ PRIVATE void schedule(void){
      */
 
     /* 如果没有准备好的用户进程，请返回 */
-    if(ready_head[USER_QUEUE] == NIL_PROC) return;
+    if(gp_readyHeads[USER_QUEUE] == NIL_PROC) return;
 
     /* 将队首的进程移到队尾 */
     Process* tmp;
-    tmp = ready_head[USER_QUEUE]->next_ready;
-    ready_tail[USER_QUEUE]->next_ready = ready_head[USER_QUEUE];
-    ready_tail[USER_QUEUE] = ready_tail[USER_QUEUE]->next_ready;
-    ready_head[USER_QUEUE] = tmp;
-    ready_tail[USER_QUEUE]->next_ready = NIL_PROC;  /* 队尾没有后继进程 */
+    tmp = gp_readyHeads[USER_QUEUE]->next_ready;
+    gp_readyTails[USER_QUEUE]->next_ready = gp_readyHeads[USER_QUEUE];
+    gp_readyTails[USER_QUEUE] = gp_readyTails[USER_QUEUE]->next_ready;
+    gp_readyHeads[USER_QUEUE] = tmp;
+    gp_readyTails[USER_QUEUE]->next_ready = NIL_PROC;  /* 队尾没有后继进程 */
     /* 汉特儿 */
     hunter();
 }
@@ -206,7 +206,7 @@ PUBLIC void schedule_stop(void){
      * ，让用户就绪队列为空即可，这样调度程序就找不到任何用户进程了。
      */
 
-    ready_head[USER_QUEUE] = NIL_PROC;
+    gp_readyHeads[USER_QUEUE] = NIL_PROC;
 }
 
 PUBLIC void interrupt(int task) {
@@ -219,7 +219,7 @@ PUBLIC void interrupt(int task) {
     /* 如果发生中断重入或正在发送一个进程切换，则将当前中断加入排队队列，函数到此结束，
      * 当前挂起的中断将在以后调用 unhold 时再处理。
      */
-    if(kernel_reenter != 0 || switching) {
+    if(kernelReenter != 0 || switching) {
         interrupt_lock();
         /* 如果进程没有中断被挂起正在等待处理时才继续
          * 这样做是为了保证一个任务的中断不会重复的被挂起，因为这是无用功，
@@ -227,11 +227,11 @@ PUBLIC void interrupt(int task) {
          */
         if(!target->int_held) {
             target->int_held = TRUE;
-            if(held_head == NIL_PROC)
-                held_head = target;
+            if(gp_heldHead == NIL_PROC)
+                gp_heldHead = target;
             else
-                held_tail->next_held = target;
-            held_tail = target;             /* 无论如何，尾指针都指向最新挂起的 target */
+                gp_heldTail->next_held = target;
+            gp_heldTail = target;             /* 无论如何，尾指针都指向最新挂起的 target */
             target->next_held = NIL_PROC;
         }
         interrupt_unlock();
@@ -260,11 +260,11 @@ PUBLIC void interrupt(int task) {
     /* 进程就绪例程 ready 例程的在线代码替换
      * 因为从中断产生的消息只会发送到系统任务，这样便无需确定操作的进程队列了。
      */
-    if(ready_head[TASK_QUEUE] != NIL_PROC)
-        ready_tail[TASK_QUEUE]->next_ready = target;
+    if(gp_readyHeads[TASK_QUEUE] != NIL_PROC)
+        gp_readyTails[TASK_QUEUE]->next_ready = target;
     else
-        gp_curProc = ready_head[TASK_QUEUE] = target;
-    ready_tail[TASK_QUEUE] = target;
+        gp_curProc = gp_readyHeads[TASK_QUEUE] = target;
+    gp_readyTails[TASK_QUEUE] = target;
     target->next_ready = NIL_PROC;
 }
 
@@ -280,16 +280,16 @@ PUBLIC void unhold(void) {
     register Process *target; /* 指向挂起的中断队列成员 */
 
     /* 如果进程正在切换，或队列为空，下次一定 */
-    if( switching || held_head == NIL_PROC ) return;
+    if( switching || gp_heldHead == NIL_PROC ) return;
 
-    target = held_head;
+    target = gp_heldHead;
     do {
-        held_head = held_head->next_held;   /* 队列下一个成员 */
+        gp_heldHead = gp_heldHead->next_held;   /* 队列下一个成员 */
         interrupt_lock();
         interrupt(target->logic_nr);        /* 产生一条硬件消息给它 */
         interrupt_unlock();
-    } while ( (target = held_head) != NIL_PROC );
-    held_tail = NIL_PROC;                   /* 已经处理完毕，尾指针也指向 NULL */
+    } while ( (target = gp_heldHead) != NIL_PROC );
+    gp_heldTail = NIL_PROC;                   /* 已经处理完毕，尾指针也指向 NULL */
 }
 
 
