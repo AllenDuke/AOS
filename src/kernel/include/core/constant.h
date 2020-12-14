@@ -223,7 +223,7 @@
 /* 虚拟硬件栈 */
 #define HARDWARE_STACK  0
 /* 所有系统进程的栈空间总大小 */
-#define TOTAL_TASK_STACK    (SMALL_STACK+SMALL_STACK)
+#define TOTAL_TASK_STACK    (HARDWARE_STACK+IDLE_TASK_STACK+CLOCK_TASK_STACK+TTY_TASK_STACK)
 //======================================================================================================================
 
 
