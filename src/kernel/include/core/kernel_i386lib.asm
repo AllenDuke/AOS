@@ -742,13 +742,13 @@ msg_copy:
     push edi
     push ecx
 
-      mov esi, [esp + 4 * 4]  ; msg_phys
-      mov edi, [esp + 4 * 5]  ; dest_phys
+    mov esi, [esp + 4 * 4]  ; msg_phys
+    mov edi, [esp + 4 * 5]  ; dest_phys
 
-      ; 开始拷贝消息
-      cld
-      mov ecx, MESSAGE_SIZE   ; 消息大小(dword)
-      rep movsd
+    ; 开始拷贝消息
+    cld
+    mov ecx, MESSAGE_SIZE   ; 消息大小(dword)
+    rep movsd
 
     pop ecx
     pop edi
@@ -764,12 +764,12 @@ msg_copy:
 ; ----------------------------------------------------------------------------------------------------------------------
 cmos_read:
     push edx
-        mov al, [esp + 4 * 2]   ; 要输出的字节
-        out CLK_ELE, al         ; al -> CMOS ELE port
-        nop                     ; 一点延迟
-        xor eax, eax
-        in al, CLK_IO           ; port -> al
-        nop                     ; 一点延迟
+    mov al, [esp + 4 * 2]   ; 要输出的字节
+    out CLK_ELE, al         ; al -> CMOS ELE port
+    nop                     ; 一点延迟
+    xor eax, eax
+    in al, CLK_IO           ; port -> al
+    nop                     ; 一点延迟
     pop edx
     ret
 ; ======================================================================================================================

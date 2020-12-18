@@ -55,7 +55,7 @@ PUBLIC void init_keyboard() {
     kbInPut.count = 0;
     kbInPut.p_head = kbInPut.p_tail = kbInPut.buf;
 
-    capsLock = 0;
+    capsLock = 1; /* todo 实际上这里是初始化为关闭的，因为初始时，产生capsLK输入，暂未知成因 */
     numLock = 1;
     scrollLock = 0;
 

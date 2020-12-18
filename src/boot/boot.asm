@@ -160,7 +160,6 @@ file_loaded:
     call print_string                   ; 打印"Loaded ^-^"
 
     jmp LOADER_SEG:LOADER_OFFSET        ; 段间转移，设置cs=LOADER_SEG,ip=LOADER_OFFSET。跳转到Loader程序。
-
 ; ======================================================================================================================
 
 
