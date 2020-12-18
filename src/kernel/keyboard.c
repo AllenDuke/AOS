@@ -55,7 +55,7 @@ PUBLIC void init_keyboard() {
     kbInPut.count = 0;
     kbInPut.p_head = kbInPut.p_tail = kbInPut.buf;
 
-    capsLock = 1; /* todo 实际上这里是初始化为关闭的，因为初始时，产生capsLK输入，暂未知成因 */
+    capsLock = 0;
     numLock = 1;
     scrollLock = 0;
 
@@ -130,7 +130,7 @@ PUBLIC void keyboard_read(TTY *p_tty) {
             column = 0;
 
             bool_t caps = shiftL || shiftR;
-            if (!capsLock) {
+            if (capsLock) {
                 if ((keyrow[0] >= 'a') && (keyrow[0] <= 'z')) {
                     caps = !caps;
                 }
