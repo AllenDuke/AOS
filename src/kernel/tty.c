@@ -33,7 +33,8 @@ PUBLIC void tty_task() {
 
     while (1) {
         if (kb_in_count() == 0) {
-            rec(ANY);
+//            rec(ANY);
+            park();
         }
         for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++) {
             tty_do_read(p_tty);

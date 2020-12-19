@@ -60,6 +60,8 @@ GateInfo s_initGateInfos[] = {
 
         /* ************* 软件中断 *************** */
         {INT_VECTOR_LEVEL0,level0_sys_call,TASK_PRIVILEGE}, /* 提供给系统任务的系统调用：提权 */
+        { INT_VECTOR_PARK, park_sys_call, USER_PRIVILEGE },
+        { INT_VECTOR_UNPARK, unpark_sys_call, USER_PRIVILEGE },
         { INT_VECTOR_SYS_CALL, aos_sys_call, USER_PRIVILEGE },
 };
 

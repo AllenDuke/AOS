@@ -344,7 +344,7 @@ init_kernel_file:
     add eax, KERNEL_PHY_ADDR                ; eax -> 段第一个字节
     push eax                                ; 压入段第一个字节的地址，作为mem_copy的src参数
     push dword [esi + 8]                    ; 压入p_vaddr（段的第一个字节在内存中的虚拟地址），作为mem_copy的dest参数
-    call mem_copy                             ; 开始拷贝
+    call mem_copy                           ; 开始拷贝
     add esp, 4 * 3                          ; 清理堆栈
 .no_action:
     add esi, 32                             ; esi += Program header结构大小

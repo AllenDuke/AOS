@@ -26,6 +26,7 @@
 #include "../cstring.h"
 #include "struct_type.h"
 #include "protect.h"
+#include "message.h"
 #include "process.h"
 #include "limit.h"
 #include "console.h"

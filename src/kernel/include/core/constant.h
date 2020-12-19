@@ -36,6 +36,9 @@
 #define NR_TASKS    (4 + NR_CONTROLLERS)
 #define NR_SERVERS  0
 
+#define INT_VECTOR_LEVEL0           0x30
+#define INT_VECTOR_PARK             0x31
+#define INT_VECTOR_UNPARK             0x32
 #define INT_VECTOR_SYS_CALL         0x94        /* AOS 系统调用向量 */
 //======================================================================================================================
 
@@ -57,8 +60,6 @@
 #define INT_VECTOR_BIOS_IRQ8        0x10
 #define	INT_VECTOR_IRQ0				0x20    // 32
 #define	INT_VECTOR_IRQ8				0x28    // 40
-
-#define INT_VECTOR_LEVEL0           0x30
 
 /* 硬件中断数量 */
 #define NR_IRQ_VECTORS      16      /* 中断请求的数量 */

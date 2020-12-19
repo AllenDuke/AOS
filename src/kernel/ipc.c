@@ -237,3 +237,17 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
 
     return OK;
 }
+
+PUBLIC void aos_park() {
+    unready(gp_curProc);
+}
+
+PUBLIC void aos_unpark(int pid) {
+//    printf("pid:%d ", pid);
+    /* if the caller is a user process, then the pid must be >=0 */
+    Process *p_proc = proc_addr(pid);
+    if (gp_curProc->pid >= 0 && pid < 0) /* 当前进程没有权限 */
+        panic("cur process can not able to unpark target process!", EACCES);
+    ready(p_proc);
+//    printf("unpark_done ");
+}

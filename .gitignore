@@ -2,8 +2,7 @@
 /cmake-build-debug/
 .idea
 /CMakeLists.txt
-/AOS1.img
-/Flyanx.img
+/target
 /boot.bin
-/boot1.bin
+
 /loader.bin

@@ -52,6 +52,8 @@ u8_t cmos_read(u8_t addr);
 void level0(aos_syscall level0_func);
 void halt(void);
 void level0_sys_call(void);
+void park_sys_call(void);
+void unpark_sys_call(void);
 
 // 异常处理例程
 void divide_error(void);
@@ -152,6 +154,8 @@ void unhold(void);
 //int sys_call(int op, int src_dest_msgp, Message *msg_ptr); //不向外暴露
 int aos_send(struct process_s *p_caller, int dest, Message *p_msg);
 int aos_receive(struct process_s *p_caller, int src, Message *p_msg);
+void aos_park();
+void aos_unpark(int pid);
 //======================================================================================================================
 
 
