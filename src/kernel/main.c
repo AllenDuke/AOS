@@ -15,7 +15,7 @@ SysProc sysProcs[] = {
 
 void aos_main(void) {
 
-    printf("aos_main\n");
+    kprintf("aos_main\n");
 
 //    int i=1/0; /* 除法错误正常 */
 

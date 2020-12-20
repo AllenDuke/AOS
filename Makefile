@@ -65,7 +65,7 @@ KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/prote
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LibObjs         = $(AnsiObjs) $(StdioObjs) $(I386Objs)
 AnsiObjs        = $(tl)/ansi/string.o $(tl)/ansi/memcmp.o $(tl)/ansi/cstring.o
-StdioObjs       = $(tl)/stdio/printf.o
+StdioObjs       = $(tl)/stdio/kprintf.o
 I386Objs        = $(tl)/i386/ipc/ipc.o
 
 Objs            = $(KernelObjs) $(LibObjs)
@@ -211,7 +211,7 @@ $(tl)/ansi/memcmp.o: $(lansi)/memcmp.c
 $(tl)/ansi/cstring.o: $(lansi)/cstring.c
 	$(CC) $(CFlags) -o $@ $<
 
-$(tl)/stdio/printf.o: $(lstdio)/printf.c
+$(tl)/stdio/kprintf.o: $(lstdio)/kprintf.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tl)/i386/ipc/ipc.o: $(li386)/ipc/ipc.asm

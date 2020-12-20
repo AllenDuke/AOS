@@ -58,10 +58,10 @@ PUBLIC void clock_task(void) {
     io_box(&msg);
 
     /* 测试毫秒级延迟函数 */
-    printf("i am zangsan, i am man!\n");
-    milli_delay(sec2ms(1));
-    printf("i am zangsan, no!\n");
-    printf("#{CLOCK}-> Working...\n");
+    kprintf("i am zangsan, i am man!\n");
+    milli_delay(sec2ms(1));     /* todo 这个函数时不阻塞，不放弃cpu时间片的 */
+    kprintf("i am zangsan, no!\n");
+    kprintf("#{CLOCK}-> Working...\n");
     while (TRUE) {
         /* 等待外界消息 */
         rec(ANY);
@@ -158,16 +158,11 @@ PRIVATE int clock_handler(int irq) {
     else                /* 正常中断，被中断的进程就是当前运行的进程 */
         target = gp_curProc;
 
-
     /* 计时 */
     ticks++;
 
     /* 记账：给使用了系统资源的用户进程记账 */
     gp_curProc->userTime++;        /* 用户时间记账 */
-
-//    if (gp_curProc == proc_addr(IDLE_TASK) && gp_curProc->user_time % 100 == 0) {
-//        lock_hunter();
-//    }
 
     if (target != gp_billProc && target != proc_addr(HARDWARE))
         gp_billProc->sysTime++;  /* 当前进程不是计费的用户进程，那么它应该是使用了系统调用陷入了内核，记录它的系统时间 */
@@ -196,7 +191,7 @@ PRIVATE void clock_init(void) {
      * 设置 8253定时器芯片 的模式和计数器Counter 0以产生每秒 100 次的
      * 时钟滴答中断，即每 10ms 产生一次中断。
      */
-    printf("#{clock_init}->called\n");
+    kprintf("#{clock_init}->called\n");
 
     /* 1 先写入我们使用的模式到 0x43 端口，即模式控制寄存器中 */
     out_byte(TIMER_MODE, RATE_GENERATOR);
@@ -211,9 +206,9 @@ PRIVATE void clock_init(void) {
     RTCTime_t now;
     get_rtc_time(&now);
     bootTime = mktime(&now);
-    printf("#{CLOCK}-> now is %d-%d-%d %d:%d:%d\n",
+    kprintf("#{CLOCK}-> now is %d-%d-%d %d:%d:%d\n",
            now.year, now.month, now.day, now.hour, now.minute, now.second);
-    printf("#{CLOCK}-> boot startup time is %ld\n", bootTime);
+    kprintf("#{CLOCK}-> boot startup time is %ld\n", bootTime);
 }
 
 /* 获取时钟运行时间(tick) */
@@ -272,8 +267,7 @@ PRIVATE time_t mktime(RTCTime_t *p_time) {
  * 让时钟任务来调用本例程。
  */
 PRIVATE void do_clock_int(void) {
-
-    printf("i am clock int, hi brother!\n");
+    kprintf("i am clock int, hi brother!\n");
     nextAlarm = ULONG_MAX;
 }
 

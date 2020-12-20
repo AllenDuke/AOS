@@ -114,7 +114,7 @@ PUBLIC int sys_call(int op, int srcOrDestOrMagAddr, Message *p_msg) {
  * @return 
  */
 PUBLIC int aos_send(Process *caller, int dest, Message *p_msg) {
-    printf("%d2%d", caller->logicNum, dest);
+    kprintf("%d2%d", caller->logicNum, dest);
     /**
      * 发送一条消息从发送进程到接收进程，消息在发送进程的数据空间中，所以我们
      * 需要将其复制到接收进程的数据空间的消息缓冲中。
@@ -159,7 +159,7 @@ PUBLIC int aos_send(Process *caller, int dest, Message *p_msg) {
         target->flags &= ~RECEIVING;
         if (target->flags == CLEAN_MAP) {
             ready(target);
-            printf("%d is ready", target->logicNum);
+            kprintf("%d is ready", target->logicNum);
         }
     } else {
         /**

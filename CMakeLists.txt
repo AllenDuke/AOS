@@ -33,7 +33,7 @@ add_executable(
         src/kernel/lib/ansi/cstring.c
 
 
-        src/kernel/lib/stdio/printf.c
+        src/kernel/lib/stdio/kprintf.c
         src/kernel/ipc.c
         src/kernel/clock.c
         src/kernel/process.c

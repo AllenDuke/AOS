@@ -18,7 +18,6 @@
 PUBLIC void init_c(void){
     /* 初始化显示位置 */
     g_dispPosition = (80 * 6 + 2 * 0) * 2;
-    low_print("#{init_c}-->called\n");
 
     /* 建立保护机制以及中断表 */
     init_protect();

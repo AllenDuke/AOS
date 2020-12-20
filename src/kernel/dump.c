@@ -12,17 +12,17 @@ PUBLIC void proc_dump(void) {
     static Process *old_proc = BEG_PROC_ADDR;
     int n = 0;
 
-    printf("\n--nr- --eip- ---sp- flag -user --sys-- -base- -size- -recv- command\n");
+    kprintf("\n--nr- --eip- ---sp- flag -user --sys-- -base- -size- -recv- command\n");
     for (target = old_proc; target < END_PROC_ADDR; target++) {
         /* 空的进程请跳过 */
         if (is_empty_proc(target)) continue;
         if (++n > 20) break;
         if (target->logicNum < 0) {
-            printf("#{%3d}", target->logicNum);
+            kprintf("#{%3d}", target->logicNum);
         } else {
-            printf("%5d", target->logicNum);
+            kprintf("%5d", target->logicNum);
         }
-        printf(" %5lx %6lx %2x %6lus %6lus %5uK %5uK ",
+        kprintf(" %5lx %6lx %2x %6lus %6lus %5uK %5uK ",
                (unsigned long) target->regs.eip,
                (unsigned long) target->regs.esp,
                target->flags,
@@ -31,17 +31,17 @@ PUBLIC void proc_dump(void) {
                tick2sec(target->map.base),
                bytes2round_k(target->map.size));
         if (target->flags & RECEIVING) {
-            printf("%-7.7s", proc_name(target->getFrom));
+            kprintf("%-7.7s", proc_name(target->getFrom));
         } else if (target->flags & SENDING) {
-            printf("S:%-5.5s", proc_name(target->sendTo));
+            kprintf("S:%-5.5s", proc_name(target->sendTo));
         } else if (target->flags == CLEAN_MAP) {
-            printf(" CLEAN ");
+            kprintf(" CLEAN ");
         }
-        printf("%s\n", target->name);
+        kprintf("%s\n", target->name);
     }
-    if (target == END_PROC_ADDR) target = BEG_PROC_ADDR; else printf("--more--\r");
+    if (target == END_PROC_ADDR) target = BEG_PROC_ADDR; else kprintf("--more--\r");
     old_proc = target;
-    printf("\n");
+    kprintf("\n");
 }
 
 
@@ -52,19 +52,19 @@ PUBLIC void map_dump(void) {
     static Process *old_proc = cproc_addr(HARDWARE);
     int n = 0;
 
-    printf("\nPROC  -NAME-  -----BASE-----  -SIZE-\n");
+    kprintf("\nPROC  -NAME-  -----BASE-----  -SIZE-\n");
     for (target = old_proc; target < END_PROC_ADDR; target++) {
         if (is_empty_proc(target)) continue;    /* 空进程跳过 */
         if (++n > 20) break;
-        printf("%3d %s  %12xB  %5uK\n",
+        kprintf("%3d %s  %12xB  %5uK\n",
                target->logicNum,
                target->name,
                target->map.base,
                bytes2round_k(target->map.size));
     }
-    if (target == END_PROC_ADDR) target = cproc_addr(HARDWARE); else printf("--more--\r");
+    if (target == END_PROC_ADDR) target = cproc_addr(HARDWARE); else kprintf("--more--\r");
     old_proc = target;
-    printf("\n");
+    kprintf("\n");
 }
 
 /* 得到进程名字 */

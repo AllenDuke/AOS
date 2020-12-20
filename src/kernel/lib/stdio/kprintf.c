@@ -9,12 +9,12 @@
 PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg);
 
 /**
- * printf函数，将字符串常量p_string格式化输出
+ * kprintf函数，将字符串常量p_string格式化输出
  * @param p_string 待格式化的字符串常量
  * @param ... 可变参数
  * @return
  */
-PUBLIC int printf(const char *p_string, ...){
+PUBLIC int kprintf(const char *p_string, ...){
     va_list ap;
     int len;
     /**
@@ -26,10 +26,14 @@ PUBLIC int printf(const char *p_string, ...){
     /* 准备开始访问可变参数 */
     va_start(ap, p_string);
 
-    /* 调用vsprintf格式化字符串 */
+    /* 格式化字符串 */
     len = fmt_str(buf, p_string, ap);
-    /* 调用low_print函数打印格式化后的字符串 */
-    low_print(buf);
+
+//    /* 调用low_print函数打印格式化后的字符串 */
+//    low_print(buf);
+    for(int i=0;i<len;i++){
+        out_char(&consoles[0],buf[i]);
+    }
 
     /* 可变参数访问结束 */
     va_end(ap);

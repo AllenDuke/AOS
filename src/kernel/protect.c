@@ -115,7 +115,7 @@ PUBLIC void init_protect(void) {
         proc->ldtSelector = ldtI * DESCRIPTOR_SIZE;
     }
 
-    printf("already init protect mode\n");
+    kprintf("already init protect mode\n");
 }
 
 /**

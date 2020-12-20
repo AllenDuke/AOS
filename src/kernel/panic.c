@@ -11,9 +11,9 @@
  */
 PUBLIC void panic(const char *p_msg, int errorNum) {
     if (p_msg != NIL_PTR) {
-        printf("AOS kernel is panicky for: %s !\n", p_msg);
+        kprintf("AOS kernel is panicky for: %s !\n", p_msg);
         if (errorNum != PANIC_ERR_NUM)
-            printf("panic error num: 0x%x !\n", errorNum);
+            kprintf("panic error num: 0x%x !\n", errorNum);
     }
     /* 好了，可以宕机了 */
     level0(cpu_halt);
@@ -26,7 +26,7 @@ PUBLIC void panic(const char *p_msg, int errorNum) {
  * @param p_srcCode 断言源代码
  */
 PUBLIC void bad_assertion(char *file, int line, char *p_srcCode) {
-    printf("panic at file://%s(%d): assertion \"%s\" failed\n", file, line, p_srcCode);
+    kprintf("panic at file://%s(%d): assertion \"%s\" failed\n", file, line, p_srcCode);
     panic("bad assertion", PANIC_ERR_NUM);
 }
 
@@ -39,6 +39,6 @@ PUBLIC void bad_assertion(char *file, int line, char *p_srcCode) {
  * @param rhs 右边的比较数
  */
 PUBLIC void bad_compare(char *file, int line, int lhs, char *p_srcCode, int rhs) {
-    printf("* panic at file://%s(%d): compare \"%s\" failed\n", file, line, p_srcCode);
+    kprintf("* panic at file://%s(%d): compare \"%s\" failed\n", file, line, p_srcCode);
     panic("bad compare", PANIC_ERR_NUM);
 }

@@ -257,7 +257,7 @@ PRIVATE void hunter(void){
     register Process* prey;      /* 准备运行的进程 */
     if((prey = gp_readyHeads[TASK_QUEUE]) != NIL_PROC) {
         gp_curProc = prey;
-        printf("%s hunter\n", gp_curProc->name);
+        kprintf("%s hunter\n", gp_curProc->name);
         return;
     }
     if((prey = gp_readyHeads[SERVER_QUEUE]) != NIL_PROC) {
@@ -275,9 +275,9 @@ PRIVATE void hunter(void){
     /* 本例程只负责狩猎，狩猎到一个可以执行的进程，而进程执行完毕后的删除或更改在队列中的位置
      * 这种事情我们安排在其他地方去做。
      */
-    if(gp_curProc->logicNum==IDLE_TASK){
-        printf("idle hunt:%d\n",prey->logicNum);
-    }
+//    if(gp_curProc->logicNum==IDLE_TASK){
+//        printf("idle hunt:%d\n",prey->logicNum);
+//    }
 }
 
 /* 进程调度 */

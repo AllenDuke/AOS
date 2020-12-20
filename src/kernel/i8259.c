@@ -11,7 +11,7 @@ FORWARD int default_irq_handler (int irq);
 /* 初始化中断 */
 PUBLIC void init_8259A(){
 
-    printf("#{init_8259A}->called\n");
+    kprintf("#{init_8259A}->called\n");
 
     /* 初始化前先将中断响应关闭 */
 //    interrupt_lock();
@@ -78,6 +78,6 @@ PUBLIC void put_irq_handler(int irq, irq_handler handler){
  * @return 0 响应完毕不需要重新打开中断
  */
 PRIVATE int default_irq_handler(int irq){
-    printf("I am a interrupt, my name is int %d\n", irq);
+    kprintf("I am a interrupt, my name is int %d\n", irq);
     return DISABLE; /* 如果是键盘这样的中断，需要持续地响应，即响应完毕后要重新打开中断，这样的话要返回非0 */
 }
