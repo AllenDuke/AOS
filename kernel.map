@@ -222,7 +222,7 @@ LOAD target/lib/i386/ipc/ipc.o
                 0x000014d0                disable_irq
  *fill*         0x00001a2d        0x3 90909090
  .text          0x00001a30      0x270 target/kernel/protect.o
-                0x00001c2d                init_segment_desc
+                0x00001bcf                init_segment_desc
                 0x00001a30                init_protect
  .text          0x00001ca0       0x2d target/kernel/init_c.o
                 0x00001ca0                init_c

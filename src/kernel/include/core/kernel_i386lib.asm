@@ -674,6 +674,7 @@ restart:
     call unhold
 over_unhold:
 	mov esp, [gp_curProc]	            ; 离开内核栈，指向运行进程的栈帧，现在的位置是 gs
+	; lldt指令不同于lgdt指令，lldt指令的操作数是，lldt指针在GDT中的偏移量
 	lldt [esp + P_LDT_SEL]	            ; 每个进程有自己的 LDT，所以每次进程的切换都需要加载新的ldtr
 	; 把该进程栈帧栈顶地址保存到 tss.ss0 中，方便下次中断时的 save 将保存所有寄存器到该进程的栈帧中
 	lea eax, [esp + P_STACKTOP]         ; 把栈帧的栈顶物理地址存入eax

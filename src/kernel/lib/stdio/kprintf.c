@@ -9,7 +9,8 @@
 PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg);
 
 /**
- * kprintf函数，将字符串常量p_string格式化输出
+ * kprintf函数，将字符串常量p_string格式化输出，用于系统任务和服务可用
+ * 用户进程要与tty进行通信才能打印
  * @param p_string 待格式化的字符串常量
  * @param ... 可变参数
  * @return

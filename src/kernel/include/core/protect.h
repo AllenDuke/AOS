@@ -44,6 +44,12 @@ typedef struct gate_s{
     u16_t	offsetHigh;	    /* Offset High */
 } GateDescriptor;
 
+/**
+ * TSS与LDT是intel从硬件上提供的多任务切换机制，而实际上，在AOS中，我们不使用。
+ * Linux 0.11采用TSS 和一条指令就能完成任务切换，虽然简单，但这指令的执行时间却很长，在实现任务切换时大概需要 200 多个时钟周期。
+ * 而通过堆栈实现任务切换可能要更快，而且采用堆栈的切换还可以使用指令流水的并行优化技术，同时又使得CPU的设计变得简单。所以无论是
+ * Linux还是 Windows，进程/线程的切换都没有使用 Intel 提供的这种TSS切换手段，而都是通过堆栈实现的，即利用PCB
+ */
 /* 任务状态段 共104字节 */
 typedef struct tss_s{
     reg_t   backLink;       /* 低16位存储一个任务的链接，高16位保留为0 */
@@ -76,7 +82,7 @@ typedef struct tss_s{
 } TSS;
 
 /* 表大小 */
-#define GDT_SIZE (LDT_FIRST_INDEX + NR_TASKS + NR_PROCS)    /* 全局描述符表 共40项*/
+#define GDT_SIZE (LDT_FIRST_INDEX + NR_TASKS + NR_SERVERS + NR_PROCS)    /* 全局描述符表 共40项*/
 #define IDT_SIZE (INT_VECTOR_SYS_CALL + 1)                  /* 只取最高的向量 */
 /**
  * AOS每个进程只有两个段，一个是正文段（代码段）
@@ -90,7 +96,7 @@ typedef struct tss_s{
 #define DATA_INDEX          2   /* 0~4G，32位可读写数据段 */
 #define VIDEO_INDEX         3   /* 显存首地址，特权级3 */
 #define TSS_INDEX           4   /* 任务状态段 */
-#define LDT_FIRST_INDEX     5   /* 本地描述符 35个任务*/
+#define LDT_FIRST_INDEX     5   /* 本地描述符 */
 
 /* 接下来是选择子，选择子 = (描述符索引 * 描述符大小) */
 #define DUMMY_SELECTOR      DUMMY_INDEX * DESCRIPTOR_SIZE

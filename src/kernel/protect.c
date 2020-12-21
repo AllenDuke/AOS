@@ -101,6 +101,9 @@ PUBLIC void init_protect(void) {
      * 初始化任务状态段TSS，并为处理器寄存器和其他任务切换时应保存的信息提供空间。
      * 我们只使用了某些域的信息，这些域定义了当发生中断时在何处建立新堆栈。
      * 下面init_seg_desc的调用保证它可以用GDT进行定位。
+     *
+     * 实际上这里和Linux2.4一样，没有使用TSS来进行任务切换，这里所有进程使用同一个tss，多核架构中，每个cpu一个tss。
+     * 只用TSS的esp0和IO许可位图
      */
     memset(&g_tss, 0, sizeof(g_tss)); /* 初始化g_tss为0 */
     g_tss.ss0 = KERNEL_DS_SELECTOR;
@@ -111,25 +114,12 @@ PUBLIC void init_protect(void) {
     Process *proc = BEG_PROC_ADDR;
     for(int ldtI = LDT_FIRST_INDEX; proc < END_PROC_ADDR; proc++, ldtI++) {
         memset(proc, 0, sizeof(Process)); /* clean */
+        /* 每个进程的LDT指针作为一个描述符存放在GDT中 */
         init_segment_desc(&g_gdt[ldtI], vir2phys(proc->ldt), sizeof(proc->ldt) - 1, DA_LDT);
-        proc->ldtSelector = ldtI * DESCRIPTOR_SIZE;
+        proc->ldtSelector = ldtI * DESCRIPTOR_SIZE; /* 这里的ldtSelector是上面LDT指针在GDT中的偏移 */
     }
 
     kprintf("already init protect mode\n");
-}
-
-/**
- * 利用一个中断门信息，初始化一个中断门描述符到IDT
- * @param gateInfo 中断门信息
- * @param desc_type 门描述符的类型 其实这里就是DA_386IGate，即中断门类型
- */
-PRIVATE void init_gate_desc(GateInfo *gateInfo, u8_t desc_type, GateDescriptor *p_gate) {
-    u32_t base_addr = (u32_t) gateInfo->handler;
-    p_gate->offsetLow = base_addr & 0xFFFF;
-    p_gate->selector = KERNEL_CS_SELECTOR;
-    p_gate->dcount = 0;
-    p_gate->attr = desc_type | (gateInfo->privilege << 5);
-    p_gate->offsetHigh = (base_addr >> 16) & 0xFFFF;
 }
 
 /**
@@ -148,3 +138,16 @@ PUBLIC void init_segment_desc(SegDescriptor *p_desc, phys_addr base, u32_t limit
     p_desc->baseHigh = (base >> 24) & 0x0FF;                                   /* 段基址 3    (1 字节) */
 }
 
+/**
+ * 利用一个中断门信息，初始化一个中断门描述符到IDT
+ * @param gateInfo 中断门信息
+ * @param desc_type 门描述符的类型 其实这里就是DA_386IGate，即中断门类型
+ */
+PRIVATE void init_gate_desc(GateInfo *gateInfo, u8_t desc_type, GateDescriptor *p_gate) {
+    u32_t base_addr = (u32_t) gateInfo->handler;
+    p_gate->offsetLow = base_addr & 0xFFFF;
+    p_gate->selector = KERNEL_CS_SELECTOR;
+    p_gate->dcount = 0;
+    p_gate->attr = desc_type | (gateInfo->privilege << 5);
+    p_gate->offsetHigh = (base_addr >> 16) & 0xFFFF;
+}

@@ -68,6 +68,7 @@ void aos_main(void) {
         sysProcStackBase += p_sysProc->stackSize;
 
         /* ================= 初始化系统进程的 LDT ================= */
+         /* linux中所有进程共享一个ldt */
         p_proc->ldt[CS_LDT_INDEX] = g_gdt[TEXT_INDEX];  /* 这里是深拷贝 和内核公用段 */
         p_proc->ldt[DS_LDT_INDEX] = g_gdt[DATA_INDEX];
         /* ================= 改变DPL描述符特权级 ================= */

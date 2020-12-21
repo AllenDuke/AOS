@@ -69,7 +69,7 @@ _start:
 ; ----------------------------------------------------------------------------------------------------------------------
     call init_c
     lgdt [gp_gdt]           ; 使用新的GDT
-    lidt [gp_idt]           ; 加载idt指针，在cstart函数中已经将idt_ptr指向新的中断表了
+    lidt [gp_idt]           ; 加载idt指针，在init_c函数中已经将idt_ptr指向新的中断表了
 
     ; 一个跳转指令，刷新描述符高速缓存
     jmp KERNEL_CS_SELECTOR:pre_c

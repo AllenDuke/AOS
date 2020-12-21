@@ -7,13 +7,14 @@
 
 /**
  * 进程，一个进程是包含 进程的寄存器信息(栈帧) 和 LDT(本地描述符表) 以及 自定义的一些属性
- * CPU 通过 PCB来调度进程
+ * CPU 通过 PCB来调度进程，而不是通过tts
+ * 各成员的位置是有讲究的，不能随便放置。
  */
 typedef struct process_s{
     /* 这里存放 进程的寄存器信息(栈帧) 和 LDT(本地描述符表) 信息，它们由 CPU 使用并调度，和硬件相关 */
     StackFrame regs;                /* 进程的栈帧，包含进程自己所有寄存器的信息 */
     reg_t ldtSelector;              /* 进程的 LDT 选择子 */
-    SegDescriptor ldt[LDT_SIZE];    /* 进程有两个段，代码段和数据段(这里与堆栈段共用) */
+    SegDescriptor ldt[LDT_SIZE];    /* 进程有两个段，代码段0和数据段1(这里与堆栈段共用) */
 
     /* 从这后面都是用户自定义的属性，和硬件无关 */
 

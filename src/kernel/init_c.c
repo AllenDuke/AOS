@@ -11,7 +11,6 @@
 
 #include "include/core/kernel.h"
 
-
 /**
  * 进入内核主函数前做一些初始化工作。
  */
