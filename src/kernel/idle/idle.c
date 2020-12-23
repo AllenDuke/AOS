@@ -13,6 +13,7 @@ PUBLIC void idle_task(void) {
      * 中都会保持中断开启，保证待机时间内随时可以响应活动。
      */
     kprintf("idle task work\n");
-    while (TRUE)
+    while (TRUE){
         level0(halt);
+    }
 }

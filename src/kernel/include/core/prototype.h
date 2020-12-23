@@ -215,4 +215,6 @@ void in_process(u32_t key,TTY* p_tty);
 void tty_task();
 //======================================================================================================================
 
+
+PUBLIC void init_task(void);
 #endif //AOS_PROTOTYPE_H

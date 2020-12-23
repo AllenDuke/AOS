@@ -104,6 +104,19 @@ PRIVATE void tty_do_read(TTY *p_tty) {
     if (is_cur_console(p_tty->p_console)) keyboard_read(p_tty);
 }
 
+PRIVATE char cmd[TTY_IN_BYTES];
+PRIVATE u32_t cmdLen=0;
+PRIVATE char* cmd_map[NR_CMDS]={
+        "",
+        "",
+        "pwd",
+        "date",
+        "",
+        "",
+        "",
+        "",
+};
+PRIVATE void exec_cmd();
 PRIVATE void tty_do_write(TTY *p_tty) {
     if (p_tty->inBufCount) {
         char ch = *(p_tty->p_inBufTail);
@@ -115,7 +128,49 @@ PRIVATE void tty_do_write(TTY *p_tty) {
 
         //disp_int(ch);
         out_char(p_tty->p_console, ch);
+        if(ch=='\n') {
+            exec_cmd();
+            while(cmdLen>0){
+                cmd[--cmdLen]='0';
+            }
+            return;
+        }
+        cmd[cmdLen++]=ch;
     }
+}
+PRIVATE void exec_cmd(){
+    if(cmdLen==0) return;
+    int hash=0;
+
+    /**
+     * 类似java String hash值计算，不直接采取31是因为cmd一般比较短，而31又比较小，
+     * 127这个质数比较大，可尽可能地使得hash的高位有值
+     * hash=hash*127+cmd[i]
+     */
+    for(int i=0;i<cmdLen;i++){
+        hash=((hash<<8)-hash)+cmd[i];
+    }
+
+    /**
+     * 同java HashMap hash()
+     * hash值的高16位为原hash的高16位，低16位为原hash高16位与原hash低16位异或后的结果。
+     * 原因：因为数组的长度为2的次方数，所以最终计算下标时，使用(NR_CMDS-1)&hash，
+     * 这样一来，因为(NR_CMDS-1)的高位总是0，hash的高位没有参与到运算，为了进一步降低冲突，应使得高位也参与运算
+     * 在权衡质量与速度后，选择了这种方式。成本不高，质量也不错。
+     */
+    hash=hash^(hash>>16);
+    int index=hash&(NR_CMDS-1);
+    char* pre=cmd_map[index];
+    for(int i=0;i<cmdLen;i++){
+        if(cmd[i]!=*pre||*pre=='\0'){
+            kprintf("no such cmd:%s, hash:%d, index:%d\n",cmd,hash,index);
+            return;
+        }
+        pre++;
+    }
+    msg.source=TTY_TASK;
+    msg.type=index;
+    send(INIT_TASK,&msg);
 }
 
 
