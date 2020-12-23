@@ -2,7 +2,7 @@
 // Created by 杜科 on 2020/10/27.
 //
 
-#include "../include/core/kernel.h"
+#include "core/kernel.h"
 
 PRIVATE clock_t ticks;                              /* 时钟运行的时间(滴答数)，也是开机后时钟运行的时间 */
 PRIVATE Message msg;

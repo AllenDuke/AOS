@@ -68,8 +68,13 @@ void aos_main(void) {
         sysProcStackBase += p_sysProc->stackSize;
 
         /* ================= 初始化系统进程的 LDT ================= */
-         /* linux中所有进程共享一个ldt */
-        p_proc->ldt[CS_LDT_INDEX] = g_gdt[TEXT_INDEX];  /* 这里是深拷贝 和内核公用段 */
+        /**
+         * 所有的系统任务和服务，其段基地址都是0。
+         * 而所有的用户进程，因为不采取分页机制，所以其地址必不为0，得设置为分配的空间的基地址。
+         *
+         * 在linux中所有进程共享一个ldt，也因为linux采用的基于分页的虚拟内存管理机制，
+         */
+        p_proc->ldt[CS_LDT_INDEX] = g_gdt[TEXT_INDEX];
         p_proc->ldt[DS_LDT_INDEX] = g_gdt[DATA_INDEX];
         /* ================= 改变DPL描述符特权级 ================= */
         p_proc->ldt[CS_LDT_INDEX].access = (DA_CR | (privilege << 5));

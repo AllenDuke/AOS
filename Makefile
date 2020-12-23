@@ -178,7 +178,7 @@ $(tk)/panic.o: $(sk)/panic.c
 $(tk)/i8259.o: $(sk)/i8259.c
 	$(CC) $(CFlags) -o $@ $<
 
-$(tk)/clock.o: $(sk)/clock.c
+$(tk)/clock.o: $(sk)/clock/clock.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tk)/process.o: $(sk)/process.c
@@ -190,16 +190,16 @@ $(tk)/ipc.o: $(sk)/ipc.c
 $(tk)/dump.o: $(sk)/dump.c
 	$(CC) $(CFlags) -o $@ $<
 
-$(tk)/keyboard.o: $(sk)/keyboard.c
+$(tk)/keyboard.o: $(sk)/tty/keyboard.c
 	$(CC) $(CFlags) -o $@ $<
 
-$(tk)/tty.o: $(sk)/tty.c
+$(tk)/tty.o: $(sk)/tty/tty.c
 	$(CC) $(CFlags) -o $@ $<
 
-$(tk)/console.o: $(sk)/console.c
+$(tk)/console.o: $(sk)/tty/console.c
 	$(CC) $(CFlags) -o $@ $<
 
-$(tk)/idle.o: $(sk)/idle.c
+$(tk)/idle.o: $(sk)/idle/idle.c
 	$(CC) $(CFlags) -o $@ $<
 # ======= 库  =======
 $(tl)/ansi/string.o: $(lansi)/string.asm

@@ -35,7 +35,7 @@ add_executable(
 
         src/kernel/lib/stdio/kprintf.c
         src/kernel/ipc.c
-        src/kernel/clock.c
+        src/kernel/clock/clock.c
         src/kernel/process.c
         src/kernel/dump.c
-        src/kernel/keyboard.c src/kernel/tty.c src/kernel/idle.c)
+        src/kernel/tty/keyboard.c src/kernel/tty/tty.c src/kernel/idle/idle.c)
