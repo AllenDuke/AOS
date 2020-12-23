@@ -152,6 +152,7 @@ PRIVATE void exec_cmd(){
     }
 
     /**
+     * 扰动函数
      * 同java HashMap hash()
      * hash值的高16位为原hash的高16位，低16位为原hash高16位与原hash低16位异或后的结果。
      * 原因：因为数组的长度为2的次方数，所以最终计算下标时，使用(NR_CMDS-1)&hash，
@@ -160,6 +161,7 @@ PRIVATE void exec_cmd(){
      */
     hash=hash^(hash>>16);
     int index=hash&(NR_CMDS-1);
+
     char* pre=cmd_map[index];
     for(int i=0;i<cmdLen;i++){
         if(cmd[i]!=*pre||*pre=='\0'){
@@ -168,9 +170,43 @@ PRIVATE void exec_cmd(){
         }
         pre++;
     }
-    msg.source=TTY_TASK;
-    msg.type=index;
-    send(INIT_TASK,&msg);
+    //todo fork出一条进程去执行cmd
+    switch (index) {
+        case 0:{
+            kprintf("default cmd\n");
+            break;
+        }
+        case 1:{
+            kprintf("default cmd\n");
+            break;
+        }
+        case 2:{
+            kprintf("/\n");
+            break;
+        }
+        case 3:{
+            msg.source=TTY_TASK;
+            msg.type=GET_TIME;
+            send_rec(CLOCK_TASK,&msg);
+            kprintf("current date is: %d\n",msg.CLOCK_TIME);
+        }
+        case 4:{
+            kprintf("default cmd\n");
+            break;
+        }
+        case 5:{
+            kprintf("default cmd\n");
+            break;
+        }
+        case 6:{
+            kprintf("default cmd\n");
+            break;
+        }
+        case 7:{
+            kprintf("default cmd\n");
+            break;
+        }
+    }
 }
 
 

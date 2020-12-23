@@ -10,7 +10,6 @@ SysProc sysProcs[] = {
         { tty_task, TTY_TASK_STACK, "TTY" },
         { clock_task, CLOCK_TASK_STACK, "CLOCK" },
         { idle_task, IDLE_TASK_STACK, "IDLE" },
-        { init_task, INIT_TASK_STACK, "INIT" },
         { 0, HARDWARE_STACK, "HARDWARE" },/* 虚拟硬件任务，只是占个位置 - 用作判断硬件中断 */
 };
 

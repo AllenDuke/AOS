@@ -34,7 +34,7 @@
 //  保护模式相关
 //----------------------------------------------------------------------------------------------------------------------
 /* 系统任务数量 */
-#define NR_TASKS    (5 + NR_CONTROLLERS)
+#define NR_TASKS    (4 + NR_CONTROLLERS)
 #define NR_SERVERS  0
 
 #define INT_VECTOR_LEVEL0           0x30
@@ -172,10 +172,9 @@
 #define ANY                 0x3ea
 
 /* 每个系统任务的任务号和它的功能服务号(消息类型)以及回复代码，将在下面开始定义 */
-#define TTY_TASK            -5
-#define CLOCK_TASK          -4      /* 时钟任务 */
-#define IDLE_TASK           -3      /* 待机任务 */
-#define INIT_TASK           -2      /* init进程 */
+#define TTY_TASK            -4
+#define CLOCK_TASK          -3      /* 时钟任务 */
+#define IDLE_TASK           -2      /* 待机任务 */
 #define HARDWARE            -1      /* 代表硬件，用于生成软件生成硬件中断，并不存在实际的任务 */
 //======================================================================================================================
 
@@ -223,12 +222,10 @@
 #define CLOCK_TASK_STACK    SMALL_STACK
 /* 待机任务堆栈 */
 #define IDLE_TASK_STACK     SMALL_STACK
-/* 待机任务堆栈 */
-#define INIT_TASK_STACK     SMALL_STACK
 /* 虚拟硬件栈 */
 #define HARDWARE_STACK  0
 /* 所有系统进程的栈空间总大小 */
-#define TOTAL_TASK_STACK    (HARDWARE_STACK+INIT_TASK_STACK+IDLE_TASK_STACK+CLOCK_TASK_STACK+TTY_TASK_STACK)
+#define TOTAL_TASK_STACK    (HARDWARE_STACK+IDLE_TASK_STACK+CLOCK_TASK_STACK+TTY_TASK_STACK)
 //======================================================================================================================
 
 

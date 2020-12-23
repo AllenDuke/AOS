@@ -12,7 +12,7 @@ PUBLIC void idle_task(void) {
      * 不至于像传统的死循环一样，消耗大量的 CPU 资源。而且在每个待机的过程
      * 中都会保持中断开启，保证待机时间内随时可以响应活动。
      */
-    kprintf("idle task work\n");
+//    kprintf("idle task work\n");
     while (TRUE){
         level0(halt);
     }
