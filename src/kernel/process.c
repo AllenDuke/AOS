@@ -28,7 +28,6 @@ PUBLIC void ready(register Process* p_proc){
             /* 就绪队列是空的，那么这个进程直接就可以运行，并挂在就绪队列头上 */
             gp_curProc = gp_readyHeads[TASK_QUEUE] = p_proc;
         }
-//        printf("l_%d->",proc->logicNum);
         // 队尾指针指向新就绪的进程
         gp_readyTails[TASK_QUEUE] = p_proc;      /* 队尾指针 --> 新就绪的进程 */
         p_proc->p_nextReady = NIL_PROC;         /* 新条目没有后继就绪进程 */

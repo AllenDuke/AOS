@@ -228,8 +228,9 @@ void mm_task(void);
 //----------------------------------------------------------------------------------------------------------------------
 //  alloc.c
 //----------------------------------------------------------------------------------------------------------------------
-void mem_init(CardNode* cur,phys_page base,phys_page freePages,CardNode* p);
-void mem_init_root(CardNode *node);
+void mem_init(phys_page base, phys_page freePages);
+phys_page alloc(phys_page applyPages);
+void free(phys_page begin,phys_page size);
 //======================================================================================================================
 
 #endif //AOS_PROTOTYPE_H

@@ -3,7 +3,7 @@
 ; 内核挂载点
 ; 注意：1、必须与 MAKEFILE 中参数 -Ttext 的值相等!!
 ;      2、这是个物理地址而非仅仅是个偏移，如果 -Ttext 的值为 0x328000，则它的值也应该是 0x328000。
-KERNEL_ENTRY_POINT_PHY_ADDR     equ 0x1000
+KERNEL_ENTRY_POINT_PHY_ADDR     equ 0x100000
 
 ; 页目录开始地址:		1M
 PAGE_DIR_BASE		equ	0x100000

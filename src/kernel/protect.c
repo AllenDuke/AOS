@@ -80,7 +80,6 @@ PUBLIC void init_protect(void) {
      */
     phys_copy(*((u32_t *) vir2phys(&gp_gdt[2])), vir2phys(&g_gdt),
               *((u16_t *) vir2phys(&gp_gdt[0])) + 1);
-    low_print("#{init_protect}-->called\n");
     /* 算出新 GDT 的基地址和界限，设置新的 gdt_ptr */
     u16_t *p_gdt_limit = (u16_t *) vir2phys(&gp_gdt[0]);
     u32_t *p_gdt_base = (u32_t *) vir2phys(&gp_gdt[2]);

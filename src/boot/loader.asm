@@ -298,7 +298,7 @@ pm32_start:                 ; 跳转到这里，说明已经进入32位保护模
     ; 计算内存大小
     call cal_mem_size
     ; 打印内存信息
-    call print_mem_size
+;    call print_mem_size
     ; 启动分页机制
 ;    call setup_paging
     ; 初始化内核程序

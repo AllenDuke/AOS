@@ -2,7 +2,7 @@
 #   AOS内核的内存挂载点
 #----------------------------------------------------------------------------
 # 这个值必须存在且相等在文件"loader.inc"中的 'KERNEL_ENTRY_POINT_PHY_ADDR'！
-ENTRY_POINT     = 0x1000
+ENTRY_POINT     = 0x100000
 #============================================================================
 
 
@@ -104,7 +104,7 @@ debug: $(Img)
 
 # 运行AOS：打印提示信息
 run: $(Img)
-	@qemu-system-i386 -drive file=$(Img),if=floppy
+	@qemu-system-i386 -m 256 -drive file=$(Img),if=floppy
 	@echo "你还可以使用Vbox等虚拟机挂载.img软盘，即可开始运行！"
 
 # 更新映像并运行
