@@ -32,6 +32,7 @@
 #include "console.h"
 #include "tty.h"
 #include "lib.h"
+#include "mm.h"
 #include "prototype.h"
 #include "global.h"
 

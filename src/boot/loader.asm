@@ -306,7 +306,7 @@ pm32_start:                 ; 跳转到这里，说明已经进入32位保护模
 
     ; 进入内核前，我们别忘了将一些重要的参数保存，以便以后内核可以很方便的获取它们
     mov dword [BOOT_PARAM_ADDR], BOOT_PARAM_MAGIC   ; AOS引导参数的魔数
-    mov eax, [memSizeDD16]                          ; 内存大小
+    mov eax, [MEM_SIZE_DD_32]                          ; 内存大小
     mov [BOOT_PARAM_ADDR + 4], eax                  ; 第一个引导参数：内存大小
     mov eax, KERNEL_PHY_ADDR
     add eax, KERNEL_OFFSET                          ; 内核文件的物理地址 = KERNEL_SEG * 16 + KERNEL_OFFSET

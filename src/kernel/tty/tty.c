@@ -159,7 +159,7 @@ PRIVATE void exec_cmd(){
      * 这样一来，因为(NR_CMDS-1)的高位总是0，hash的高位没有参与到运算，为了进一步降低冲突，应使得高位也参与运算
      * 在权衡质量与速度后，选择了这种方式。成本不高，质量也不错。
      */
-    hash=hash^(hash>>16);
+    hash=hash^(hash>>16); /* int类型 >> 符号位保持不变 */
     int index=hash&(NR_CMDS-1);
 
     char* pre=cmd_map[index];
@@ -188,7 +188,7 @@ PRIVATE void exec_cmd(){
             msg.source=TTY_TASK;
             msg.type=GET_TIME;
             send_rec(CLOCK_TASK,&msg);
-            kprintf("current date is: %d\n",msg.CLOCK_TIME);
+            kprintf("current date is: %d\n\r",msg.CLOCK_TIME);
         }
         case 4:{
             kprintf("default cmd\n");

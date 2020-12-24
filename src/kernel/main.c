@@ -7,6 +7,7 @@
 
 /* 系统进程表，包含系统任务以及系统服务 */
 SysProc sysProcs[] = {
+        { mm_task,MM_TASK_STACK,"MM"},
         { tty_task, TTY_TASK_STACK, "TTY" },
         { clock_task, CLOCK_TASK_STACK, "CLOCK" },
         { idle_task, IDLE_TASK_STACK, "IDLE" },

@@ -20,6 +20,9 @@ typedef unsigned int vir_addr;
 /* 寄存器数据类型，32位无符号 */
 typedef unsigned int reg_t; //todo 加register修饰
 
+/* 物理内存页，一页4KB */
+typedef unsigned int phys_page;
+
 /* 端口数据类型，用于访问I/O端口 */
 typedef unsigned port_t;
 

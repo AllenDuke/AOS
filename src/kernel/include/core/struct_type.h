@@ -9,8 +9,8 @@
 
 /* 引导参数 */
 typedef struct boot_params_s{
-    u32_t memorySize;          /* 内存大小 */
-    phys_addr kernelFileAddr;     /* 内核所在绝对物理地址 */
+    u32_t memorySize;               /* 内存大小 单位是KB */
+    phys_addr kernelFileAddr;       /* 内核所在绝对物理地址 */
 } BootParam;
 
 /**
