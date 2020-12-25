@@ -7,9 +7,9 @@
 
 /* 系统进程表，包含系统任务以及系统服务 */
 SysProc sysProcs[] = {
-        { mm_task,MM_TASK_STACK,"MM"},
         { tty_task, TTY_TASK_STACK, "TTY" },
         { clock_task, CLOCK_TASK_STACK, "CLOCK" },
+        { mm_task,MM_TASK_STACK,"MM"},
         { idle_task, IDLE_TASK_STACK, "IDLE" },
         { 0, HARDWARE_STACK, "HARDWARE" },/* 虚拟硬件任务，只是占个位置 - 用作判断硬件中断 */
 };

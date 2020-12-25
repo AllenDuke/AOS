@@ -168,9 +168,9 @@
 #define NR_SERVERS  0
 
 /* 每个系统任务的任务号和它的功能服务号(消息类型)以及回复代码，将在下面开始定义 */
-#define MM_TASK             -5
-#define TTY_TASK            -4
-#define CLOCK_TASK          -3      /* 时钟任务 */
+#define TTY_TASK            -5
+#define CLOCK_TASK          -4      /* 时钟任务 */
+#define MM_TASK             -3
 #define IDLE_TASK           -2      /* 待机任务 */
 #define HARDWARE            -1      /* 代表硬件，用于生成软件生成硬件中断，并不存在实际的任务 */
 //======================================================================================================================
