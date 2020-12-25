@@ -13,7 +13,7 @@
 typedef struct process_s{
     /* 这里存放 进程的寄存器信息(栈帧) 和 LDT(本地描述符表) 信息，它们由 CPU 使用并调度，和硬件相关 */
     StackFrame regs;                /* 进程的栈帧，包含进程自己所有寄存器的信息 */
-    reg_t ldtSelector;              /* 进程的 LDT 选择子 */
+    reg_t ldtSelector;              /* 进程的 LDT 选择子，是LDT指针描述符在GDT中的偏移量，用于lldt指令 */
     SegDescriptor ldt[LDT_SIZE];    /* 进程有两个段，代码段0和数据段1(这里与堆栈段共用) */
 
     /* 从这后面都是用户自定义的属性，和硬件无关 */
@@ -77,6 +77,9 @@ typedef struct process_s{
 #define NO_MAP		    0x01	/* 执行一个 FORK 操作后,如果子进程的内存映像尚未建立起来,那么 NO_MAP 将被置位以阻止子进程运行 */
 #define SENDING		    0x02	/* 进程正在试图发送一条消息 */
 #define RECEIVING	    0x04	/* 进程正在试图接收一条消息 */
+#define PENDING		    0x08	/* set when inform() of signal pending */
+#define SIG_PENDING	    0x10	/* keeps to-be-signalled proc from running */
+#define PROC_STOP		0x20	/* set when process is being traced */
 
 /* 进程权限定义 */
 #define PROC_PRI_NONE	0	    /* 表示该进程插槽未使用 */
@@ -99,7 +102,6 @@ typedef struct process_s{
 #define is_ok_proc_nr(n)        ((unsigned) ((n) + NR_TASKS) < NR_PROCS + NR_TASKS + NR_SERVERS)   /* 进程索引号是否合法 */
 #define is_ok_src_dest(n)       (is_ok_proc_nr(n) || (n) == ANY)            /* 是个合法的发送或接收进程？ */
 #define is_any_hardware(n)      ((n) == ANY || (n) == HARDWARE)             /* 发送/接收进程是任何 或 硬件（特殊进程）？ */
-#define is_sys_server(n)        ((n) == FS_PROC_NR || (n) == MM_PROC_NR || (n) == FLY_PROC_NR)      /* 是系统服务？ */
 #define is_empty_proc(p)        ((p)->priority == PROC_PRI_NONE)            /* 是个空进程？ */
 #define is_sys_proc(p)          ((p)->priority != PROC_PRI_USER)            /* 是个系统进程？ */
 #define is_task_proc(p)         ((p)->priority == PROC_PRI_TASK)            /* 是个系统任务进程？ */

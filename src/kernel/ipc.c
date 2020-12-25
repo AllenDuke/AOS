@@ -122,7 +122,7 @@ PUBLIC int aos_send(Process *caller, int dest, Message *p_msg) {
     register Process *target, *next;
 
     /* 如果用户试图绕过系统服务直接发送消息给系统任务，返回错误，这是禁止的操作 */
-    if (is_user_proc(caller) && !is_sys_server(dest)) return ERROR_BAD_DEST;
+//    if (is_user_proc(caller) && !is_sys_server(dest)) return ERROR_BAD_DEST;
     target = proc_addr(dest);
 
     /* 检查目标进程是否还是一个活动进程 */
@@ -245,9 +245,12 @@ PUBLIC void aos_park() {
 PUBLIC void aos_unpark(int pid) {
 //    printf("pid:%d ", pid);
     /* if the caller is a user process, then the pid must be >=0 */
-    Process *p_proc = proc_addr(pid);
-    if (gp_curProc->pid >= 0 && pid < 0) /* 当前进程没有权限 */
+    if (gp_curProc->pid >= 0 && pid < 0) {/* 当前进程没有权限 */
+        kprintf("cur:%s, pid:%d\n",gp_curProc->name,pid);
+
         panic("cur process can not able to unpark target process!", EACCES);
+    }
+    Process *p_proc = proc_addr(pid);
     ready(p_proc);
 //    printf("unpark_done ");
 }

@@ -66,4 +66,8 @@ BootParam *gp_bootParam;            /* 引导参数指针 */
 aos_syscall level0Fn;               /* 提权成功的函数指针放在这里 */
 //int g_unparkPid;
 
+int procs_in_use;                /* 有多少进程被标记为正在使用 */
+struct mm_process_s *curr_mp;    /* 指向一个当前正在处理的进程 */
+int mm_who;         /* 调用进程的进程逻辑号 */
+
 #endif // AOS_GLOBAL_H

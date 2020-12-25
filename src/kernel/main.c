@@ -49,7 +49,7 @@ void aos_main(void) {
         /* 判断是否是系统任务还是系统服务 */
         if (logicNum < 0) {  /* 系统任务 */
             if (p_sysProc->stackSize > 0) {
-                /* 如果任务存在堆t栈空间，设置任务的堆栈保护字 */
+                /* 如果任务存在堆栈空间，设置任务的堆栈保护字，所以栈的大小要适当，防止越界修改了重要数据 */
                 p_proc->stackGuardWord = (reg_t *) sysProcStackBase;
                 *p_proc->stackGuardWord = SYS_TASK_STACK_GUARD;
             }
@@ -83,9 +83,14 @@ void aos_main(void) {
         /* 设置任务和服务的内存映射 */
         p_proc->map.base = KERNEL_TEXT_SEG_BASE;
         p_proc->map.size = 0;     /* 内核的空间是整个内存，所以设置它没什么意义，为 0 即可 */
-        /* ================= 初始化系统进程的栈帧以及上下文环境 ================= */
-        p_proc->regs.cs = ((CS_LDT_INDEX * DESCRIPTOR_SIZE) | SA_TIL | rpl);
-        p_proc->regs.ds = ((DS_LDT_INDEX * DESCRIPTOR_SIZE) | SA_TIL | rpl);
+
+        /**
+         * 初始化系统进程的栈帧以及上下文环境，设置TI=1，表示访问的是LDT。
+         * LDT从0起，第0个是代码段描述符，第1个是数据段描述符，所以
+         * cs=0，ds=8。注意区别与GDT的访问形式。
+         */
+        p_proc->regs.cs = ((CS_LDT_INDEX * DESCRIPTOR_SIZE) | SA_TIL | rpl); /* cs应=0 设置TI=1，表示访问的是LDT */
+        p_proc->regs.ds = ((DS_LDT_INDEX * DESCRIPTOR_SIZE) | SA_TIL | rpl); /* ds应=8 */
         p_proc->regs.es = p_proc->regs.fs = p_proc->regs.ss = p_proc->regs.ds;  /* C 语言不加以区分这几个段寄存器 */
         p_proc->regs.gs = ((KERNEL_GS_SELECTOR | rpl) & SA_RPL_MASK);     /* gs 指向显存 */
         p_proc->regs.eip = (reg_t) p_sysProc->task;                        /* eip 指向要执行的代码首地址 */

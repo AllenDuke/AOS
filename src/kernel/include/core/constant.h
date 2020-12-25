@@ -130,6 +130,7 @@
 
 /* 时钟任务消息中使用的消息字段 */
 #define CLOCK_TIME              m6_l1	/* 时间值 */
+
 //======================================================================================================================
 
 
@@ -153,12 +154,6 @@
 #define USER_QUEUE         2	    /* 就绪的系统服务通过队列2调度 */
 #define NR_PROC_QUEUE      3	    /* 调度队列的数量 */
 
-/* 一些重要进程的进程号 */
-#define MM_PROC_NR         0		/* 内存管理器 */
-#define FS_PROC_NR         1		/* 文件系统 */
-#define FLY_PROC_NR        2    	/* FLY */
-#define ORIGIN_PROC_NR	   3		/* 初始化 -- 将会fork为多用户进程 */
-#define LOW_USER           -1       /* 第一个用户进程不是操作系统的一部分 */
 
 /* 系统调用例程可以支持的操作 */
 #define SEND                0x1    	/* 0001: 发送一条消息 */
@@ -219,7 +214,7 @@
 /* 这是一个普通堆栈大小，1KB */
 #define NORMAL_STACK        (256 * sizeof(char*))
 
-#define MM_TASK_STACK       NORMAL_STACK
+#define MM_TASK_STACK       NORMAL_STACK*32
 /* 终端任务 */
 #define TTY_TASK_STACK      (32 * NORMAL_STACK)
 /* 时钟任务栈 */

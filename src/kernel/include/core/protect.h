@@ -111,7 +111,7 @@ typedef struct tss_s{
 #define KERNEL_GS_SELECTOR  VIDEO_SELECTOR		/* 显存首地址，特权级3 */
 
 
-/* 固定的局部描述符索引 */
+/* 固定的局部描述符索引 ，注意不同于GDT LDT没有DUMMY */
 #define CS_LDT_INDEX     0	/* 进程的代码段 */
 #define DS_LDT_INDEX     1	/* 进程数据段=ES=FS=SS */
 
