@@ -6,3 +6,5 @@
 /boot.bin
 
 /loader.bin
+/AOS.img
+/kernel.map

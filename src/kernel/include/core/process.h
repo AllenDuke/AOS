@@ -90,16 +90,16 @@ typedef struct process_s{
 
 /* 对过程表地址操作的一些宏定义。 */
 #define BEG_PROC_ADDR       (&g_procs[0])
-#define END_PROC_ADDR       (&g_procs[NR_TASKS + NR_SERVERS + NR_PROCS])
+#define END_PROC_ADDR       (&g_procs[NR_TASKS + NR_PROCS])
 #define END_TASK_ADDR       (&g_procs[NR_TASKS])
-#define BEG_SERVER_ADDR     (&g_procs[NR_TASKS + NR_SERVERS])
-#define BEG_USER_PROC_ADDR  (&g_procs[NR_TASKS + NR_SERVERS +LOW_USER])
+#define BEG_SERVER_ADDR     (&g_procs[NR_TASKS])
+#define BEG_USER_PROC_ADDR  (&g_procs[NR_TASKS +NR_LAST_TASK])
 
 /* 下面的这些宏能帮助我们快速做一些进程判断等简单的工作 */
 #define NIL_PROC                ((Process *) 0)       /* 空进程指针 */
 #define logic_nr_2_index(n)     (NR_TASKS + n)
 #define is_idle_hardware(n)     ((n) == IDLE_TASK || (n) == HARDWARE)      /* 是空闲进程 或 硬件（特殊进程）？ */
-#define is_ok_proc_nr(n)        ((unsigned) ((n) + NR_TASKS) < NR_PROCS + NR_TASKS + NR_SERVERS)   /* 进程索引号是否合法 */
+#define is_ok_proc_nr(n)        ((unsigned) ((n) + NR_TASKS) < NR_PROCS + NR_TASKS)   /* 进程索引号是否合法 */
 #define is_ok_src_dest(n)       (is_ok_proc_nr(n) || (n) == ANY)            /* 是个合法的发送或接收进程？ */
 #define is_any_hardware(n)      ((n) == ANY || (n) == HARDWARE)             /* 发送/接收进程是任何 或 硬件（特殊进程）？ */
 #define is_empty_proc(p)        ((p)->priority == PROC_PRI_NONE)            /* 是个空进程？ */

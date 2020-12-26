@@ -47,10 +47,4 @@ typedef struct mm_process_s {
 
 #define NIL_MMPROC ((MMProcess *) 0)
 
-/* 一些重要进程的进程逻辑号，用于MM */
-#define ORIGIN_PROC_NR	   0		/* 初始化 -- 将会fork为多用户进程 */
-#define LOW_USER           ORIGIN_PROC_NR       /* 第一个用户进程不是操作系统的一部分 */
-
-#define ORIGIN_PID           0      /* origin 第一个用户进程，linux中init的进程号为1 */
-
 #endif //AOS_MM_H

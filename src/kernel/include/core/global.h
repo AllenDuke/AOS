@@ -24,12 +24,12 @@ MemoryMap g_kernelMap;  /* 内核内存映像 */
 /* 多进程相关 */
 struct process_s *gp_curProc;   /* 当前正在运行的进程 */
 
-Process g_procs[NR_TASKS + NR_SERVERS + NR_PROCS];   /* 进程表，记录系统所有进程 */
+Process g_procs[NR_TASKS + NR_PROCS];   /* 进程表，记录系统所有进程 */
 /**
  * 因为进程表的访问非常频繁,并且计算数组中的一个地址需要用到很慢的乘法操作，
  * 所以使用一个指向进程表项的指针数组p_proc_addr 来加快操作速度
  */
-Process* gp_procs[NR_TASKS + NR_SERVERS + NR_PROCS];
+Process* gp_procs[NR_TASKS + NR_PROCS];
 
 /**
  * bill_proc指向正在对其CPU使用计费的进程。当一个用户进程调用文件系统,而文件系统正在运行

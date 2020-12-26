@@ -43,7 +43,7 @@ void aos_main(void) {
     reg_t sysProcStackBase = (reg_t) sysProcStack;
     u8_t  privilege;        /* CPU 权限 */
     u8_t rpl;               /* 段访问权限 */
-    for(logicNum = -NR_TASKS; logicNum <= LOW_USER; logicNum++) {   /* 遍历整个系统任务 */
+    for(logicNum = -NR_TASKS; logicNum <= NR_LAST_TASK; logicNum++) {   /* 遍历整个系统任务 */
         p_proc = proc_addr(logicNum);                                 /* 拿到系统任务对应应该放在的进程指针 */
         p_sysProc = &sysProcs[logic_nr_2_index(logicNum)];     /* 系统进程项 */
         strcpy(p_proc->name, p_sysProc->name);                         /* 拷贝名称 */
@@ -57,14 +57,6 @@ void aos_main(void) {
             /* 设置权限 */
             p_proc->priority = PROC_PRI_TASK;
             rpl = privilege = TASK_PRIVILEGE;
-        } else {            /* 系统服务 */
-            if (p_sysProc->stackSize > 0) {
-                /* 如果任务存在堆栈空间，设置任务的堆栈保护字 */
-                p_proc->stackGuardWord = (reg_t *) sysProcStackBase;
-                *p_proc->stackGuardWord = SYS_SERVER_STACK_GUARD;
-            }
-            p_proc->priority = PROC_PRI_SERVER;
-            rpl = privilege = SERVER_PRIVILEGE;
         }
         /* 堆栈基地址 + 分配的栈大小 = 栈顶，此时又成为了下一个进程栈顶 */
         sysProcStackBase += p_sysProc->stackSize;

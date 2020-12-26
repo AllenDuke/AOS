@@ -18,7 +18,7 @@ MMProcess mmProcs[NR_PROCS];
 
 PUBLIC void mm_task(void) {
     mm_init();
-//    in_outbox(&msg, &msg);
+    in_outbox(&msg, &msg);
     while (TRUE) {
         rec(ANY);
 
@@ -50,7 +50,7 @@ PRIVATE void mm_init() {
 
     /* 准备ORIGIN进程表项 */
     mmProcs[ORIGIN_PROC_NR].pid = ORIGIN_PID;
-    procs_in_use = LOW_USER + 1;    /* 有多少进程正在使用中？ */
+    procs_in_use = ORIGIN_PROC_NR + 1;    /* 有多少进程正在使用中？ */
 
     /* 打印内存信息：内存总量、核心内存的使用和空闲内存情况 */
     kprintf("total memory size = %dKB, available = %dKB freePages = %d.\n", totalPages << 2, freePages << 2,freePages);

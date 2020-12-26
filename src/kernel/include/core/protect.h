@@ -82,7 +82,7 @@ typedef struct tss_s{
 } TSS;
 
 /* 表大小 */
-#define GDT_SIZE (LDT_FIRST_INDEX + NR_TASKS + NR_SERVERS + NR_PROCS)    /* 全局描述符表 共40项*/
+#define GDT_SIZE (LDT_FIRST_INDEX + NR_TASKS + NR_PROCS)    /* 全局描述符表 共40项*/
 #define IDT_SIZE (INT_VECTOR_SYS_CALL + 1)                  /* 只取最高的向量 */
 /**
  * AOS每个进程只有两个段，一个是正文段（代码段）
