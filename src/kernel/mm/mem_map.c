@@ -10,15 +10,10 @@ PUBLIC int new_mem_map(int child_nr, int pre_nr, MemoryMap *map) {
 
     register Process *proc;
     phys_addr src_phys;    /* 内存映像所在的物理地址 */
-    int callnr;             /* 调用者索引号 */
     int who;                /* 谁的内存映像？ */
     int old_flags;          /* 修改前标记的值 */
-    MemoryMap *map_ptr;     /* 映像的虚拟地址 */
 
-    /* 获取消息中的参数 */
-    callnr = pre_nr;
     who = child_nr;
-    map_ptr = map;
     if (!is_ok_proc_nr(who)) return (ERROR_BAD_PROC);    /* 啊哈，这个进程索引号不正确 */
     proc = proc_addr(who);
 

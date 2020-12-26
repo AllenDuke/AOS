@@ -14,7 +14,7 @@ PUBLIC CardNode nodes[NR_TREE_NODE]; //todo 这个若是定义在alloc中会触�
 PRIVATE Message msg;
 
 /* 这里只管理用户进程，但index和process.h中的是相同的 */
-MMProcess mmProcs[NR_PROCS];
+PUBLIC MMProcess mmProcs[NR_PROCS];
 
 PUBLIC void mm_task(void) {
     mm_init();
@@ -50,7 +50,7 @@ PRIVATE void mm_init() {
 
     /* 准备ORIGIN进程表项 */
     mmProcs[ORIGIN_PROC_NR].pid = ORIGIN_PID;
-    procs_in_use = ORIGIN_PROC_NR + 1;    /* 有多少进程正在使用中？ */
+    proc_in_use = ORIGIN_PROC_NR + 1;    /* 有多少进程正在使用中？ */
 
     /* 打印内存信息：内存总量、核心内存的使用和空闲内存情况 */
     kprintf("total memory size = %dKB, available = %dKB freePages = %d.\n", totalPages << 2, freePages << 2,freePages);
@@ -68,6 +68,6 @@ PUBLIC void set_reply(int proc_nr,int rs){
      * 回值以及用于设置“必须发送回复”标志。
      */
     register MMProcess *rmp = &mmProcs[proc_nr];
-    rmp->reply.type = rs;
+    rmp->reply_rs1 = rs;
     rmp->flags |= REPLY;    /* 挂起了一个回复，等待处理 */
 }

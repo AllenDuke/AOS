@@ -47,7 +47,7 @@ void aos_main(void) {
         p_proc = proc_addr(logicNum);                                 /* 拿到系统任务对应应该放在的进程指针 */
         p_sysProc = &sysProcs[logic_nr_2_index(logicNum)];     /* 系统进程项 */
         strcpy(p_proc->name, p_sysProc->name);                         /* 拷贝名称 */
-        /* 判断是否是系统任务还是系统服务 */
+        /* 判断是否是系统任务 */
         if (logicNum < 0) {  /* 系统任务 */
             if (p_sysProc->stackSize > 0) {
                 /* 如果任务存在堆栈空间，设置任务的堆栈保护字，所以栈的大小要适当，防止越界修改了重要数据 */

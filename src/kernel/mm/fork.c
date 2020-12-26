@@ -28,7 +28,7 @@ PUBLIC int fork(void) {
      * 想象，而且非常容易出错。
      */
     parent = curr_mp;
-    if (procs_in_use == NR_PROCS) return EAGAIN;
+    if (proc_in_use == NR_PROCS) return EAGAIN;
 
     /**
      * 子进程需要继承父进程的：正文段、数据段和堆栈段。
@@ -52,7 +52,7 @@ PUBLIC int fork(void) {
 
     /* 得到子进程索引号 */
     child_nr = child - &mmProcs[0];  /* 得到子进程的进程索引号 */
-    procs_in_use++;     /* 一个新的进程被使用了 */
+    proc_in_use++;     /* 一个新的进程被使用了 */
     /* 设置子进程信息及其内存映像，子进程继承父进程的结构（MM中的） */
     *child = *parent;
     child->ppid = mm_who;     /* 不要忘了父亲是谁 */

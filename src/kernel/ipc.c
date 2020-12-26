@@ -12,11 +12,10 @@
 #include "core/kernel.h"
 
 /**
- * 等待队列
- * 简单来说，这个等待队列，是想发消息给我的其他人排的一个队列。举个例子，我是女神，每天给我送花可以提高
- * 好感度，但是我一次只能收一朵花，所以追我的人，必须得排成一个队伍，我就可以一个一个收花了。
+ * 每个进程有各自的等待队列，如
+ * waiters[0]，下标为0的进程的等待队列，结合p_nextWaiter使用
  */
-PRIVATE Process *waiters[NR_TASKS + NR_PROCS];   /* 每个进程有一个自己的等待队列，所以这是一个数组 */
+PRIVATE Process *waiters[NR_TASKS + NR_PROCS];
 
 /**
  * 系统调用，所有的系统调用都会经过这里，从这里根据op来调用真正的例程
@@ -254,3 +253,23 @@ PUBLIC void aos_unpark(int pid) {
     ready(p_proc);
 //    printf("unpark_done ");
 }
+
+PUBLIC void rm_proc_from_waiters(Process* proc){
+    for(int i=0;i<NR_TASKS + NR_PROCS;i++){
+        if(waiters[i]==NIL_PROC) continue;
+        if(proc==waiters[i]){
+            waiters[i]=proc->p_nextWaiter;
+            return;
+        }
+        Process *pre=waiters[i];
+        Process *cur=waiters[i]->p_nextWaiter;
+        while(cur!=NIL_PROC){
+            if(proc!=cur){
+                pre=cur;
+                cur=cur->p_nextWaiter;
+                continue;
+            }
+            pre->p_nextWaiter=cur->p_nextWaiter;
+        }
+    }
+};
