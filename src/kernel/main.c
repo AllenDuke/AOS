@@ -32,6 +32,7 @@ void aos_main(void) {
         p_proc->logicNum = logicNum; /* 系统服务的逻辑号从-NR_TASKS到-1 */
         p_proc->pid=logicNum;
         gp_procs[logic_nr_2_index(logicNum)] = p_proc;
+        
     }
 
     /**
