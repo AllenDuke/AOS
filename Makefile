@@ -61,7 +61,7 @@ KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/prote
                   $(tk)/init_c.o $(tk)/exception.o $(tk)/panic.o $(tk)/i8259.o $(tk)/clock.o \
                   $(tk)/process.o $(tk)/ipc.o $(tk)/dump.o $(tk)/keyboard.o $(tk)/tty.o \
                   $(tk)/console.o $(tk)/idle.o $(tk)/alloc.o $(tk)/mm.o $(tk)/fork.o $(tk)/mem_map.o \
-                  $(tk)/exit.o
+                  $(tk)/exit.o $(tk)/wait.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LibObjs         = $(AnsiObjs) $(StdioObjs) $(I386Objs)
@@ -216,6 +216,9 @@ $(tk)/mem_map.o: $(sk)/mm/mem_map.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tk)/exit.o: $(sk)/mm/exit.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/wait.o: $(sk)/mm/wait.c
 	$(CC) $(CFlags) -o $@ $<
 # ======= 库  =======
 $(tl)/ansi/string.o: $(lansi)/string.asm

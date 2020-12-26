@@ -5,8 +5,6 @@
 
 PRIVATE int do_exit();
 
-PRIVATE void exit_cleanup(register MMProcess *exit_proc,MMProcess *wait_parent);
-
 extern MMProcess mmProcs[];
 
 PUBLIC int exit(void){
@@ -130,7 +128,7 @@ PRIVATE int do_exit(int proc_nr,int pre_proc_nr){
  * @param exit_proc 退出的进程
  * @param wait_parent 上面那个的老爸
  */
-PRIVATE void exit_cleanup(register MMProcess *exit_proc,MMProcess *wait_parent){
+PUBLIC void exit_cleanup(register MMProcess *exit_proc,MMProcess *wait_parent){
     /* 完成进程的退出，做一些清理等善后的工作
      * 当一个进程已经结束运行并且它的父进程在等待它的时候，不管这
      * 些事件发生的次序如何，本例程都将被调用执行完成最后的操作。

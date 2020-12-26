@@ -47,4 +47,7 @@ typedef struct mm_process_s {
 
 #define NIL_MMPROC ((MMProcess *) 0)
 
+#define WNOHANG         1   /* 不需要等待子进程退出 */
+#define WUNTRACED       2   /* 为了任务控制；但我还未实现 */
+
 #endif //AOS_MM_H
