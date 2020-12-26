@@ -6,7 +6,7 @@
 PRIVATE void mm_init();
 
 /**
- * 一棵树管理 256-16 MB内存，一页8k，共有 30720个叶子节点，树高30，全部节点数为 30720*2-1个，占用空间约为 720KB
+ * 一棵树管理 256 MB内存，一页8k，共有 32k个叶子节点，树高15，全部节点数为 64k-1个，占用空间约为 768KB
  * todo 修改为动态内存管理机制（当前假定内存为256MB） 一棵树管理 16MB，当一颗树用完时，复制出另外一个树管理接下来的16MB内存
  */
 PUBLIC CardNode nodes[NR_TREE_NODE]; //todo 这个若是定义在alloc中会触发GP异常，具体原因暂时搞不懂
@@ -43,10 +43,12 @@ PRIVATE void mm_init() {
 
     phys_page totalPages=(256*1024)>>3; /* todo 这里就假定 实际 是256MB */
 
+    mem_init(0, totalPages);
+    phys_page initCost=FREE_BASE>>PAGE_SHIFT; /* 初始时，认为FREE_BASE以下已被内核使用 */
+    alloc(initCost); /* 这里不能直接把宏当参数，这样入参会变成0 */
+
     /* 得到剩余可用的空闲内存，总内存减去程序可以使用的空间即可 */
     phys_page freePages = totalPages - PROC_BASE_PAGE;
-
-    mem_init(PROC_BASE_PAGE, freePages);
 
     /* 准备ORIGIN进程表项 */
     mmProcs[ORIGIN_PROC_NR].pid = ORIGIN_PID;

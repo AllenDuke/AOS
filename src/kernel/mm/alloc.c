@@ -27,10 +27,18 @@ PRIVATE void init_recursively(int i,CardNode* cur,phys_page base, phys_page free
 //PRIVATE Entry stack[2]; /* 非递归版，同样需要比较大的辅助栈 */
 //PRIVATE u8_t stackSize=0;
 
+/* 从下标0开始初始化内存 */
 PUBLIC void mem_init(phys_page base, phys_page freePages){
     init_recursively(0,&nodes[0],base,freePages);
 }
 
+/**
+ * 递归建造二叉堆
+ * @param i 当前节点下标
+ * @param cur 当前节点
+ * @param base 当前节点管理的的内存的起始地址
+ * @param freePages 当前节点管理的页数
+ */
 PRIVATE void init_recursively(int i,CardNode* cur,phys_page base, phys_page freePages) {
     cur->base = base;
     cur->len = freePages;
@@ -41,7 +49,7 @@ PRIVATE void init_recursively(int i,CardNode* cur,phys_page base, phys_page free
         phys_page lf = freePages >> 1;
         phys_page rf = freePages-lf; /* 在不能除尽4k时，右边占多，实际上我假定是一样多的 */
         init_recursively(l,&nodes[l],base,lf);
-        init_recursively(r,&nodes[r],base,rf);
+        init_recursively(r,&nodes[r],base+lf,rf);
         return;
     }
 }
@@ -52,8 +60,10 @@ PRIVATE void init_recursively(int i,CardNode* cur,phys_page base, phys_page free
  * @return 页面起始物理地址 | NO_MEM
  */
 PUBLIC phys_page alloc(phys_page applyPages) {
+//    kprintf("allocating:%d\n",applyPages);
     int i = alloc_mem(0, applyPages);
     if (i>=NR_TREE_NODE ) return NO_MEM;
+//    kprintf("founded:%d\n",i);
     change_down(i,FALSE);
     false_up(i);
     return nodes[i].base;
@@ -78,17 +88,24 @@ PUBLIC void free(phys_page begin,phys_page size){
  * @return 合适的节点 | NIL_CARD_NODE
  */
 PRIVATE int  alloc_mem(int i, phys_page applyPages) {
-    if (i>=NR_TREE_NODE || nodes[i].len < applyPages || (nodes[i].len == applyPages && nodes[i].available == FALSE))
+    if (i>=NR_TREE_NODE || nodes[i].len < applyPages || (nodes[i].len == applyPages && nodes[i].available == FALSE)) {
         return NR_TREE_NODE;
+    }
+//    kprintf("cur i:%d, base:%d, len:%d\n",i,nodes[i].base,nodes[i].len);
 
     /* 以下为 1. root->len==applyPages&&root->available==TRUE 2. root->len>applyPages */
     if (nodes[i].len == applyPages) return i;
 
     /* 以下为root->len>applyPages的情况 */
     int left = alloc_mem(2*i+1, applyPages);
-    if (left <NR_TREE_NODE) return left;
+    if (left <NR_TREE_NODE) {
+        return left;
+    }
+
     int right = alloc_mem(2*i+2, applyPages);
-    if (right <NR_TREE_NODE) return right;
+    if (right <NR_TREE_NODE) {
+        return right;
+    }
 
     if(nodes[i].available==TRUE) return i;
     return NR_TREE_NODE;
@@ -105,11 +122,12 @@ PRIVATE void change_down(int i, bool_t val) {
 
 /**
  * 从当前节点开始，向上更新 available=false
- * @param cur
+ * @param i
  */
 PRIVATE void false_up(int i) {
-    if(i>=NR_TREE_NODE) return;
+    if(i<0) panic("数组下标错误\n",PANIC_ERR_NUM);
     nodes[i].available=FALSE;
+    if(i==0) return;
     false_up((i-1)>>1);
 }
 

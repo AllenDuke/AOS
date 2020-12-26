@@ -263,8 +263,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 #define PAGE_SIZE      8*1024	        /* 分配内存的单位 8K */
 #define PAGE_SHIFT     13	            /* 内存块位数，用于移位 */
-#define TREE_SIZE      240*1024*1024    /* 一个树大小240MB 从16到256 这里暂时定死  */
-#define NR_TREE_NODE   30720*2-1        /* 一颗树的节点数 */
+#define TREE_SIZE      256*1024*1024    /* 一个树大小256MB 从0到255 这里暂时定死  */
+#define NR_TREE_NODE   32*1024*2-1        /* 一颗树的节点数 */
 
 /* 所有派生（fork）的进程将使用PROC_BASE之上的内存
  *
@@ -272,7 +272,7 @@
  * 内存管理器缓冲区等等。
  * 现在它们缓冲区的长度为：0xB00000(16MB)
  */
-#define FREE_BASE                   0x1000000            /* 可以安全使用的内存空间物理地址：16M */
+#define FREE_BASE                 0x1000000            /* 可以安全使用的内存空间物理地址：16M */
 #define PROC_BASE_PAGE            (FREE_BASE >> PAGE_SHIFT)
 
 
@@ -291,7 +291,7 @@
 /* 这是一个普通堆栈大小，1KB */
 #define NORMAL_STACK        (256 * sizeof(char*))
 
-#define MM_TASK_STACK       NORMAL_STACK*32
+#define MM_TASK_STACK       NORMAL_STACK
 /* 终端任务 */
 #define TTY_TASK_STACK      (32 * NORMAL_STACK)
 /* 时钟任务栈 */
