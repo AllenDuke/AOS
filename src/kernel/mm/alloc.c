@@ -15,6 +15,8 @@ PRIVATE int find(phys_page begin,phys_page size);
 
 PRIVATE void check_bro_true_up(int i);
 
+PRIVATE phys_page to_one_bit(phys_page size);
+
 PRIVATE void init_recursively(int i,CardNode* cur,phys_page base, phys_page freePages);
 
 ///* 为了不用递归，这里弄个辅助栈 */
@@ -75,10 +77,33 @@ PUBLIC phys_page alloc(phys_page applyPages) {
  * @param size 要释放的内存的大小
  */
 PUBLIC void free(phys_page begin,phys_page size){
+    if(begin<0||size<0) panic("mem free begin and size must be >=0\n",PANIC_ERR_NUM);
+    size=to_one_bit(size);
     int i = find(begin,size);
     change_down(i,TRUE);
     if(i==0) return;
     check_bro_true_up(i);
+}
+
+/**
+ * 检查size是否是一个2的次方数，如果是返回size，如果不是，返回size的上界2的次方数
+ * 如to_one_bit(16)==16,to_one_bit(15)==16
+ * @param size
+ * @return size | size的上界2的次方数
+ */
+PRIVATE phys_page to_one_bit(phys_page size) {
+    u8_t oneCount = 0; /* 按位统计size中1的数量 */
+    phys_page tmp=size;
+    u8_t highestOneI=0; /* size中最高位1所在位置 */
+    for (u8_t i = 0; i < 32; i++) {
+        if ((tmp & 1) == 1) { /* size的第i位为1 */
+            oneCount++;
+            highestOneI=i;
+        }
+        tmp =tmp >> 1;
+    }
+    if (oneCount == 1) return size;
+    return 1<<(highestOneI+1);
 }
 
 /**
@@ -157,7 +182,7 @@ PRIVATE int find(phys_page begin,phys_page size){
         if (nodes[2*i+2].base <= begin) i = 2*i+2; /* cur位于node的右子树 */
         else i=2*i+1; /* cur位于node的左子树 */
     }
-    if(i==NR_TREE_NODE){
+    if(i>=NR_TREE_NODE){
         kprintf("找不到节点 base:%d,len:%d\n",begin,size);
         panic("申请或释放内存时发生异常\n",PANIC_ERR_NUM);
     }

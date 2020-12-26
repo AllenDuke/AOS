@@ -18,6 +18,8 @@ PUBLIC MMProcess mmProcs[NR_PROCS];
 
 PUBLIC void mm_task(void) {
     mm_init();
+//    u32_t base=alloc(15);
+//    free(base,15);
     in_outbox(&msg, &msg);
     while (TRUE) {
         rec(ANY);
