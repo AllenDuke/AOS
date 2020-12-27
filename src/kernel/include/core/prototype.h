@@ -39,8 +39,8 @@ void low_print(char* p_str);
 void cpu_halt(void);
 u8_t in_byte(port_t port);
 void out_byte(port_t port, u8_t value);
-u16_t in_word(port_t port);
-void out_word(port_t port, u16_t value);
+void port_read(u16_t port, void *dest, unsigned byteCount);
+void port_write(u16_t port, void *source, unsigned byteCount);
 void interrupt_lock(void);
 void interrupt_unlock(void);
 int disable_irq(int int_request);
@@ -269,6 +269,14 @@ void exit_cleanup(register MMProcess *exit_proc,MMProcess *wait_parent);
 //----------------------------------------------------------------------------------------------------------------------
 int wait(void);
 int waitpid(void);
+//======================================================================================================================
+
+
+//======================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------
+//  at_wini.c
+//----------------------------------------------------------------------------------------------------------------------
+void at_winchester_task(void);
 //======================================================================================================================
 
 

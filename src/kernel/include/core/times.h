@@ -10,7 +10,7 @@
 typedef long clock_t;		/* 系统时钟计时单位 */
 #endif
 
-#include <core/cmos.h>
+#include <ibm/cmos.h>
 
 /**
  * 系统硬件实时时间

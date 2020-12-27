@@ -59,8 +59,6 @@ typedef unsigned long clock_t;		   /* 系统时钟计时单位 */
 typedef unsigned long sigset_t;     	/* 信号集 */
 #endif
 
-
-
 typedef unsigned char   u8_t;	    /* 8位类型 == db */
 typedef unsigned short u16_t;	    /* 16位类型 == dw */
 typedef unsigned int   u32_t;	    /* 32位类型 == dd */
@@ -84,5 +82,7 @@ typedef int (*irq_handler)(int irq);
 
 /* 系统调用函数原型 */
 typedef void (*aos_syscall)(void);
+
+typedef unsigned long  off_t;	   /* 文件内的偏移量 */
 
 #endif //AOS_TYPES_H

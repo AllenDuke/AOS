@@ -86,7 +86,8 @@ PUBLIC void clock_task(void) {
                 do_set_time();
                 break;
             default:
-                panic("#{CLOCK}-> Clock task got bad message request.\n", msg.type);
+                kprintf("a bad clock request from pid:%d, type:%d\n",msg.source,msg.type);
+//                panic("#{CLOCK}-> Clock task got bad message request.\n", msg.source);
         }
 
         /* 根据处理结果，发送回复消息 */

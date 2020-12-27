@@ -28,8 +28,8 @@ global phys_copy                    ; 通过物理地址拷贝内存
 global cpu_halt
 global in_byte                      ; 从一个端口读取一字节数据
 global out_byte                     ; 向一个端口输出一字节数据
-global in_word                      ; 从一个端口读取一字数据
-global out_word                     ; 向一个端口输出一字数据
+global port_read
+global port_write
 global interrupt_lock               ; 关闭中断响应，即锁中断
 global interrupt_unlock             ; 打开中断响应，即解锁中断
 global disable_irq                  ; 屏蔽一个特定的中断
@@ -313,34 +313,30 @@ out_byte:
 
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
-;   从一个端口读取一字数据
-; 函数原型： u16_t in_word(port_t port)
+;            void port_read(u16_t port, phys_bytes destination, unsigned byteCount);
 ; ----------------------------------------------------------------------------------------------------------------------
-align 16
-in_word:
-    push edx
-    mov edx, [esp + 4 * 2]      ; 得到端口号
-    xor eax, eax
-    in ax, dx              ; port -> ax
-    pop edx
-    nop                         ; 一点延迟
+port_read:
+    mov edx, [esp + 4]          ; port
+    mov edi, [esp + 4 + 4]      ; destination
+    mov ecx, [esp + 4 + 4 + 4]  ; bytcount
+    shr ecx, 1
+    cld
+    rep insw
     ret
 ; ======================================================================================================================
 
 
 ; ======================================================================================================================
 ; ----------------------------------------------------------------------------------------------------------------------
-;   向一个端口输出一字数据
-; 函数原型： void out_word(port_t port, U16_t value)
+;             void port_write(unsigned port, phys_bytes source, unsigned byteCount);
 ; ----------------------------------------------------------------------------------------------------------------------
-align 16
-out_word:
-    push edx
-    mov edx, [esp + 4 * 2]      ; 得到端口号
-    mov ax, [esp + 4 * 3]   ; 得到要输出的变量
-    out dx, ax              ; ax -> port
-    pop edx
-    nop                         ; 一点延迟
+port_write:
+    mov edx, [esp + 4]          ; port
+    mov esi, [esp + 4 + 4]      ; source
+    mov ecx, [esp + 4 + 4 + 4]  ; bytcount
+    shr ecx, 1
+    cld
+    rep outsw
     ret
 ; ======================================================================================================================
 

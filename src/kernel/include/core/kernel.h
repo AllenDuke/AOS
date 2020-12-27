@@ -33,6 +33,8 @@
 #include "tty.h"
 #include "lib.h"
 #include "mm.h"
+#include "dev.h"
+#include "hd.h"
 #include "prototype.h"
 #include "global.h"
 
