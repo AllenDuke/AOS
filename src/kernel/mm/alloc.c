@@ -19,6 +19,9 @@ PRIVATE phys_page to_one_bit(phys_page size);
 
 PRIVATE void init_recursively(int i,CardNode* cur,phys_page base, phys_page freePages);
 
+PRIVATE phys_page s_totalPages;
+PRIVATE phys_page s_freePages;
+
 ///* 为了不用递归，这里弄个辅助栈 */
 //typedef struct entry_s{
 //    CardNode *node;
@@ -31,6 +34,8 @@ PRIVATE void init_recursively(int i,CardNode* cur,phys_page base, phys_page free
 
 /* 从下标0开始初始化内存 */
 PUBLIC void mem_init(phys_page base, phys_page freePages){
+    s_totalPages=freePages;
+    s_freePages=freePages;
     init_recursively(0,&nodes[0],base,freePages);
 }
 
@@ -68,6 +73,7 @@ PUBLIC phys_page alloc(phys_page applyPages) {
 //    kprintf("founded:%d\n",i);
     change_down(i,FALSE);
     false_up(i);
+    s_freePages-=nodes[i].len;
     return nodes[i].base;
 }
 
@@ -83,6 +89,7 @@ PUBLIC void free(phys_page begin,phys_page size){
     change_down(i,TRUE);
     if(i==0) return;
     check_bro_true_up(i);
+    s_freePages+=nodes[i].len;
 }
 
 /**
@@ -187,4 +194,9 @@ PRIVATE int find(phys_page begin,phys_page size){
         panic("申请或释放内存时发生异常\n",PANIC_ERR_NUM);
     }
     return i;
+}
+
+
+PUBLIC void mem_dump(){
+    kprintf("totalPages:%d, freePages:%d\n",s_totalPages,s_freePages);
 }

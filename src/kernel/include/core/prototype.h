@@ -233,6 +233,7 @@ void set_reply(int proc_nr,int rs);
 void mem_init(phys_page base, phys_page freePages);
 phys_page alloc(phys_page applyPages);
 void free(phys_page begin,phys_page size);
+void mem_dump();
 //======================================================================================================================
 
 
