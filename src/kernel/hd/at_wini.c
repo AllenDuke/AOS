@@ -67,7 +67,7 @@ PUBLIC void at_winchester_task(void) {
      */
     wini_task_nr = gp_curProc->logicNum;
 
-//    init_params();
+    init_params();
     kprintf("{HD}-> Drives count: %d\n", nr_drives);
     kprintf("{HD}-> Hard Disk Driver Working...\n");
     /* 驱动程序开始工作了 */

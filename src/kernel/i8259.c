@@ -11,8 +11,6 @@ FORWARD int default_irq_handler (int irq);
 /* 初始化中断 */
 PUBLIC void init_8259A(){
 
-    kprintf("#{init_8259A}->called\n");
-
     /* 初始化前先将中断响应关闭 */
 //    interrupt_lock();
 

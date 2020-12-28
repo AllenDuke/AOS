@@ -8,9 +8,9 @@
 /* 系统进程表，包含系统任务以及系统服务 */
 SysProc sysProcs[] = {
         { tty_task, TTY_TASK_STACK, "TTY" },
+        { at_winchester_task,HD_TASK_STACK,"HD"},// todo 交换hd和clock的位置会导致tty堆栈保护字被破坏，为什么？
         { clock_task, CLOCK_TASK_STACK, "CLOCK" },
         { mm_task,MM_TASK_STACK,"MM"},
-        { at_winchester_task,HD_TASK_STACK,"HD"},
         { idle_task, IDLE_TASK_STACK, "IDLE" },
         { 0, HARDWARE_STACK, "HARDWARE" },/* 虚拟硬件任务，只是占个位置 - 用作判断硬件中断 */
 };

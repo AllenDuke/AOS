@@ -118,7 +118,6 @@ PUBLIC void init_protect(void) {
         proc->ldtSelector = ldtI * DESCRIPTOR_SIZE; /* 这里的ldtSelector是上面LDT指针在GDT中的偏移 */
     }
 
-    kprintf("already init protect mode\n");
 }
 
 /**
