@@ -35,6 +35,7 @@
 #include "mm.h"
 #include "dev.h"
 #include "hd.h"
+#include "fs.h"
 #include "prototype.h"
 #include "global.h"
 

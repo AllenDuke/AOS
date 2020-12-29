@@ -9,6 +9,7 @@
 SysProc sysProcs[] = {
         { tty_task, TTY_TASK_STACK, "TTY" },
         { at_winchester_task,HD_TASK_STACK,"HD"},// todo 交换hd和clock的位置会导致tty堆栈保护字被破坏，为什么？
+        { fs_task, FS_TASK_STACK, "FS" },
         { clock_task, CLOCK_TASK_STACK, "CLOCK" },
         { mm_task,MM_TASK_STACK,"MM"},
         { idle_task, IDLE_TASK_STACK, "IDLE" },

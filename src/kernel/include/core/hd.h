@@ -142,10 +142,13 @@ typedef struct command {
      * 状态寄存器都是8位字节。
      */
     u8_t	count;
+
+    /* lba28 */
     u8_t	lba_low;
     u8_t	lba_mid;
     u8_t	lba_high;
     u8_t	device;
+
     u8_t	command;    /* 执行的命令 */
 } Command;
 

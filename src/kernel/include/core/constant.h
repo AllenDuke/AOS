@@ -164,15 +164,15 @@
 #define ANY                 0x3ea
 
 /* 系统任务数量 */
-#define NR_TASKS    (6 + NR_CONTROLLERS)
+#define NR_TASKS    (7 + NR_CONTROLLERS)
 #define NR_LAST_TASK        -1       /* 系统任务的逻辑号从 NR_TASKS 到 NR_LAST_TASK */
 
 /* 每个系统任务的任务号和它的功能服务号(消息类型)以及回复代码，将在下面开始定义 */
-#define TTY_TASK            -6
-#define HD_TASK         -5
+#define TTY_TASK            -7
+#define HD_TASK             -6
+#define FS_TASK             -5
 #define CLOCK_TASK          -4      /* 时钟任务 */
 #define MM_TASK             -3
-#define FS_TASK         -3
 #define IDLE_TASK           -2      /* 待机任务 */
 #define HARDWARE            -1      /* 代表硬件，用于生成软件生成硬件中断，并不存在实际的任务 */
 
@@ -293,6 +293,7 @@
 /* 这是一个普通堆栈大小，1KB */
 #define NORMAL_STACK        (256 * sizeof(char*))
 
+#define FS_TASK_STACK       NORMAL_STACK
 #define HD_TASK_STACK       NORMAL_STACK
 #define MM_TASK_STACK       NORMAL_STACK
 /* 终端任务 */
@@ -304,7 +305,8 @@
 /* 虚拟硬件栈 */
 #define HARDWARE_STACK  0
 /* 所有系统进程的栈空间总大小 */
-#define TOTAL_TASK_STACK    (HARDWARE_STACK+IDLE_TASK_STACK+CLOCK_TASK_STACK+TTY_TASK_STACK+MM_TASK_STACK+HD_TASK_STACK)
+#define TOTAL_TASK_STACK    (HARDWARE_STACK+IDLE_TASK_STACK+CLOCK_TASK_STACK+TTY_TASK_STACK+MM_TASK_STACK \
+                            +HD_TASK_STACK+FS_TASK_STACK)
 //======================================================================================================================
 
 

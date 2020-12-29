@@ -129,6 +129,41 @@ PUBLIC void at_winchester_task(void) {
 }
 
 /*===========================================================================*
+ *			init_params					     *
+ *			初始化硬盘参数
+ *===========================================================================*/
+PRIVATE void init_params(void) {
+    /**
+     * 由于在必须使用设备以前对设备初始化可能会失败，所以在内核初始化时
+     * 调用本函数并不做任何访问磁盘的工作。它做的主要工作是把有关磁盘的逻辑
+     * 配置信息拷贝到params数组中。而这些信息是ROM BIOS从CMOS存储器中提取的，
+     * "奔腾"类计算机在这些存储器中存放配置信息。
+     * 当机器第一次接通电源时，在AOS第一部分的装载过程开始以前，执行BIOS
+     * 中的功能。取不出这项信息并不是致命的，如果磁盘是现代化的磁盘，
+     * 该信息可以从磁盘直接得到。
+     */
+
+    int i;
+    u8_t params[16];
+    phys_addr param_phys = vir2phys(params);
+    /* 从BIOS数据区域获取磁盘驱动器的数量 */
+    phys_copy(0x475L, param_phys, 1L);
+    if ((nr_drives = params[0]) > 2) nr_drives = 2;  /* 就算磁盘驱动器>2，我们也只用两个 */
+    if (nr_drives == 0) {     /* 没有硬盘 */
+        panic("AOS Cannot continue, Because no any HardDisks on pc.", PANIC_ERR_NUM);
+    }
+
+    /* 初始化并得到DMA缓冲区的物理地址 */
+    hdbuf_phys = vir2phys(&hdbuf);
+
+    /* 初始化硬盘参数 */
+    for (i = 0; i < (sizeof(hd_info) / sizeof(hd_info[0])); i++) {
+        memset(&hd_info[i], 0, sizeof(hd_info[0]));
+    }
+    intr_open = FALSE;  /* 现在不设置中断，可能会失败 */
+}
+
+/*===========================================================================*
  *				wini_do_readwrite				     *
  *				   硬盘读写
  *===========================================================================*/
@@ -137,9 +172,11 @@ PRIVATE int wini_do_readwrite(Message *msg) {
 
     off_t pos = msg->POSITION;
 //    assert((pos >> SECTOR_SIZE_SHIFT) < (1 << 31));
+    if((pos >> SECTOR_SIZE_SHIFT) >= (1 << 31)) panic("pos error\n",PANIC_ERR_NUM);
 
     /* 我们仅允许从扇区边界进行读/写： */
 //    assert((pos & 0x1FF) == 0);
+    if((pos & 0x1FF) != 0) panic("pos error\n",PANIC_ERR_NUM);
 
     u32_t sect_nr = pos >> SECTOR_SIZE_SHIFT;  /* pos / SECTOR_SIZE */
     int logidx = (msg->DEVICE - MINOR_hd1a) % NR_SUB_PER_DRIVE;
@@ -372,41 +409,6 @@ PRIVATE int wini_handler(int irq) {
     /* 模拟硬件中断，激活硬盘任务 */
     interrupt(wini_task_nr);
     return ENABLE;      /* 返回ENABLE，使其再能发生AT硬盘中断 */
-}
-
-/*===========================================================================*
- *			init_params					     *
- *			初始化硬盘参数
- *===========================================================================*/
-PRIVATE void init_params(void) {
-    /**
-     * 由于在必须使用设备以前对设备初始化可能会失败，所以在内核初始化时
-     * 调用本函数并不做任何访问磁盘的工作。它做的主要工作是把有关磁盘的逻辑
-     * 配置信息拷贝到params数组中。而这些信息是ROM BIOS从CMOS存储器中提取的，
-     * "奔腾"类计算机在这些存储器中存放配置信息。
-     * 当机器第一次接通电源时，在AOS第一部分的装载过程开始以前，执行BIOS
-     * 中的功能。取不出这项信息并不是致命的，如果磁盘是现代化的磁盘，
-     * 该信息可以从磁盘直接得到。
-     */
-
-    int i;
-    u8_t params[16];
-    phys_addr param_phys = vir2phys(params);
-    /* 从BIOS数据区域获取磁盘驱动器的数量 */
-    phys_copy(0x475L, param_phys, 1L);
-    if ((nr_drives = params[0]) > 2) nr_drives = 2;  /* 就算磁盘驱动器>2，我们也只用两个 */
-    if (nr_drives == 0) {     /* 没有硬盘 */
-        panic("AOS Cannot continue, Because no any HardDisks on pc.", PANIC_ERR_NUM);
-    }
-
-    /* 初始化并得到DMA缓冲区的物理地址 */
-    hdbuf_phys = vir2phys(&hdbuf);
-
-    /* 初始化硬盘参数 */
-    for (i = 0; i < (sizeof(hd_info) / sizeof(hd_info[0])); i++) {
-        memset(&hd_info[i], 0, sizeof(hd_info[0]));
-    }
-    intr_open = FALSE;  /* 现在不设置中断，可能会失败 */
 }
 
 /*============================================================================*

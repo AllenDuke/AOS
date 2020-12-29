@@ -54,7 +54,7 @@
 #define    P_PRIMARY    0
 #define    P_EXTENDED    1
 
-#define FLYANX_PART    102        /* Flyanx的分区结构 */
+#define AOS_PART    102        /* AOS的分区结构 */
 #define NO_PART            0x00    /* 未使用的条目 */
 #define EXT_PART        0x05    /* 扩展分区 */
 
