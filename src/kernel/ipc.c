@@ -113,7 +113,6 @@ PUBLIC int sys_call(int op, int srcOrDestOrMagAddr, Message *p_msg) {
  * @return 
  */
 PUBLIC int aos_send(Process *caller, int dest, Message *p_msg) {
-//    kprintf("%d2%d", caller->logicNum, dest);
     /**
      * 发送一条消息从发送进程到接收进程，消息在发送进程的数据空间中，所以我们
      * 需要将其复制到接收进程的数据空间的消息缓冲中。
@@ -123,6 +122,8 @@ PUBLIC int aos_send(Process *caller, int dest, Message *p_msg) {
     /* 如果用户试图绕过系统服务直接发送消息给系统任务，返回错误，这是禁止的操作 */
 //    if (is_user_proc(caller) && !is_sys_server(dest)) return ERROR_BAD_DEST;
     target = proc_addr(dest);
+
+//    kprintf("%s2%s\n", caller->name, target->name);
 
     /* 检查目标进程是否还是一个活动进程 */
     if (is_empty_proc(target)) return ERROR_BAD_DEST;

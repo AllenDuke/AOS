@@ -5,7 +5,7 @@
 #ifndef AOS_FAT_H
 #define AOS_FAT_H
 
- /* FAT文件系统的BPB结构，512字节 */
+/* FAT文件系统的BPB结构，512字节，位于分区的0号扇区 */
 typedef struct bpb_t {
     u8_t BS_jmpBoot[3];             /* 一个短跳转指令 */
     u8_t BS_OEMName[8];             /* 厂商名 */
@@ -25,8 +25,8 @@ typedef struct bpb_t {
     u16_t BPB_ExtFlags;             /* 扩展标记 */
     u16_t BPB_FSVer;                /* 版本号 */
     u32_t BPB_RootClus;             /* 根目录所在第一个簇的簇号，通常情况下还是起始于2号簇 */
-    u16_t BPB_FsInfo;               /* FSINFO（文件系统信息扇区）扇区号1，该扇区为操作系统提供关于空簇总数及下一可用簇的信息 */
-    u16_t BPB_BkBootSec;            /* 备份引导扇区的扇区号。备份引导扇区总是位于文件系统 的6号扇区*/
+    u16_t BPB_FSInfo;               /* FSINFO（文件系统信息扇区）扇区号1，该扇区为操作系统提供关于空簇总数及下一可用簇的信息 */
+    u16_t BPB_BkBootSec;            /* 备份引导扇区的扇区号。备份引导扇区总是位于文件系统（分区）的6号扇区*/
     u8_t BPB_Reserved[12];          /* 用于以后FAT 扩展使用 */
     u8_t BS_DrvNum;                 /* 设备号 */
     u8_t BS_Reserved1;
@@ -77,5 +77,29 @@ typedef struct dir_entry_t {
     u16_t beginClusterL;            /* 文件开始簇号低16位 */
     u32_t fileSize;                 /* 文件字节大小 */
 } DirEntry;
+
+/**
+ * 簇 32位
+ */
+typedef union cluster32_t {
+    struct {
+        u32_t next : 28;             /* 下一簇 */
+        u32_t reserved : 4;          /* 保留，为0 */
+    } s;
+    u32_t v;
+} Cluster32;
+
+/**
+ * FSInfo 512字节，占一个扇区
+ */
+typedef struct fs_info_t {
+    u32_t FSI_LoadSig;                  // 固定标记：0x41615252
+    u8_t FSI_Reserved1[480];
+    u32_t FSI_StrucSig;                 // 固定标记： 0x61417272
+    u32_t FSI_Free_Count;               // 最新剩余簇数
+    u32_t FSI_Next_Free;                // 从何处开始找剩余簇
+    u8_t FSI_Reserved2[12];
+    u32_t FSI_TrailSig;                 // 固定标记： 0xAA550000
+}FSInfo;
 
 #endif //AOS_FAT_H

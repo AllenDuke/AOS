@@ -5,23 +5,22 @@
 #ifndef AOS_DEV_H
 #define AOS_DEV_H
 
-#define    DIOCTL_GET_GEO    1
-#define DIOCTL_SET_GEO  2
+#define DIOCTL_GET_GEO          1
+#define DIOCTL_SET_GEO          2
 
 /* 硬盘驱动器 */
-#define SECTOR_SIZE        512     /* 扇区大小（字节） */
-#define SECTOR_BITS        (SECTOR_SIZE * 8)   /* 扇区大小（位） */
-#define SECTOR_SIZE_SHIFT    9   /* 扇区大小移位 */
-#define SECTOR_MASK     SECTOR_SIZE - 1 /* 扇区掩码（边界） */
+#define SECTOR_SIZE             512                 /* 扇区大小（字节） */
+#define SECTOR_BITS             (SECTOR_SIZE * 8)   /* 扇区大小（位） */
+#define SECTOR_SIZE_SHIFT       9                   /* 扇区大小移位 */
+#define SECTOR_MASK             SECTOR_SIZE - 1     /* 扇区掩码（边界） */
 
-#define    MAX_DRIVES        2
-#define    NR_PART_PER_DRIVE    4
-#define    NR_SUB_PER_PART        16
-#define    NR_SUB_PER_DRIVE    (NR_SUB_PER_PART * NR_PART_PER_DRIVE)
-#define    NR_PRIM_PER_DRIVE    (NR_PART_PER_DRIVE + 1)
+#define MAX_DRIVES              2                   /* 最多支持2个物理硬盘 */
+#define NR_PART_PER_DRIVE       4                   /* 每个物理磁盘最多4个分区，一般为P+P+P+P或P+P+P+E */
+#define NR_SUB_PER_PART         16                  /* 扩展分区最多扩展为16个逻辑驱动器 */
+#define NR_SUB_PER_DRIVE        (NR_SUB_PER_PART * NR_PART_PER_DRIVE)   /* 逻辑分区表项总数 */
+#define NR_PRIM_PER_DRIVE       (NR_PART_PER_DRIVE + 1)
 
-/* 定义主分区的最大次要设备号。 如果有2个磁盘，prim_dev的范围为hd [0-9]，则此宏等于9。
- */
+
 #define    MAX_PRIM        (MAX_DRIVES * NR_PRIM_PER_DRIVE - 1)
 
 #define    MAX_SUBPARTITIONS    (NR_SUB_PER_DRIVE * MAX_DRIVES)

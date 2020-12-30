@@ -5,18 +5,19 @@
 #include "core/kernel.h"
 #include <ibm/partition.h>
 
-/* 私有的变量 */
-PRIVATE int wini_task_nr;   /* 硬盘驱动任务号 */
-PRIVATE int nr_drives;      /* 磁盘驱动器的数量 */
-PRIVATE bool_t intr_open;     /* 中断打开状态，1开0关 */
-PRIVATE Message msg_in;        /* 通信消息 */
+PRIVATE int wini_task_nr;               /* 硬盘驱动任务号 */
+PRIVATE int nr_drives;                  /* 磁盘驱动器的数量 */
+PRIVATE bool_t intr_open;               /* 中断打开状态，1开0关 */
+PRIVATE Message msg;                    /* 通信消息 */
 
-PRIVATE u8_t wini_status;   /* 中断完成后的状态 */
+PRIVATE u8_t wini_status;               /* 中断完成后的状态 */
 PRIVATE u8_t hdbuf[SECTOR_SIZE * 2];    /* 硬盘缓冲区，DMA也用它 */
-PRIVATE phys_addr hdbuf_phys;          /* 缓冲区的物理地址 */
-PRIVATE HDInfo hd_info[1];  /* 一个硬盘... */
+PRIVATE phys_addr hdbuf_phys;           /* 缓冲区的物理地址 */
+PRIVATE HDInfo hd_info[1];              /* 暂时只支持一个硬盘... */
 
-/* 得到设备的驱动程序 */
+PRIVATE int largestPrimDeviceNR=0;     /*  最大块主分区索引 */
+
+/* 得到设备的驱动程序，一个分区对应一个设备 */
 #define DRIVER_OF_DEVICE(dev) (dev <= MAX_PRIM ? dev / NR_PRIM_PER_DRIVE : (dev - MINOR_hd1a) / NR_SUB_PER_DRIVE)
 
 PRIVATE void init_params(void);
@@ -55,14 +56,11 @@ PRIVATE void partition(int device, int style);
 
 PRIVATE void get_part_table(int drive, int sect_nr, PartEntry *entry);
 
-/*===========================================================================*
- *			df_winchester_task					     *
- *			 硬盘驱动任务
- *===========================================================================*/
 PUBLIC void at_winchester_task(void) {
     int rs, caller, proc_nr;
 
-    /* 这是必须的，第一次执行的时候，硬盘驱动任务需要知道自己的任务编号。
+    /**
+     * 这是必须的，第一次执行的时候，硬盘驱动任务需要知道自己的任务编号。
      * 用于中断唤醒自己。
      */
     wini_task_nr = gp_curProc->logicNum;
@@ -73,11 +71,12 @@ PUBLIC void at_winchester_task(void) {
     /* 驱动程序开始工作了 */
     while (TRUE) {
         /* 等待外界的消息 */
-        receive(ANY, &msg_in);
+        receive(ANY, &msg);
 //        kprintf("at_winchester_task got msg\n");
         /* 得到请求者以及需要服务的进程编号 */
-        caller = msg_in.source;
-        proc_nr = msg_in.PROC_NR;
+        caller = msg.source;
+        proc_nr = msg.PROC_NR;
+        kprintf("caller:%d\n",caller);
 
         /* 检查请求者是否合法：只能是文件系统或者其他的系统任务 */
         if (caller != FS_TASK && caller >= 0) {
@@ -86,28 +85,30 @@ PUBLIC void at_winchester_task(void) {
         }
 
         /* 现在根据请求做事情 */
-        switch (msg_in.type) {
+        switch (msg.type) {
             /* DEVICE_OPEN(打开)、DEVICE_CLOSE(关闭)、DEVICE_IOCTL（设备io控制） */
             case DEVICE_OPEN:
-                rs = wini_do_open(msg_in.DEVICE);
+                rs = wini_do_open(msg.DEVICE);
+                /* 恢复当前驱动器内，容量最大的主分区号 */
+                msg.REPLY_LARGEST_PRIM_PART_NR=largestPrimDeviceNR;
                 break;
             case DEVICE_CLOSE:
-                rs = wini_do_close(msg_in.DEVICE);
+                rs = wini_do_close(msg.DEVICE);
                 break;
             case DEVICE_IOCTL:
-                rs = wini_do_ioctl(&msg_in);
+                rs = wini_do_ioctl(&msg);
                 break;
 
                 /* 而DEVICE_READ（读数据）、 DEV_WRITE（写数据）和剩下的两个操作
                  */
             case DEVICE_READ:
             case DEVICE_WRITE:
-                rs = wini_do_readwrite(&msg_in);
+                rs = wini_do_readwrite(&msg);
                 break;
 
             case DEVICE_GATHER:
             case DEVICE_SCATTER:
-                rs = wini_do_vreadwrite(&msg_in);
+                rs = wini_do_vreadwrite(&msg);
                 break;
 
                 /* 被中断唤醒或闹钟唤醒 */
@@ -121,17 +122,17 @@ PUBLIC void at_winchester_task(void) {
         }
 
         /*  最后，给请求者一个答复 */
-        msg_in.type = 60;
-        msg_in.REPLY_PROC_NR = proc_nr;
-        msg_in.REPLY_STATUS = rs;          /* 传输的字节数或错误代码 */
-        send(caller, &msg_in);             /* 走你 */
+        msg.type = 60;
+        msg.REPLY_PROC_NR = proc_nr;
+        msg.REPLY_STATUS = rs;          /* 传输的字节数或错误代码 */
+        kprintf("caller:%d\n",caller);
+        send(caller, &msg);             /* 走你 */
     }
 }
 
-/*===========================================================================*
- *			init_params					     *
- *			初始化硬盘参数
- *===========================================================================*/
+/**
+ * 初始化硬盘参数
+ */
 PRIVATE void init_params(void) {
     /**
      * 由于在必须使用设备以前对设备初始化可能会失败，所以在内核初始化时
@@ -163,126 +164,12 @@ PRIVATE void init_params(void) {
     intr_open = FALSE;  /* 现在不设置中断，可能会失败 */
 }
 
-/*===========================================================================*
- *				wini_do_readwrite				     *
- *				   硬盘读写
- *===========================================================================*/
-PRIVATE int wini_do_readwrite(Message *msg) {
-    int drive = DRIVER_OF_DEVICE(msg->DEVICE);
-
-    off_t pos = msg->POSITION;
-//    assert((pos >> SECTOR_SIZE_SHIFT) < (1 << 31));
-    if((pos >> SECTOR_SIZE_SHIFT) >= (1 << 31)) panic("pos error\n",PANIC_ERR_NUM);
-
-    /* 我们仅允许从扇区边界进行读/写： */
-//    assert((pos & 0x1FF) == 0);
-    if((pos & 0x1FF) != 0) panic("pos error\n",PANIC_ERR_NUM);
-
-    u32_t sect_nr = pos >> SECTOR_SIZE_SHIFT;  /* pos / SECTOR_SIZE */
-    int logidx = (msg->DEVICE - MINOR_hd1a) % NR_SUB_PER_DRIVE;
-    sect_nr += msg->DEVICE < MAX_PRIM ?
-               hd_info[drive].primary[msg->DEVICE].base :
-               hd_info[drive].logical[logidx].base;
-
-//    kprintf("%d want to %s %d by %d | pos -> %u\n",
-//           msg->PROC_NR, msg->type == DEVICE_READ ? "read" : "write", msg->COUNT, drive, pos);
-
-    /* 发出读/写命令，告诉驱动器开始读/写了。 */
-    Command cmd;
-    cmd.features = 0;
-    cmd.count = (msg->COUNT + SECTOR_SIZE - 1) / SECTOR_SIZE;
-    cmd.lba_low = sect_nr & 0xFF;
-    cmd.lba_mid = (sect_nr >> 8) & 0xFF;
-    cmd.lba_high = (sect_nr >> 16) & 0xFF;
-    cmd.device = MAKE_DEVICE_REG(1, drive, (sect_nr >> 24) & 0xF);
-    cmd.command = (msg->type == DEVICE_READ) ? ATA_READ : ATA_WRITE;
-    if (cmd_out(&cmd) == OK) {
-        /* 用户的缓冲区物理地址 */
-        phys_addr addr = proc_vir2phys(proc_addr(msg->PROC_NR), (vir_addr) msg->ADDRESS);
-
-        int left = msg->COUNT;
-        /* 做真正的事情吧 */
-        while (left) {
-            /* 如果要读写的太多了，那么先取磁盘能读写的一个扇区大小 */
-            int bytes = MIN(SECTOR_SIZE, left);
-            if (msg->type == DEVICE_READ) {     /* 读 */
-                wini_interrupt_wait();
-                /* 将磁盘数据读到缓冲区中 */
-                port_read(REG_DATA, hdbuf, SECTOR_SIZE);
-                /* 给用户 */
-                phys_copy(hdbuf_phys, addr, (phys_addr) bytes);
-            } else {                        /* 写 */
-                /* 等待控制器到可被写入的状态，如果超时，宕机 */
-                if (!wini_wait_for(STATUS_DRQ, STATUS_DRQ)) {
-                    panic("HD Controller is already dumb.", PANIC_ERR_NUM);
-                }
-                /* 将用户数据写到磁盘中 */
-                port_write(REG_DATA, (void *) addr, bytes);
-                wini_interrupt_wait();
-            }
-            /* 一轮完成了 */
-            left -= SECTOR_SIZE;
-            addr += SECTOR_SIZE;
-        }
-        return msg->COUNT - left;   /* 成功返回读写的字节总量 */
-    }
-    return EIO;
-}
-
-/*===========================================================================*
- *				wini_do_vreadwrite				     *
- *				  硬盘批量读写
- *===========================================================================*/
-PRIVATE int wini_do_vreadwrite(Message *msg) {
-    /* 本例程实现同时完成多个读写请求@TODO */
-    return EINVAL;
-}
-
-/*===========================================================================*
- *				wini_do_ioctl					     *
- *               硬盘IO控制
- *===========================================================================*/
-PRIVATE int wini_do_ioctl(
-        Message *msg        /* 请求消息 */
-) {
-    int device = msg->DEVICE;
-    int drive = DRIVER_OF_DEVICE(device);
-
-    /* 得到硬盘信息 */
-    HDInfo *hp = &hd_info[drive];
-
-    int request = msg->REQUEST;
-    /* 请求不对 */
-    if (request != DIOCTL_GET_GEO && request != DIOCTL_SET_GEO) return ENOTTY;
-
-
-    Partition tmp_par;
-    /* 得到用户缓冲区 */
-    phys_addr user_phys = proc_vir2phys(proc_addr(msg->PROC_NR), (vir_addr) msg->ADDRESS);
-    /* 得到现在硬盘分区信息 */
-    Partition *par = device < MAX_PRIM ? &hp->primary[device] : &hp->logical[(device - MINOR_hd1a) % NR_SUB_PER_DRIVE];
-    /* 处理请求 */
-    if (request == DIOCTL_GET_GEO) {
-        phys_addr par_phys = vir2phys(par);
-        /* 复制给用户，OK */
-        phys_copy(par_phys, user_phys, (phys_addr) sizeof(tmp_par));
-    } else {    /* DIOCTL_SET_GEO */
-        /* 先将用户的分区信息复制过来 */
-        phys_copy(user_phys, vir2phys(&tmp_par), (phys_addr) sizeof(tmp_par));
-        /* 设置分区信息 */
-        par->base = tmp_par.base;
-        par->size = tmp_par.size;
-    }
-    return OK;
-}
-
-/*===========================================================================*
- *				wini_do_open					     *
- *				打开硬盘设备
- *===========================================================================*/
-PRIVATE int wini_do_open(
-        int device      /* 次设备号 */
-) {
+/**
+ * 打开硬盘设备
+ * @param device 设备号
+ * @return
+ */
+PRIVATE int wini_do_open(int device) {
     int drive = DRIVER_OF_DEVICE(device);
     if (device != 0) panic("device only be 0\n", PANIC_ERR_NUM); /* 现在只能处理一个硬盘，所以drive只能为0 */
 
@@ -295,18 +182,18 @@ PRIVATE int wini_do_open(
         partition(drive * (NR_PART_PER_DRIVE + 1), P_PRIMARY);
         kprintf("{HD}-> Reading partition information succeeded :)\n");
     }
+    kprintf("<HD>-> open succeeded :)\n");
     return OK;
 }
 
-
-/*===========================================================================*
- *				wini_identify				     *
- *				确定磁盘信息
- *===========================================================================*/
-PRIVATE int wini_identify(
-        int drive       /* 驱动器号 */
-) {
-    /* 确定一个驱动器对应的磁盘，并得到磁盘信息，在最后，
+/**
+ * 确定磁盘信息
+ * @param drive  驱动器号
+ * @return
+ */
+PRIVATE int wini_identify(int drive) {
+    /**
+     * 确定一个驱动器对应的磁盘，并得到磁盘信息，在最后，
      * 才真正初始化硬盘中断，因为我们准备要用它了。
      */
     Command cmd;
@@ -314,6 +201,7 @@ PRIVATE int wini_identify(
     cmd.command = ATA_IDENTIFY;
     cmd_out(&cmd);
     wini_interrupt_wait();  /* 现在等待硬盘响应一个中断 */
+    kprintf("ready to get disk info\n");
     port_read(REG_DATA, hdbuf, SECTOR_SIZE);
 
     /* 打印通过ATA_IDENTIFY命令检索的hdinfo */
@@ -323,7 +211,7 @@ PRIVATE int wini_identify(
 
     hd_info[drive].primary[0].base = 0;
     /* 用户可寻址扇区的总数量 */
-    hd_info[drive].primary[0].size = ((int) hdinfo[61] << 16) + hdinfo[60];
+    hd_info[drive].primary[0].size = ((int) hdinfo[61] << 16) + hdinfo[60]; /* 硬盘总扇区数 */
 
     /* 现在可以启用中断了 */
     put_irq_handler(AT_WINI_IRQ, wini_handler);
@@ -332,10 +220,10 @@ PRIVATE int wini_identify(
     intr_open = TRUE;
 }
 
-/*===========================================================================*
- *				wini_print_identify_info				     *
- *			打印通过ATA_IDENTIFY命令检索的hdinfo。
- *===========================================================================*/
+/**
+ * 打印通过ATA_IDENTIFY命令检索的hdinfo
+ * @param hdinfo
+ */
 PRIVATE void wini_print_identify_info(u16_t *hdinfo) {
     int i, k;
     char s[64];
@@ -358,160 +246,21 @@ PRIVATE void wini_print_identify_info(u16_t *hdinfo) {
     }
 
     int capabilities = hdinfo[49];
-    kprintf("{HD}-> LBA supported: %s\n",
-            (capabilities & 0x0200) ? "Yes" : "No");
+    kprintf("{HD}-> LBA supported: %s\n", (capabilities & 0x0200) ? "Yes" : "No");
 
     int cmd_set_supported = hdinfo[83];
-    kprintf("{HD}-> LBA48 supported: %s\n",
-            (cmd_set_supported & 0x0400) ? "Yes" : "No");
+    kprintf("{HD}-> LBA48 supported: %s\n", (cmd_set_supported & 0x0400) ? "Yes" : "No");
 
     int sectors = ((int) hdinfo[61] << 16) + hdinfo[60];
     kprintf("{HD}-> HD size: %dMB\n", sectors * 512 / 1000000);
 }
 
-/*===========================================================================*
- *				wini_do_close					     *
- *				关闭硬盘设备
- *===========================================================================*/
-PRIVATE int wini_do_close(
-        int device      /* 次设备号 */
-) {
-    int drive = DRIVER_OF_DEVICE(device);
-    /* 现在只能处理一个硬盘，所以drive只能为0 */
-    if (device != 0) panic("device only be 0\n", PANIC_ERR_NUM);
-
-    hd_info[drive].open_count--;
-    return OK;
-}
-
-
-/*===========================================================================*
- *				wini_name					     *
- *===========================================================================*/
-PRIVATE char *wini_name(void) {
-    /* 返回设备名称 */
-    return "AT_HD0";    /* 现在只有一个硬盘的情况 */
-}
-
-
-/*============================================================================*
- *				wini_handler				      *
- *			    硬盘中断处理程序
- *============================================================================*/
-PRIVATE int wini_handler(int irq) {
-    /* 当硬盘任务第一次被激活时，wini_identify把这个中断处理程序
-     * 的地址送入中断描述表中。
-     */
-
-    /* 得到磁盘控制器的状态 */
-    wini_status = in_byte(REG_STATUS);
-
-    /* 模拟硬件中断，激活硬盘任务 */
-    interrupt(wini_task_nr);
-    return ENABLE;      /* 返回ENABLE，使其再能发生AT硬盘中断 */
-}
-
-/*============================================================================*
- *				cmd_out				      *
- *			 输出一个命令字到硬盘控制器
- *============================================================================*/
-PRIVATE int cmd_out(Command *cmd) {
-
-    /* 调用wini_wait_for，询问控制器忙不忙，如果在忙就等待，
-     * 等待如果超时，系统无法继续。
-     */
-    if (!wini_wait_for(STATUS_BSY, 0)) {
-        panic("%s: controller no response", PANIC_ERR_NUM);
-    }
-
-    /* 安排一个唤醒呼叫闹钟，一些控制器是脆弱的。
-     * 磁盘驱动器执行代码时，有时会失败或不能正常的返回一个出错代码。
-     * 毕竟驱动器是机械设备，内部有可能发生各种机械故障。所以作为一项
-     * 保险措施，要向时钟任务发送一条消息以安排一个对唤醒例程的调用。
-     */
-//    alarm_clock(WAKEUP, wini_timeout_handler);
-
-    /* 激活中断允许（nIEN）位 */
-    out_byte(REG_DEV_CTRL, 0);
-    /* 向各种寄存器写入参数再向命令寄存器写入命令代码来发出一条命令 */
-    out_byte(REG_FEATURES, cmd->features);
-    out_byte(REG_NSECTOR, cmd->count);
-    out_byte(REG_LBA_LOW, cmd->lba_low);
-    out_byte(REG_LBA_MID, cmd->lba_mid);
-    out_byte(REG_LBA_HIGH, cmd->lba_high);
-    out_byte(REG_DEVICE, cmd->device);
-    /* 可以发出命令了 */
-    out_byte(REG_CMD, cmd->command);
-    return OK;
-}
-
-/*==========================================================================*
- *				wini_wait_for				    *
- *				 控制器忙等待
- *==========================================================================*/
-PRIVATE int wini_wait_for(
-        int mask,       /* 状态掩码 */
-        int value       /* 所需状态 */
-) {
-    /* 忙等待，当控制器忙的时候，一直等待到其可用为止，超时将返回代码0。
-     * 这里，有一点需要注意：磁盘的超时时间被设置为了31.7s，而普通进程
-     * 的cpu的运行时间是100ms，所以这些参数对于忙等待而言，是很长很长
-     * 的一段时间，但是，这些数值是基于已公布的AT类计算机硬盘接口标准的，
-     * 这些标准指出了磁盘旋转到一定速度所允许的最长时间是31s，当然实际
-     * 上，这是在最坏情况下的规范，在大多数系统中仅仅在刚上电时或在很长
-     * 时间不活动之后，才需要启动旋转加速。
-     * 现在经常旋转的硬件设备，例如CD_ROM，都已经基本被淘汰了，所以这套
-     * 处理超时的方法是没有什么大问题的。
-     */
-
-    /* 得到当前时间 */
-    time_t now = get_uptime();
-    /* 发呆时间（轮询的时间） */
-    time_t daze = 0;
-    do {
-        /* 循环，轮流检测状态寄存器和时间，
-		 * 不超时，将一直循环，不忙了，返回代码1。
-         */
-        wini_status = in_byte(REG_STATUS);
-        if ((wini_status & mask) == value) return TRUE;
-        daze = get_uptime() - now;
-    } while (daze < HD_TIMEOUT);
-
-    /* 好了，这个控制器哑了，都超时了还在忙。重置他并返回状态0 */
-    return FALSE;
-}
-
-PRIVATE clock_t get_uptime() {
-    msg_in.source = HD_TASK;
-    msg_in.type = GET_UPTIME;
-    send_rec(CLOCK_TASK, &msg_in);
-    msg_in.CLOCK_TIME;
-}
-
-/*==========================================================================*
- *				wini_interrupt_wait				    *
- *		       等待驱动任务完成一个中断
- *==========================================================================*/
-PRIVATE void wini_interrupt_wait(void) {
-    Message msg;
-
-    if (intr_open) {  /* 中断已经打开了 */
-        /* 等待一条中断将其唤醒 */
-        receive(HARDWARE, &msg);
-    } else {
-        /* 尚未给驱动任务分配中断，使用轮询 */
-        (void) wini_wait_for(STATUS_BSY, 0);
-    }
-}
-
-/*==========================================================================*
- *				  partition				    *
- *		          读取分区信息
- *==========================================================================*/
-PRIVATE void partition(
-        int device,         /* 次设备号 */
-        int style           /* 读主分区还是扩展分区？ */
-) {
+/**
+ * 读取分区信息
+ * @param device 设备号
+ * @param style 读主分区还是扩展分区？
+ */
+PRIVATE void partition(int device, int style) {
     /* 第一次打开设备时将调用此例程。 它读取分区表并填充hd_info结构。 */
     int i, drive;
     drive = DRIVER_OF_DEVICE(device);
@@ -530,10 +279,13 @@ PRIVATE void partition(
             }
 
             nr_prim_parts++;
-            int dev_nr = i + 1;          /* 1~4 */
+            int dev_nr = i + 1;          /* 主分区包括扩展分区 分区号1~4 */
             hdi->primary[dev_nr].base = part_tab[i].lowsec;
             hdi->primary[dev_nr].size = part_tab[i].size;
-//            kprintf("%d-{%d | %d}\n", dev_nr, hdi->primary[dev_nr].base, hdi->primary[dev_nr].size);
+            kprintf("primary: %d-{%d | %d}\n", dev_nr, hdi->primary[dev_nr].base, hdi->primary[dev_nr].size);
+
+            if(largestPrimDeviceNR==0||hdi->primary[dev_nr].size>hdi->primary[largestPrimDeviceNR].size)
+                largestPrimDeviceNR=dev_nr;
 
             if (part_tab[i].sysind == EXT_PART) {    /* 扩展分区？继续获取分区 */
                 partition(device + dev_nr, P_EXTENDED);
@@ -541,6 +293,7 @@ PRIVATE void partition(
         }
         if (nr_prim_parts == 0) panic("nr_prim_parts can not be 0\n", PANIC_ERR_NUM);
     } else if (style == P_EXTENDED) {
+        kprintf("looking into ext\n");
         /* 查找扩展分区 */
         int j = device % NR_PRIM_PER_DRIVE;     /* 1~4 */
         int ext_start_sect = hdi->primary[j].base;
@@ -551,46 +304,299 @@ PRIVATE void partition(
             int dev_nr = nr_1st_sub + i;/* 0~15/16~31/32~47/48~63 */
 
             get_part_table(drive, s, part_tab);
+            kprintf("get ext part table\n"); //todo
 
             hdi->logical[dev_nr].base = s + part_tab[0].lowsec;
             hdi->logical[dev_nr].size = part_tab[0].size;
 
             s = ext_start_sect + part_tab[1].lowsec;
-//            kprintf("%d-{%d | %d}\n", dev_nr, hdi->logical[dev_nr].base, hdi->logical[dev_nr].size);
+            kprintf("logical: %d-{%d | %d}\n", dev_nr, hdi->logical[dev_nr].base, hdi->logical[dev_nr].size);
 
             /* 此扩展分区中不再有更多逻辑分区 */
             if (part_tab[1].sysind == NO_PART) break;
         }
+        kprintf("ext has been look\n");
     } else {
         panic("hd panic\n", PANIC_ERR_NUM);
     }
 
 }
 
-/*==========================================================================*
- *				  get_part_table				    *
- *		          获取驱动器的分区表
- *==========================================================================*/
-PRIVATE void get_part_table(
-        int drive,          /* 驱动器号（第一个磁盘为0，第二个磁盘为1，...） */
-        int sect_nr,        /* 分区表所在的扇区。 */
-        PartEntry *entry    /* 指向一个分区 */
-) {
+/**
+ * 获取设备分区表
+ * @param drive 驱动器号（第一个磁盘为0，第二个磁盘为1，...）
+ * @param sect_nr 分区表所在的扇区。
+ * @param entry 指向一个分区
+ */
+PRIVATE void get_part_table(int drive, int sect_nr, PartEntry *entry) {//todo 有问题
     Command cmd;
     cmd.features = 0;
     cmd.count = 1;
     cmd.lba_low = sect_nr & 0xFF;
     cmd.lba_mid = (sect_nr >> 8) & 0xFF;
     cmd.lba_high = (sect_nr >> 16) & 0xFF;
-    cmd.device = MAKE_DEVICE_REG(1, /* LBA模式 */
-                                 drive,
-                                 (sect_nr >> 24) & 0xF);
+    cmd.device = MAKE_DEVICE_REG(1, drive, (sect_nr >> 24) & 0xF); /* LBA模式 */
     cmd.command = ATA_READ;
     cmd_out(&cmd);
     wini_interrupt_wait();
-
+    kprintf("prepare to get ext part table\n"); //todo
     port_read(REG_DATA, hdbuf, SECTOR_SIZE);
-    memcpy(entry,
-           hdbuf + PARTITION_TABLE_OFFSET,
-           sizeof(PartEntry) * NR_PART_PER_DRIVE);
+    memcpy(entry, hdbuf + PARTITION_TABLE_OFFSET, sizeof(PartEntry) * NR_PART_PER_DRIVE);
+}
+
+/**
+ * 关闭设备
+ * @param device 设备号
+ * @return
+ */
+PRIVATE int wini_do_close(int device) {
+    int drive = DRIVER_OF_DEVICE(device);
+    /* 现在只能处理一个硬盘，所以drive只能为0 */
+    if (device != 0) panic("device only be 0\n", PANIC_ERR_NUM);
+
+    hd_info[drive].open_count--;
+    return OK;
+}
+
+/**
+ *  硬盘IO控制
+ * @param msg 请求消息
+ * @return
+ */
+PRIVATE int wini_do_ioctl(Message *p_msg) {
+    int device = p_msg->DEVICE;
+    int drive = DRIVER_OF_DEVICE(device);
+
+    /* 得到硬盘信息 */
+    HDInfo *hp = &hd_info[drive];
+
+    int request = p_msg->REQUEST;
+    /* 请求不对 */
+    if (request != DIOCTL_GET_GEO && request != DIOCTL_SET_GEO) return ENOTTY;
+
+    Partition tmp_par;
+    /* 得到用户缓冲区 */
+    phys_addr user_phys = proc_vir2phys(proc_addr(p_msg->PROC_NR), (vir_addr) p_msg->ADDRESS);
+    /* 得到现在硬盘分区信息 */
+    Partition *par = device < MAX_PRIM ? &hp->primary[device] : &hp->logical[(device - MINOR_hd1a) % NR_SUB_PER_DRIVE];
+    /* 处理请求 */
+    if (request == DIOCTL_GET_GEO) {
+        phys_addr par_phys = vir2phys(par);
+        /* 复制给用户，OK */
+        phys_copy(par_phys, user_phys, (phys_addr) sizeof(tmp_par));
+    } else {    /* DIOCTL_SET_GEO */
+        /* 先将用户的分区信息复制过来 */
+        phys_copy(user_phys, vir2phys(&tmp_par), (phys_addr) sizeof(tmp_par));
+        /* 设置分区信息 */
+        par->base = tmp_par.base;
+        par->size = tmp_par.size;
+    }
+    return OK;
+}
+
+/**
+ * 硬盘读写
+ * @param msg
+ * @return
+ */
+PRIVATE int wini_do_readwrite(Message *p_msg) {
+    int drive = DRIVER_OF_DEVICE(p_msg->DEVICE);
+
+    off_t pos = p_msg->POSITION;
+//    assert((pos >> SECTOR_SIZE_SHIFT) < (1 << 31));
+    if ((pos >> SECTOR_SIZE_SHIFT) >= (1 << 31)) panic("pos error\n", PANIC_ERR_NUM);
+
+    /* 我们仅允许从扇区边界进行读/写： */
+//    assert((pos & 0x1FF) == 0);
+    if ((pos & 0x1FF) != 0) panic("pos error\n", PANIC_ERR_NUM);
+
+    u32_t sect_nr = pos >> SECTOR_SIZE_SHIFT;  /* pos在分区内的扇区号 */
+    int logidx = (p_msg->DEVICE - MINOR_hd1a) % NR_SUB_PER_DRIVE;
+    sect_nr += p_msg->DEVICE < MAX_PRIM ? hd_info[drive].primary[p_msg->DEVICE].base : hd_info[drive].logical[logidx].base;
+
+//    kprintf("%d want to %s %d by %d | pos -> %u\n",
+//           msg->PROC_NR, msg->type == DEVICE_READ ? "read" : "write", msg->COUNT, drive, pos);
+
+    /* 发出读/写命令，告诉驱动器开始读/写了。 */
+    Command cmd;
+    cmd.features = 0;
+    cmd.count = (p_msg->COUNT + SECTOR_SIZE - 1) / SECTOR_SIZE;
+    cmd.lba_low = sect_nr & 0xFF;
+    cmd.lba_mid = (sect_nr >> 8) & 0xFF;
+    cmd.lba_high = (sect_nr >> 16) & 0xFF;
+    cmd.device = MAKE_DEVICE_REG(1, drive, (sect_nr >> 24) & 0xF);
+    cmd.command = (p_msg->type == DEVICE_READ) ? ATA_READ : ATA_WRITE;
+    if (cmd_out(&cmd) == OK) {
+        /* 用户的缓冲区物理地址 */
+        phys_addr addr = proc_vir2phys(proc_addr(p_msg->PROC_NR), (vir_addr) p_msg->ADDRESS);
+
+        int left = p_msg->COUNT;
+        /* 做真正的事情吧 */
+        while (left) {
+            /* 如果要读写的太多了，那么先取磁盘能读写的一个扇区大小 */
+            int bytes = MIN(SECTOR_SIZE, left);
+            if (p_msg->type == DEVICE_READ) {     /* 读 */
+                wini_interrupt_wait();
+                /* 将磁盘数据读到缓冲区中 */
+                port_read(REG_DATA, hdbuf, SECTOR_SIZE);
+                /* 拷贝给用户 */
+                phys_copy(hdbuf_phys, addr, (phys_addr) bytes);
+            } else {                        /* 写 */
+                /* 等待控制器到可被写入的状态，如果超时，宕机 */
+                if (!wini_wait_for(STATUS_DRQ, STATUS_DRQ)) {
+                    panic("HD Controller is already dumb.", PANIC_ERR_NUM);
+                }
+                /* 将用户数据写到磁盘中 */
+                port_write(REG_DATA, (void *) addr, bytes);
+                wini_interrupt_wait();
+            }
+            /* 一轮完成了 */
+            left -= SECTOR_SIZE;
+            addr += SECTOR_SIZE;
+        }
+        return p_msg->COUNT - left;   /* 成功返回读写的字节总量 */
+    }
+    return EIO;
+}
+
+/**
+ * 硬盘批量读写
+ * @param msg
+ * @return
+ */
+PRIVATE int wini_do_vreadwrite(Message *msg) {
+    /* 本例程实现同时完成多个读写请求@TODO */
+    return EINVAL;
+}
+
+/* 返回设备名称 */
+PRIVATE char *wini_name(void) {
+    return "AT_HD0";    /* 现在只有一个硬盘的情况 */
+}
+
+/**
+ * 硬盘中断处理程序
+ * @param irq 中断向量
+ * @return
+ */
+PRIVATE int wini_handler(int irq) {
+    /**
+     * 当硬盘任务第一次被激活时，wini_identify把这个中断处理程序
+     * 的地址送入中断描述表中。
+     */
+
+    /* 得到磁盘控制器的状态 */
+    wini_status = in_byte(REG_STATUS);
+
+    /* 模拟硬件中断，激活硬盘任务 */
+    interrupt(wini_task_nr);
+    return ENABLE;      /* 返回ENABLE，使其再能发生AT硬盘中断 */
+}
+
+/**
+ * 等待驱动任务完成一个中断
+ */
+PRIVATE void wini_interrupt_wait(void) {
+    Message t_msg;
+
+    if (intr_open) {  /* 中断已经打开了 */
+        /* 等待一条中断将其唤醒 */
+        receive(HARDWARE, &t_msg);
+    } else {
+        kprintf("prepare to wait_for\n");
+        /* 尚未给驱动任务分配中断，使用轮询 */
+        (void) wini_wait_for(STATUS_BSY, 0);
+    }
+}
+
+/**
+ * 轮询控制器
+ * @param mask 状态掩码
+ * @param value 所需状态
+ * @return
+ */
+PRIVATE int wini_wait_for(int mask, int value) {
+    kprintf("into wait_for\n");
+    /**
+     * 忙等待，当控制器忙的时候，一直等待到其可用为止，超时将返回代码0。
+     * 这里，有一点需要注意：磁盘的超时时间被设置为了31.7s，而普通进程
+     * 的cpu的运行时间是100ms，所以这些参数对于忙等待而言，是很长很长
+     * 的一段时间，但是，这些数值是基于已公布的AT类计算机硬盘接口标准的，
+     * 这些标准指出了磁盘旋转到一定速度所允许的最长时间是31s，当然实际
+     * 上，这是在最坏情况下的规范，在大多数系统中仅仅在刚上电时或在很长
+     * 时间不活动之后，才需要启动旋转加速。
+     * 现在经常旋转的硬件设备，例如CD_ROM，都已经基本被淘汰了，所以这套
+     * 处理超时的方法是没有什么大问题的。
+     */
+
+    Message msgBackUp;              /* 备份消息，因为在与fs通信时，还要和clock通信，防止fs的消息丢失 */
+    msgBackUp=msg;
+
+    /* 得到当前时间 */
+    time_t now = get_uptime();
+    /* 发呆时间（轮询的时间） */
+    time_t daze = 0;
+    do {
+        /* 循环，轮流检测状态寄存器和时间，
+		 * 不超时，将一直循环，不忙了，返回代码1。
+         */
+        wini_status = in_byte(REG_STATUS);
+        if ((wini_status & mask) == value){
+            kprintf("wait for success\n");
+            msg=msgBackUp;
+            return TRUE;
+        }
+        daze = get_uptime() - now;
+    } while (daze < HD_TIMEOUT);
+
+    msg=msgBackUp;
+
+    kprintf("something wrong happened while waiting\n");
+    /* 好了，这个控制器哑了，都超时了还在忙。重置他并返回状态0 */
+    return FALSE;
+}
+
+PRIVATE clock_t get_uptime() {
+    msg.source = HD_TASK;
+    msg.type = GET_UPTIME;
+    send_rec(CLOCK_TASK, &msg);
+    clock_t time=msg.CLOCK_TIME;
+    return time;
+}
+
+
+/**
+ * 输出一个命令字到硬盘控制器
+ * @param cmd
+ * @return
+ */
+PRIVATE int cmd_out(Command *cmd) {
+
+    /* 调用wini_wait_for，询问控制器忙不忙，如果在忙就等待，
+     * 等待如果超时，系统无法继续。
+     */
+    if (!wini_wait_for(STATUS_BSY, 0)) {
+        panic("%s: controller no response", PANIC_ERR_NUM);
+    }
+
+    /**
+     * 安排一个唤醒呼叫闹钟，一些控制器是脆弱的。
+     * 磁盘驱动器执行代码时，有时会失败或不能正常的返回一个出错代码。
+     * 毕竟驱动器是机械设备，内部有可能发生各种机械故障。所以作为一项
+     * 保险措施，要向时钟任务发送一条消息以安排一个对唤醒例程的调用。
+     */
+//    alarm_clock(WAKEUP, wini_timeout_handler);
+
+    /* 激活中断允许（nIEN）位 */
+    out_byte(REG_DEV_CTRL, 0);
+    /* 向各种寄存器写入参数再向命令寄存器写入命令代码来发出一条命令 */
+    out_byte(REG_FEATURES, cmd->features);
+    out_byte(REG_NSECTOR, cmd->count);
+    out_byte(REG_LBA_LOW, cmd->lba_low);
+    out_byte(REG_LBA_MID, cmd->lba_mid);
+    out_byte(REG_LBA_HIGH, cmd->lba_high);
+    out_byte(REG_DEVICE, cmd->device);
+    /* 可以发出命令了 */
+    out_byte(REG_CMD, cmd->command);
+    return OK;
 }

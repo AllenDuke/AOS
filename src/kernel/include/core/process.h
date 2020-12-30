@@ -117,7 +117,7 @@ typedef struct process_s{
  */
 #define proc_addr(n)      (gp_procs + NR_TASKS)[(n)]                        /* 得到进程的指针 */
 #define cproc_addr(n)     (&(g_procs + NR_TASKS)[(n)])                      /* 得到进程的地址 */
-#define proc_vir2phys(p, vir) ((phys_addr)(p)->map.base + (vir_addr)(vir))  /* 进程的虚拟地址转物理地址 */
+#define proc_vir2phys(p, vir) ((phys_addr)(p)->map.base + (vir_addr)(vir))  /* 进程内的虚拟地址转物理地址 */
 
 
 /* 互斥锁，信号量为1 */

@@ -93,16 +93,17 @@ typedef struct message_s{
 #define reply_mask	    reply.m2_l1     /* 回复掩码 */
 
 /* 块设备和字符设备任务消息中使用的消息字段名称。 */
-#define DEVICE          m2_i1	/* 主-次设备号 */
+#define DEVICE          m2_i1	/* 主-次设备号，一个设备对应一个分区 */
 #define PROC_NR         m2_i2	/* 哪个进程需要I/O服务？ */
 #define FLAGS           m2_i3   /* 用于打开设备，以什么权限打开？例如只读。 */
 #define COUNT           m2_i3	/* 有多少字节将要被传送 */
 #define REQUEST         m2_i3	/* io控制请求代码 */
-#define POSITION        m2_l1	/* 文件偏移地址 */
-#define ADDRESS         m2_p1	/* 内核的缓冲区地址 */
+#define POSITION        m2_l1	/* 分区内文件偏移地址 */
+#define ADDRESS         m2_p1	/* 进程地址空间起的缓冲区偏移地址 */
 
 /* 任务回复消息中使用的消息字段名称。 */
 #define REPLY_PROC_NR   m2_i1       /* 代表I/O完成的进程索引号 */
 #define REPLY_STATUS    m2_i2       /* 传输的字节数或错误号 */
+#define REPLY_LARGEST_PRIM_PART_NR           m2_i3       /* 最大主分区的区号 */
 
 #endif //AOS_MESSAGE_H

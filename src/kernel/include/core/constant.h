@@ -294,7 +294,7 @@
 #define NORMAL_STACK        (256 * sizeof(char*))
 
 #define FS_TASK_STACK       NORMAL_STACK
-#define HD_TASK_STACK       NORMAL_STACK
+#define HD_TASK_STACK       NORMAL_STACK*64
 #define MM_TASK_STACK       NORMAL_STACK
 /* 终端任务 */
 #define TTY_TASK_STACK      (32 * NORMAL_STACK)

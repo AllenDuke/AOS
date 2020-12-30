@@ -160,15 +160,25 @@ typedef struct partition {
 
 /* 硬盘信息 */
 typedef struct hd_info {
-    int open_count;
+    int open_count; /* 打开次数，关闭时-1，其实就相当于是否打开 */
+
+    /**
+     * 4+1，其中0号位存储磁盘总扇区数，接着4个分区表项分别表示1~4个分区，逻辑分区号从5号起
+     */
     Partition primary[NR_PRIM_PER_DRIVE];
+
+    /**
+     * 大小16*4。每个逻辑驱动器都有4个分区表项。
+     * 其中的第一项logical[0]指向它自身的引导扇区，第二项logical[1]指向下一个逻辑驱动器的EBR（扩展引导记录）。
+     * 第三、第四项未使用，保留4个项应该是为了保持一致。
+     */
     Partition logical[NR_SUB_PER_DRIVE];
 } HDInfo;
 
 /***************/
 /*     定义     */
 /***************/
-#define	HD_TIMEOUT		sec2ms(31.7)	/* 31700ms，也就是37.7s */
+#define	HD_TIMEOUT		sec2ms(31.7)	/* 忙等待时间，31700ms，也就是37.7s */
 #define	PARTITION_TABLE_OFFSET	0x1BE
 #define ATA_IDENTIFY		0xEC
 #define ATA_READ		0x20
