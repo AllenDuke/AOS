@@ -295,7 +295,6 @@ PRIVATE void partition(int device, int style) {
         }
         if (nr_prim_parts == 0) panic("nr_prim_parts can not be 0\n", PANIC_ERR_NUM);
     } else if (style == P_EXTENDED) {
-        kprintf("looking into ext\n");
         /* 查找扩展分区 */
         int j = device % NR_PRIM_PER_DRIVE;     /* 1~4 */
         int ext_start_sect = hdi->primary[j].base;
@@ -306,7 +305,6 @@ PRIVATE void partition(int device, int style) {
             int dev_nr = nr_1st_sub + i;/* 0~15/16~31/32~47/48~63 */
 
             get_part_table(drive, s, part_tab);
-            kprintf("get ext part table\n"); //todo
 
             hdi->logical[dev_nr].base = s + part_tab[0].lowsec;
             hdi->logical[dev_nr].size = part_tab[0].size;
@@ -317,7 +315,6 @@ PRIVATE void partition(int device, int style) {
             /* 此扩展分区中不再有更多逻辑分区 */
             if (part_tab[1].sysind == NO_PART) break;
         }
-        kprintf("ext has been look\n");
     } else {
         panic("hd panic\n", PANIC_ERR_NUM);
     }
@@ -340,9 +337,7 @@ PRIVATE void get_part_table(int drive, int sect_nr, PartEntry *entry) {//todo �
     cmd.device = MAKE_DEVICE_REG(1, drive, (sect_nr >> 24) & 0xF); /* LBA模式 */
     cmd.command = ATA_READ;
     cmd_out(&cmd);
-    kprintf("cmd out done\n");
-    wini_interrupt_wait();
-    kprintf("prepare to get part table\n"); //todo
+    wini_interrupt_wait(); /* 要防止丢失通知 */
     port_read(REG_DATA, hdbuf, SECTOR_SIZE);
     memcpy(entry, hdbuf + PARTITION_TABLE_OFFSET, sizeof(PartEntry) * NR_PART_PER_DRIVE);
 }
@@ -487,14 +482,12 @@ PRIVATE int wini_handler(int irq) {
      * 当硬盘任务第一次被激活时，wini_identify把这个中断处理程序
      * 的地址送入中断描述表中。
      */
-     kprintf("get hd int\n");
 
     /* 得到磁盘控制器的状态 */
     wini_status = in_byte(REG_STATUS);
 
     /* 模拟硬件中断，激活硬盘任务 */
 //    interrupt(wini_task_nr);
-//    send(HD_TASK,&msg);
     aos_unpark(HD_TASK);
     return ENABLE;      /* 返回ENABLE，使其再能发生AT硬盘中断 */
 }
@@ -505,13 +498,18 @@ PRIVATE int wini_handler(int irq) {
 PRIVATE void wini_interrupt_wait(void) {
     Message t_msg;
 
-    if (intr_open) {  /* 中断已经打开了 */ //todo 异步通知丢失
+    if (intr_open) {
         /* 等待一条中断将其唤醒 */
-        kprintf("wait hd int\n");
 //        receive(ANY, &t_msg);
+        /**
+         * 这里不应该使用rec-interrupt机制，因为这样会很容易lost-wakeup。
+         * 例如在get_part_table中，刚完成指令cmd_out，硬盘中断就来了，即先执行了interrupt，
+         * 然而hd任务还没有执行到这里，于是interrupt了个寂寞。
+         * 当hd任务执行到这里的时候，却错过了interrupt的时机，永远地阻塞在这里了。
+         * 所以这里（所有异步的地方）要防止lost-wakeup。
+         */
         park();
     } else {
-        kprintf("prepare to wait_for\n");
         /* 尚未给驱动任务分配中断，使用轮询 */
         (void) wini_wait_for(STATUS_BSY, 0);
     }
@@ -524,7 +522,6 @@ PRIVATE void wini_interrupt_wait(void) {
  * @return
  */
 PRIVATE int wini_wait_for(int mask, int value) {
-    kprintf("into wait_for\n");
     /**
      * 忙等待，当控制器忙的时候，一直等待到其可用为止，超时将返回代码0。
      * 这里，有一点需要注意：磁盘的超时时间被设置为了31.7s，而普通进程
@@ -550,7 +547,6 @@ PRIVATE int wini_wait_for(int mask, int value) {
          */
         wini_status = in_byte(REG_STATUS);
         if ((wini_status & mask) == value){
-            kprintf("wait for success\n");
             msg=msgBackUp;
             return TRUE;
         }
@@ -559,7 +555,6 @@ PRIVATE int wini_wait_for(int mask, int value) {
 
     msg=msgBackUp;
 
-    kprintf("something wrong happened while waiting\n");
     /* 好了，这个控制器哑了，都超时了还在忙。重置他并返回状态0 */
     return FALSE;
 }
