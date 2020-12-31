@@ -80,7 +80,7 @@ Objs            = $(KernelObjs) $(LibObjs)
 .PHONY: nop all image debug run clean realclean
 # 默认选项（输入make但没有跟参数，自动执行），提示一下用户我们的makefile有哪些功能
 nop:
-	@echo "all              编译所有文件，生成目标文件(二进制文件，boot.bin)"
+	@echo "everything              编译所有文件，生成目标文件(二进制文件，boot.bin)"
 	@echo "image            生成系统镜像文件"
 	@echo "debug            打开bochs进行系统的运行和调试"
 	@echo "run              提示用于如何将系统安装到虚拟机上运行"
@@ -88,7 +88,7 @@ nop:
 	@echo "realclean        完全清理：清理所有的中间编译文件以及生成的目标文件（二进制文件）	"
 
 # 编译所有文件
-all: $(AOSBoot) $(AOSKernel) # 这表示依赖的东西
+everything: $(AOSBoot) $(AOSKernel) # 这表示依赖的东西
 	@echo "已经生成 AOS 内核！"
 
 # 生成系统镜像文件
@@ -122,6 +122,8 @@ clean:
 # 完全清理：清理所有的中间编译文件以及生成的目标文件（二进制文件）
 realclean: clean
 	-rm -f $(AOSBoot) $(AOSKernel) $(Objs)
+
+all: realclean everything
 # ======================================================================================================================
 
 

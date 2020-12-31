@@ -557,10 +557,11 @@ PRIVATE int wini_wait_for(int mask, int value) {
 }
 
 PRIVATE clock_t get_uptime() {
-    msg.source = HD_TASK;
-    msg.type = GET_UPTIME;
-    send_rec(CLOCK_TASK, &msg);
-    clock_t time=msg.CLOCK_TIME;
+//    msg.source = HD_TASK;
+//    msg.type = GET_UPTIME;
+//    send_rec(CLOCK_TASK, &msg);
+//    clock_t time=msg.CLOCK_TIME;
+    clock_t time=clock_get_uptime();
     return time;
 }
 

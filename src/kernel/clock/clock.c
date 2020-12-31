@@ -5,6 +5,7 @@
 #include "core/kernel.h"
 
 PRIVATE clock_t ticks;                              /* 时钟运行的时间(滴答数)，也是开机后时钟运行的时间 */
+PRIVATE clock_t  pending_ticks; /* 中断挂起的时间 */
 PRIVATE Message msg;
 
 PRIVATE time_t realTime;                            /* 时钟运行的时间(s)，也是开机后时钟运行的时间 */
@@ -66,9 +67,11 @@ PUBLIC void clock_task(void) {
         /* 等待外界消息 */
         rec(ANY);
 
-        /* 提供服务前，校准时间 */
+        /* 已经得到用户发来的消息请求，现在开始校准时间，记得先锁住中断 */
         interrupt_lock();
-        realTime = ticks / HZ;  /* 计算按秒算的机器真实时间 */
+        ticks += pending_ticks;             /* 加上从上次计时后过去的滴答数到时钟真实时间ticks上 */
+        realTime = ticks / HZ;              /* 计算按秒数计算的真实时钟时间 */
+        pending_ticks = 0;                  /* 好了，上次计时后过去的滴答数可以清零了 */
         interrupt_unlock();
 
         /* 提供服务 */
@@ -167,6 +170,8 @@ PRIVATE int clock_handler(int irq) {
 
     if (target != gp_billProc && target != proc_addr(HARDWARE))
         gp_billProc->sysTime++;  /* 当前进程不是计费的用户进程，那么它应该是使用了系统调用陷入了内核，记录它的系统时间 */
+
+    pending_ticks++;
 
     /* 闹钟时间到了？产生一个时钟中断，唤醒时钟任务 */
     if (nextAlarm <= ticks) {
@@ -272,4 +277,18 @@ PRIVATE void do_clock_int(void) {
     nextAlarm = ULONG_MAX;
 }
 
+/* 获取并返回当前时钟正常运行时间(以滴答为单位)。
+ *
+ * 与do_getuptime的区别是这个函数可以直接返回时间通过函数调用，而无需
+ * 通过代价很大的消息传递去获取时间，但这个函数只允许系统任务调用，用户
+ * 进程还是只能通过发送消息然后调用do_get_uptime的方式来获取。
+ */
+PUBLIC clock_t clock_get_uptime(){
+    clock_t uptime;
+
+    interrupt_lock();
+    uptime = ticks + pending_ticks;
+    interrupt_unlock();
+    return uptime;
+}
 

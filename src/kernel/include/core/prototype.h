@@ -100,6 +100,7 @@ void hwint15(void);
 void clock_task(void);
 void get_rtc_time(struct rtc_time *p_time);
 void milli_delay(time_t delay_ms);
+clock_t clock_get_uptime();
 //======================================================================================================================
 
 
