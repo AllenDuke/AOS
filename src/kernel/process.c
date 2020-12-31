@@ -169,7 +169,7 @@ PUBLIC void interrupt(int task) {
 
     /**
      * 现在检查任务是否正在等待一个中断，如果任务未做好接收中断准备，则其 int_blocked
-     * 标志被置位 - 在 ipc.c 文件中的 flyanx_receive 接收消息例程中我们将使得丢失的
+     * 标志被置位 - 在 ipc.c 文件中的 aos_receive 接收消息例程中我们将使得丢失的
      * 中断可能被恢复，并且不需要发送消息(@TODO)。
      */
     if( (p_target->flags & (RECEIVING | SENDING)) != RECEIVING || /* 不处于单纯的接收消息的状态 */

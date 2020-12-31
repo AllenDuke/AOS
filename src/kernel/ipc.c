@@ -237,9 +237,16 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
 
     return OK;
 }
+/* 与park unpark配合使用 */
+PRIVATE u8_t spinLocks[NR_TASKS+NR_PROCS]; /* 最大值为1，即这是值为1的信号量，理论上[-1,1] */
 
 PUBLIC void aos_park() {
-    unready(gp_curProc);
+    int i=logic_nr_2_index(gp_curProc->logicNum);
+    spinLocks[i]--;
+    if(spinLocks[i]<0) {
+        gp_curProc->flags|=PARKING; /* 进入parking状态 */
+        unready(gp_curProc);
+    }
 }
 
 PUBLIC void aos_unpark(int pid) {
@@ -247,11 +254,15 @@ PUBLIC void aos_unpark(int pid) {
     /* if the caller is a user process, then the pid must be >=0 */
     if (gp_curProc->pid >= 0 && pid < 0) {/* 当前进程没有权限 */
         kprintf("cur:%s, pid:%d\n",gp_curProc->name,pid);
-
         panic("cur process can not able to unpark target process!", EACCES);
     }
+    int i=logic_nr_2_index(gp_curProc->logicNum);
+    if(spinLocks[i]<1) spinLocks[i]++;
     Process *p_proc = proc_addr(pid);
-    ready(p_proc);
+    if(spinLocks[i]==0){
+//        p_proc->flags&=(~PARKING); /* 解出parking状态 */
+        ready(p_proc);
+    }
 //    printf("unpark_done ");
 }
 

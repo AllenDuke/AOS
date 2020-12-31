@@ -80,6 +80,7 @@ typedef struct process_s{
 #define PENDING		    0x08	/* set when inform() of signal pending */
 #define SIG_PENDING	    0x10	/* keeps to-be-signalled proc from running */
 #define PROC_STOP		0x20	/* set when process is being traced */
+#define PARKING         0x40    /* parking */
 
 /* 进程权限定义 */
 #define PROC_PRI_NONE	0	    /* 表示该进程插槽未使用 */

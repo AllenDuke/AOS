@@ -214,10 +214,12 @@ PRIVATE int wini_identify(int drive) {
     hd_info[drive].primary[0].size = ((int) hdinfo[61] << 16) + hdinfo[60]; /* 硬盘总扇区数 */
 
     /* 现在可以启用中断了 */
-    put_irq_handler(AT_WINI_IRQ, wini_handler);
-    enable_irq(CASCADE_IRQ);
-    enable_irq(AT_WINI_IRQ);
-    intr_open = TRUE;
+    if(intr_open == FALSE){
+        put_irq_handler(AT_WINI_IRQ, wini_handler);
+        enable_irq(CASCADE_IRQ);
+        enable_irq(AT_WINI_IRQ);
+        intr_open = TRUE;
+    }
 }
 
 /**
@@ -338,8 +340,9 @@ PRIVATE void get_part_table(int drive, int sect_nr, PartEntry *entry) {//todo �
     cmd.device = MAKE_DEVICE_REG(1, drive, (sect_nr >> 24) & 0xF); /* LBA模式 */
     cmd.command = ATA_READ;
     cmd_out(&cmd);
+    kprintf("cmd out done\n");
     wini_interrupt_wait();
-    kprintf("prepare to get ext part table\n"); //todo
+    kprintf("prepare to get part table\n"); //todo
     port_read(REG_DATA, hdbuf, SECTOR_SIZE);
     memcpy(entry, hdbuf + PARTITION_TABLE_OFFSET, sizeof(PartEntry) * NR_PART_PER_DRIVE);
 }
@@ -484,12 +487,15 @@ PRIVATE int wini_handler(int irq) {
      * 当硬盘任务第一次被激活时，wini_identify把这个中断处理程序
      * 的地址送入中断描述表中。
      */
+     kprintf("get hd int\n");
 
     /* 得到磁盘控制器的状态 */
     wini_status = in_byte(REG_STATUS);
 
     /* 模拟硬件中断，激活硬盘任务 */
-    interrupt(wini_task_nr);
+//    interrupt(wini_task_nr);
+//    send(HD_TASK,&msg);
+    aos_unpark(HD_TASK);
     return ENABLE;      /* 返回ENABLE，使其再能发生AT硬盘中断 */
 }
 
@@ -499,9 +505,11 @@ PRIVATE int wini_handler(int irq) {
 PRIVATE void wini_interrupt_wait(void) {
     Message t_msg;
 
-    if (intr_open) {  /* 中断已经打开了 */
+    if (intr_open) {  /* 中断已经打开了 */ //todo 异步通知丢失
         /* 等待一条中断将其唤醒 */
-        receive(HARDWARE, &t_msg);
+        kprintf("wait hd int\n");
+//        receive(ANY, &t_msg);
+        park();
     } else {
         kprintf("prepare to wait_for\n");
         /* 尚未给驱动任务分配中断，使用轮询 */
