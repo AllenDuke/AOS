@@ -286,6 +286,11 @@ void at_winchester_task(void);
 //  fs.c
 //----------------------------------------------------------------------------------------------------------------------
 void fs_task(void);
+struct super_block *get_super_block(int dev);
+int rw_sector(int io_type, int dev, u64_t pos, int bytes, int proc_nr,void *buf);
+struct inode *get_inode(int dev, int num);
+void put_inode(struct inode *pinode);
+void sync_inode(struct inode *p);
 //======================================================================================================================
 
 

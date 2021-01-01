@@ -154,7 +154,6 @@
 #define USER_QUEUE         2	    /* 就绪的系统服务通过队列2调度 */
 #define NR_PROC_QUEUE      3	    /* 调度队列的数量 */
 
-
 /* 系统调用例程可以支持的操作 */
 #define SEND                0x1    	/* 0001: 发送一条消息 */
 #define RECEIVE             0x2    	/* 0010: 接收一条消息 */
@@ -168,6 +167,7 @@
 #define NR_LAST_TASK        -1       /* 系统任务的逻辑号从 NR_TASKS 到 NR_LAST_TASK */
 
 /* 每个系统任务的任务号和它的功能服务号(消息类型)以及回复代码，将在下面开始定义 */
+#define INVALID_DRIVER	    -20
 #define TTY_TASK            -7
 #define HD_TASK             -6
 #define FS_TASK             -5
@@ -180,35 +180,6 @@
 #define ORIGIN_PROC_NR	   0		/* 初始化 -- 将会fork为多用户进程 */
 
 #define ORIGIN_PID           0      /* origin 第一个用户进程，linux中init的进程号为1 */
-//======================================================================================================================
-
-
-//======================================================================================================================
-//----------------------------------------------------------------------------------------------------------------------
-//  功能宏，宏的参数对类型不敏感，因此你不必考虑将何种数据类型传递给宏
-//----------------------------------------------------------------------------------------------------------------------
-#define MAX(a, b)   ((a) > (b) ? (a) : (b))
-#define MIN(a, b)   ((a) < (b) ? (a) : (b))
-
-/* 将内核空间中的虚拟地址转换为物理地址。其实这里的内核数据段基址还是0 */
-#define	vir2phys(addr)      ((phys_addr)(KERNEL_DATA_SEG_BASE + (vir_addr)(addr)))
-
-#define sec2ms(s)           (s * 1000)                          /* 秒 转化为 毫秒 */
-#define tick2ms(t)          (t * ONE_TICK_MILLISECOND)          /* 滴答 转换为 毫秒 */
-#define tick2sec(t)         ((time_t)tick2ms(t) / 1000)          /* 滴答 转化为 秒 */
-
-/* 滴答 转换为 毫秒 */
-#define tick2ms(t)          (t * ONE_TICK_MILLISECOND)
-/* 滴答 转化为 秒 */
-#define tick2sec(t)         ((time_t)tick2ms(t) / 1000)
-/* 字节 转换为 KB */
-#define bytes2round_k(n)    ((unsigned) (((n + 512) >> 10)))
-
-/* 为了消息通信调用的简洁 */
-#define sen(n)              send(n, NIL_MESSAGE)
-#define rec(n)              receive(n, NIL_MESSAGE)
-#define sen_rec(n)          send_rec(n, NIL_MESSAGE)
-#define io_box(vir)         in_outbox(vir, vir);
 //======================================================================================================================
 
 
@@ -231,7 +202,6 @@
 #define	LED_CODE	0xED
 #define	KB_ACK		0xFA
 //======================================================================================================================
-
 
 
 //======================================================================================================================
@@ -285,6 +255,53 @@
 
 //======================================================================================================================
 //----------------------------------------------------------------------------------------------------------------------
+//  FS相关
+//----------------------------------------------------------------------------------------------------------------------
+#define	NR_FILES	    64
+#define	NR_FILE_DESC	64	/* FIXME */
+#define	NR_INODE	    64	/* FIXME */
+#define	NR_SUPER_BLOCK	8
+
+#define	INVALID_INODE	0
+#define	ROOT_INODE		1
+
+#define	NR_DEFAULT_FILE_SECTS	2048 /* 2048 * 512 = 1MB */
+
+/**
+ * Some sector are reserved for us (the gods of the os) to copy a tar file
+ * there, which will be extracted and used by the OS.
+ *
+ * @attention INSTALL_NR_SECTS should be a multiple of NR_DEFAULT_FILE_SECTS:
+ *                INSTALL_NR_SECTS = n * NR_DEFAULT_FILE_SECTS (n=1,2,3,...)
+ */
+#define	INSTALL_START_SECT		0x17000
+#define	INSTALL_NR_SECTS		0x800
+
+/*
+ * disk log
+ */
+#define ENABLE_DISK_LOG
+#define SET_LOG_SECT_SMAP_AT_STARTUP
+#define MEMSET_LOG_SECTS
+#define	NR_SECTS_FOR_LOG		NR_DEFAULT_FILE_SECTS
+
+/* INODE::i_mode (octal, lower 12 bits reserved) */
+#define I_TYPE_MASK     0170000	/* 该字段给出inode类型 */
+#define I_REGULAR       0100000	/* 常规文件，非目录或特殊文件 */
+#define I_BLOCK_SPECIAL 0060000	/* 块特殊文件 */
+#define I_DIRECTORY     0040000	/* 文件是一个目录 */
+#define I_CHAR_SPECIAL  0020000	/* 字符特殊设备 */
+#define I_NAMED_PIPE	0010000 /* 命名管道（FIFO） */
+#define RWX_MODES       0000777	/* RWX模式位 */
+#define R_BIT           0000004	/* Rwx保护位 */
+#define W_BIT           0000002	/* rWx保护位 */
+#define X_BIT           0000001	/* rwX保护位 */
+#define I_NOT_ALLOC     0000000	/* 这个索引节点是空闲的 */
+//======================================================================================================================
+
+
+//======================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------
 //  堆栈相关
 // 堆栈过大会出现 UP异常？难道c代码被优化了？
 //----------------------------------------------------------------------------------------------------------------------
@@ -307,6 +324,35 @@
 /* 所有系统进程的栈空间总大小 */
 #define TOTAL_TASK_STACK    (HARDWARE_STACK+IDLE_TASK_STACK+CLOCK_TASK_STACK+TTY_TASK_STACK+MM_TASK_STACK \
                             +HD_TASK_STACK+FS_TASK_STACK)
+//======================================================================================================================
+
+
+//======================================================================================================================
+//----------------------------------------------------------------------------------------------------------------------
+//  功能宏，宏的参数对类型不敏感，因此你不必考虑将何种数据类型传递给宏
+//----------------------------------------------------------------------------------------------------------------------
+#define MAX(a, b)   ((a) > (b) ? (a) : (b))
+#define MIN(a, b)   ((a) < (b) ? (a) : (b))
+
+/* 将内核空间中的虚拟地址转换为物理地址。其实这里的内核数据段基址还是0 */
+#define	vir2phys(addr)      ((phys_addr)(KERNEL_DATA_SEG_BASE + (vir_addr)(addr)))
+
+#define sec2ms(s)           (s * 1000)                          /* 秒 转化为 毫秒 */
+#define tick2ms(t)          (t * ONE_TICK_MILLISECOND)          /* 滴答 转换为 毫秒 */
+#define tick2sec(t)         ((time_t)tick2ms(t) / 1000)          /* 滴答 转化为 秒 */
+
+/* 滴答 转换为 毫秒 */
+#define tick2ms(t)          (t * ONE_TICK_MILLISECOND)
+/* 滴答 转化为 秒 */
+#define tick2sec(t)         ((time_t)tick2ms(t) / 1000)
+/* 字节 转换为 KB */
+#define bytes2round_k(n)    ((unsigned) (((n + 512) >> 10)))
+
+/* 为了消息通信调用的简洁 */
+#define sen(n)              send(n, NIL_MESSAGE)
+#define rec(n)              receive(n, NIL_MESSAGE)
+#define sen_rec(n)          send_rec(n, NIL_MESSAGE)
+#define io_box(vir)         in_outbox(vir, vir);
 //======================================================================================================================
 
 

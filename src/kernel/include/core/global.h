@@ -29,14 +29,14 @@ Process g_procs[NR_TASKS + NR_PROCS];   /* 进程表，记录系统所有进程 
  * 因为进程表的访问非常频繁,并且计算数组中的一个地址需要用到很慢的乘法操作，
  * 所以使用一个指向进程表项的指针数组p_proc_addr 来加快操作速度
  */
-Process* gp_procs[NR_TASKS + NR_PROCS];
+Process *gp_procs[NR_TASKS + NR_PROCS];
 
 /**
  * bill_proc指向正在对其CPU使用计费的进程。当一个用户进程调用文件系统,而文件系统正在运行
  * 时,curr_proc(在global.h中)指向文件系统进程,但是bill_proc将指向发出该调用的用户进程。因为文件系统使用的
  * CPU时间被作为调用者的系统时间来计费。
  */
-Process* gp_billProc;
+Process *gp_billProc;
 
 /**
  * 两个数组ready_head和ready_tail用来维护调度队列。例如,ready_head[TASK_Q]指向就绪任务队列中的第一个进程。
@@ -46,8 +46,8 @@ Process* gp_billProc;
  * ready_head[USER_QUEUE]：  就绪用户进程队列
  * 再举个例子，我们需要拿到用户进程队列的第3个进程，则应该这么拿：ready_head[USER_QUEUE]->next_ready->next_ready，简单吧？
  */
-Process* gp_readyHeads[NR_PROC_QUEUE];
-Process* gp_readyTails[NR_PROC_QUEUE];
+Process *gp_readyHeads[NR_PROC_QUEUE];
+Process *gp_readyTails[NR_PROC_QUEUE];
 
 struct process_s *gp_heldHead;      /* 中断挂起队列头指针 */
 struct process_s *gp_heldTail;      /* 中断挂起队列尾指针 */
@@ -55,7 +55,7 @@ struct process_s *gp_heldTail;      /* 中断挂起队列尾指针 */
 u8_t kernelReenter;                 /* 记录内核中断重入次数 */
 
 /* 所有系统进程堆栈的堆栈空间。 （声明为（char *）使其对齐。） */
-char* sysProcStack[TOTAL_TASK_STACK / sizeof(char *)];
+char *sysProcStack[TOTAL_TASK_STACK / sizeof(char *)];
 
 TTY ttys[NR_CONSOLES];
 CONSOLE consoles[NR_CONSOLES];
@@ -66,9 +66,21 @@ BootParam *gp_bootParam;            /* 引导参数指针 */
 aos_syscall level0Fn;               /* 提权成功的函数指针放在这里 */
 //int g_unparkPid;
 
+/* MM */
 int proc_in_use;                /* 有多少进程被标记为正在使用 */
 struct mm_process_s *curr_mp;    /* 指向一个当前正在处理的进程 */
 int mm_who;         /* 调用进程的进程逻辑号 */
 Message mmsg_in;     /* 传入的消息保存在这 */
+
+/* FS */
+struct file_desc f_desc_table[NR_FILE_DESC];
+struct inode inode_table[NR_INODE];
+struct super_block super_block[NR_SUPER_BLOCK];
+struct dev_drv_map dd_map[];
+u8_t *fsbuf;
+Message fs_msg;
+struct proc *pcaller;
+struct inode *root_inode;
+
 
 #endif // AOS_GLOBAL_H

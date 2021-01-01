@@ -21,42 +21,42 @@
 #define NR_PRIM_PER_DRIVE       (NR_PART_PER_DRIVE + 1)
 
 
-#define    MAX_PRIM        (MAX_DRIVES * NR_PRIM_PER_DRIVE - 1)
+#define MAX_PRIM                (MAX_DRIVES * NR_PRIM_PER_DRIVE - 1)
 
-#define    MAX_SUBPARTITIONS    (NR_SUB_PER_DRIVE * MAX_DRIVES)
+#define MAX_SUBPARTITIONS       (NR_SUB_PER_DRIVE * MAX_DRIVES)
 
-/* 主要设备编号*/                 /* 0不存在 */
-#define    DEV_FLOPPY            1   /* 软盘驱动 */
-#define    DEV_CDROM            2   /* 光盘驱动 */
-#define    DEV_HD                3   /* AT硬盘驱动 */
-#define    DEV_CHAR_TTY        4   /* 字符终端设备 */
-#define    DEV_SCSI            5   /* SCSI接口硬盘 */
+/* 主要设备编号*/
+#define	NO_DEV			        0   /* 0不存在 */
+#define DEV_FLOPPY              1   /* 软盘驱动 */
+#define DEV_CDROM               2   /* 光盘驱动 */
+#define DEV_HD                  3   /* AT硬盘驱动 */
+#define DEV_CHAR_TTY            4   /* 字符终端设备 */
+#define DEV_SCSI                5   /* SCSI接口硬盘 */
 
 /* 硬盘次设备号 */
-#define    MINOR_hd1a        0x10
-#define    MINOR_hd2a        (MINOR_hd1a + NR_SUB_PER_PART)
-#define    MINOR_hd2c        (MINOR_hd1a + NR_SUB_PER_PART + 2)
+#define MINOR_hd1a          0x10
+#define MINOR_hd2a          (MINOR_hd1a + NR_SUB_PER_PART)
+#define MINOR_hd2c          (MINOR_hd1a + NR_SUB_PER_PART + 2)
 /* boot的次设备号
  * 对应于src/boot/load.inc::ROOT_BASE，如果更改，请连同一起更改。
  */
-#define    MINOR_BOOT            MINOR_hd2c
+#define MINOR_BOOT          MINOR_hd2c
 
 /* 根据主号和次号进行设备编号 */
-#define    MAJOR_SHIFT            8
-#define    MAKE_DEV(a, b)        ((a << MAJOR_SHIFT) | b)
-#define    ROOT_DEV        MAKE_DEV(DEV_HD, MINOR_BOOT)
+#define MAJOR_SHIFT         8
+#define MAKE_DEV(a, b)      ((a << MAJOR_SHIFT) | b)
+#define ROOT_DEV            MAKE_DEV(DEV_HD, MINOR_BOOT)
 
 /* 这两个宏可以将主次设备号分开 */
-#define    MAJOR(x)        ((x >> MAJOR_SHIFT) & 0xFF)
-#define    MINOR(x)        (x & 0xFF)
+#define MAJOR(x)            ((x >> MAJOR_SHIFT) & 0xFF)
+#define MINOR(x)            (x & 0xFF)
 
-#define    P_PRIMARY    0
-#define    P_EXTENDED    1
+#define P_PRIMARY           0
+#define P_EXTENDED          1
 
-#define AOS_PART    102        /* AOS的分区结构 */
-#define NO_PART            0x00    /* 未使用的条目 */
-#define EXT_PART        0x05    /* 扩展分区 */
-
+#define AOS_PART            102         /* AOS的分区结构 */
+#define NO_PART             0x00        /* 未使用的条目 */
+#define EXT_PART            0x05        /* 扩展分区 */
 
 #define DEVICE_READ          3    /* 终端功能索引代码，从终端读取数据 */
 #define DEVICE_WRITE         4    /* 终端功能索引代码，写入数据到终端 */

@@ -77,7 +77,6 @@ typedef struct message_s{
 #define m6_f1   m_u.m_u6.m6f1
 
 
-
 #define m_exec_name     mmsg_in.m1_p1           /* 要执行的文件名 */
 #define m_exec_nlen     mmsg_in.m1_i1           /* 要执行的文件名长度 */
 #define m_pid		    mmsg_in.m1_i1           /* 进程号 */
@@ -100,10 +99,14 @@ typedef struct message_s{
 #define REQUEST         m2_i3	/* io控制请求代码 */
 #define POSITION        m2_l1	/* 分区内文件偏移地址 */
 #define ADDRESS         m2_p1	/* 进程地址空间起的缓冲区偏移地址 */
+#define	CNT		        m2_i2
+#define	BUF		        m2_p1
+#define	PID		        m2_i2
 
 /* 任务回复消息中使用的消息字段名称。 */
 #define REPLY_PROC_NR   m2_i1       /* 代表I/O完成的进程索引号 */
 #define REPLY_STATUS    m2_i2       /* 传输的字节数或错误号 */
+
 #define REPLY_LARGEST_PART_NR     m2_i3       /* 最大主分区的区号 */
 
 #endif //AOS_MESSAGE_H
