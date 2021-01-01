@@ -15,7 +15,8 @@ PRIVATE u8_t hdbuf[SECTOR_SIZE * 2];    /* 硬盘缓冲区，DMA也用它 */
 PRIVATE phys_addr hdbuf_phys;           /* 缓冲区的物理地址 */
 PRIVATE HDInfo hd_info[1];              /* 暂时只支持一个硬盘... */
 
-PRIVATE int largestPrimDeviceNR=0;     /*  最大块主分区索引 */
+PRIVATE int largestPrimDeviceNR = 0;     /*  最大块主分区索引，不包括扩展分区 */
+PRIVATE int largestLogicDeviceNR = 0;     /*  最大块逻辑分区索引 */
 
 /* 得到设备的驱动程序，一个分区对应一个设备 */
 #define DRIVER_OF_DEVICE(dev) (dev <= MAX_PRIM ? dev / NR_PRIM_PER_DRIVE : (dev - MINOR_hd1a) / NR_SUB_PER_DRIVE)
@@ -76,7 +77,7 @@ PUBLIC void at_winchester_task(void) {
         /* 得到请求者以及需要服务的进程编号 */
         caller = msg.source;
         proc_nr = msg.PROC_NR;
-        kprintf("caller:%d\n",caller);
+        kprintf("caller:%d\n", caller);
 
         /* 检查请求者是否合法：只能是文件系统或者其他的系统任务 */
         if (caller != FS_TASK && caller >= 0) {
@@ -89,8 +90,10 @@ PUBLIC void at_winchester_task(void) {
             /* DEVICE_OPEN(打开)、DEVICE_CLOSE(关闭)、DEVICE_IOCTL（设备io控制） */
             case DEVICE_OPEN:
                 rs = wini_do_open(msg.DEVICE);
-                /* 恢复当前驱动器内，容量最大的主分区号 */
-                msg.REPLY_LARGEST_PRIM_PART_NR=largestPrimDeviceNR;
+                /* 恢复当前驱动器内，容量最大的分区号 */
+                if (hd_info[0].primary[largestPrimDeviceNR].size > hd_info[0].logical[largestLogicDeviceNR].size)
+                    msg.REPLY_LARGEST_PART_NR = largestPrimDeviceNR;
+                else msg.REPLY_LARGEST_PART_NR = largestLogicDeviceNR;
                 break;
             case DEVICE_CLOSE:
                 rs = wini_do_close(msg.DEVICE);
@@ -125,7 +128,7 @@ PUBLIC void at_winchester_task(void) {
         msg.type = 60;
         msg.REPLY_PROC_NR = proc_nr;
         msg.REPLY_STATUS = rs;          /* 传输的字节数或错误代码 */
-        kprintf("caller:%d\n",caller);
+        kprintf("caller:%d\n", caller);
         send(caller, &msg);             /* 走你 */
     }
 }
@@ -214,7 +217,7 @@ PRIVATE int wini_identify(int drive) {
     hd_info[drive].primary[0].size = ((int) hdinfo[61] << 16) + hdinfo[60]; /* 硬盘总扇区数 */
 
     /* 现在可以启用中断了 */
-    if(intr_open == FALSE){
+    if (intr_open == FALSE) {
         put_irq_handler(AT_WINI_IRQ, wini_handler);
         enable_irq(CASCADE_IRQ);
         enable_irq(AT_WINI_IRQ);
@@ -286,8 +289,9 @@ PRIVATE void partition(int device, int style) {
             hdi->primary[dev_nr].size = part_tab[i].size;
             kprintf("primary: %d-{%d | %d}\n", dev_nr, hdi->primary[dev_nr].base, hdi->primary[dev_nr].size);
 
-            if(largestPrimDeviceNR==0||hdi->primary[dev_nr].size>hdi->primary[largestPrimDeviceNR].size)
-                largestPrimDeviceNR=dev_nr;
+            if (part_tab[i].sysind != EXT_PART &&
+                (largestPrimDeviceNR == 0 || hdi->primary[dev_nr].size > hdi->primary[largestPrimDeviceNR].size))
+                largestPrimDeviceNR = dev_nr;
 
             if (part_tab[i].sysind == EXT_PART) {    /* 扩展分区？继续获取分区 */
                 partition(device + dev_nr, P_EXTENDED);
@@ -311,6 +315,9 @@ PRIVATE void partition(int device, int style) {
 
             s = ext_start_sect + part_tab[1].lowsec;
             kprintf("logical: %d-{%d | %d}\n", dev_nr, hdi->logical[dev_nr].base, hdi->logical[dev_nr].size);
+
+            if (largestLogicDeviceNR == 0 || hdi->logical[dev_nr].size > hdi->logical[largestLogicDeviceNR].size)
+                largestLogicDeviceNR = dev_nr;
 
             /* 此扩展分区中不再有更多逻辑分区 */
             if (part_tab[1].sysind == NO_PART) break;
@@ -410,7 +417,8 @@ PRIVATE int wini_do_readwrite(Message *p_msg) {
 
     u32_t sect_nr = pos >> SECTOR_SIZE_SHIFT;  /* pos在分区内的扇区号 */
     int logidx = (p_msg->DEVICE - MINOR_hd1a) % NR_SUB_PER_DRIVE;
-    sect_nr += p_msg->DEVICE < MAX_PRIM ? hd_info[drive].primary[p_msg->DEVICE].base : hd_info[drive].logical[logidx].base;
+    sect_nr +=
+            p_msg->DEVICE < MAX_PRIM ? hd_info[drive].primary[p_msg->DEVICE].base : hd_info[drive].logical[logidx].base;
 
 //    kprintf("%d want to %s %d by %d | pos -> %u\n",
 //           msg->PROC_NR, msg->type == DEVICE_READ ? "read" : "write", msg->COUNT, drive, pos);
@@ -535,7 +543,7 @@ PRIVATE int wini_wait_for(int mask, int value) {
      */
 
     Message msgBackUp;              /* 备份消息，因为在与fs通信时，还要和clock通信，防止fs的消息丢失 */
-    msgBackUp=msg;
+    msgBackUp = msg;
 
     /* 得到当前时间 */
     time_t now = get_uptime();
@@ -546,14 +554,14 @@ PRIVATE int wini_wait_for(int mask, int value) {
 		 * 不超时，将一直循环，不忙了，返回代码1。
          */
         wini_status = in_byte(REG_STATUS);
-        if ((wini_status & mask) == value){
-            msg=msgBackUp;
+        if ((wini_status & mask) == value) {
+            msg = msgBackUp;
             return TRUE;
         }
         daze = get_uptime() - now;
     } while (daze < HD_TIMEOUT);
 
-    msg=msgBackUp;
+    msg = msgBackUp;
 
     /* 好了，这个控制器哑了，都超时了还在忙。重置他并返回状态0 */
     return FALSE;
@@ -564,7 +572,7 @@ PRIVATE clock_t get_uptime() {
 //    msg.type = GET_UPTIME;
 //    send_rec(CLOCK_TASK, &msg);
 //    clock_t time=msg.CLOCK_TIME;
-    clock_t time=clock_get_uptime();
+    clock_t time = clock_get_uptime();
     return time;
 }
 

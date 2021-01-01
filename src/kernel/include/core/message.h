@@ -104,6 +104,6 @@ typedef struct message_s{
 /* 任务回复消息中使用的消息字段名称。 */
 #define REPLY_PROC_NR   m2_i1       /* 代表I/O完成的进程索引号 */
 #define REPLY_STATUS    m2_i2       /* 传输的字节数或错误号 */
-#define REPLY_LARGEST_PRIM_PART_NR           m2_i3       /* 最大主分区的区号 */
+#define REPLY_LARGEST_PART_NR     m2_i3       /* 最大主分区的区号 */
 
 #endif //AOS_MESSAGE_H

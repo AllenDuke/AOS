@@ -29,7 +29,7 @@ PRIVATE void fs_init(){
     msg.type=DEVICE_OPEN;
     msg.DEVICE=0;
     send_rec(HD_TASK,&msg);
-    deviceNR=msg.REPLY_LARGEST_PRIM_PART_NR;
+    deviceNR=msg.REPLY_LARGEST_PART_NR;
 }
 
 /* 读取分析当前分区的引导扇区，检查是否为FAT32文件系统，如果不是，那么将当前分区格式化为FAT32文件系统 */

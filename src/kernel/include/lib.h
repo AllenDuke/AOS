@@ -16,4 +16,4 @@ void unpark(int pid); /* 调用者进程就绪一个进程号为pid的进程，�
 int send(int dest, Message* p_msg);
 int receive(int src, Message* p_msg);
 
-#endif //_FLYANX_SYSLIB_H
+#endif //AOS_LIB_H
