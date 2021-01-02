@@ -256,7 +256,7 @@ PRIVATE void hunter(void){
     register Process* prey;      /* 准备运行的进程 */
     if((prey = gp_readyHeads[TASK_QUEUE]) != NIL_PROC) {
         gp_curProc = prey;
-        kprintf("%s hunter\n", gp_curProc->name);
+//        kprintf("%s hunter\n", gp_curProc->name);
         return;
     }
     if((prey = gp_readyHeads[SERVER_QUEUE]) != NIL_PROC) {

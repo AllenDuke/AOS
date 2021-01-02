@@ -4,7 +4,6 @@
 
 #include "core/kernel.h"
 
-
 /* 系统进程表，包含系统任务以及系统服务 */
 SysProc sysProcs[] = {
         { tty_task, TTY_TASK_STACK, "TTY" },

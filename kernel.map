@@ -10,12 +10,13 @@ inode_table         0xb00             target/kernel/main.o
 sysProcStack        0x18c00           target/kernel/main.o
 proc_in_use         0x4               target/kernel/main.o
 g_procs             0x1fb0            target/kernel/main.o
+superBlocks         0x1e0             target/kernel/main.o
 g_tss               0x68              target/kernel/main.o
 gp_bootParam        0x4               target/kernel/main.o
 mm_who              0x4               target/kernel/main.o
 gp_idt              0x6               target/kernel/main.o
 pcaller             0x4               target/kernel/main.o
-dd_map              0x4               target/kernel/main.o
+dd_map              0x18              target/kernel/main.o
 mmsg_in             0x24              target/kernel/main.o
 gp_billProc         0x4               target/kernel/main.o
 mmProcs             0x900             target/kernel/mm.o
@@ -31,7 +32,6 @@ root_inode          0x4               target/kernel/main.o
 g_kernelMap         0x8               target/kernel/main.o
 g_irqHandlers       0x40              target/kernel/main.o
 nodes               0xbfff4           target/kernel/mm.o
-super_block         0x1e0             target/kernel/main.o
 g_gdt               0x160             target/kernel/main.o
 consoles            0x30              target/kernel/main.o
 curr_mp             0x4               target/kernel/main.o
@@ -197,7 +197,7 @@ LOAD target/lib/i386/ipc/ipc.o
 .plt
  *(.plt)
 
-.text           0x00100000     0x69a1
+.text           0x00100000     0x69b1
  *(.text .stub .text.* .gnu.linkonce.t.*)
  .text          0x00100000       0x3f target/kernel/kernel.o
                 0x00100000                _start
@@ -282,7 +282,7 @@ LOAD target/lib/i386/ipc/ipc.o
                 0x00101571                clock_get_uptime
                 0x0010105b                get_rtc_time
  *fill*         0x00101597        0x1 90909090
- .text          0x00101598      0x55c target/kernel/process.o
+ .text          0x00101598      0x542 target/kernel/process.o
                 0x0010199c                lock_hunter
                 0x001017f2                schedule_stop
                 0x001019b7                lock_ready
@@ -292,134 +292,134 @@ LOAD target/lib/i386/ipc/ipc.o
                 0x001019d8                lock_unready
                 0x00101801                interrupt
                 0x00101598                ready
- .text          0x00101af4      0x5d6 target/kernel/ipc.o
-                0x00102020                rm_proc_from_waiters
-                0x00101c41                aos_send
-                0x00101af4                sys_call
-                0x00101f34                aos_park
-                0x00101dff                aos_receive
-                0x00101f78                aos_unpark
- *fill*         0x001020ca        0x2 90909090
- .text          0x001020cc      0x324 target/kernel/dump.o
-                0x001020cc                proc_dump
-                0x001022f5                map_dump
- .text          0x001023f0      0x692 target/kernel/keyboard.o
-                0x001023f0                keyboard_handler
-                0x001024e7                keyboard_read
-                0x001024dd                kb_in_count
-                0x0010247d                init_keyboard
- *fill*         0x00102a82        0x2 90909090
- .text          0x00102a84      0x4f6 target/kernel/tty.o
-                0x00102b14                in_process
-                0x00102c29                is_cur_console
-                0x00102a84                tty_task
- *fill*         0x00102f7a        0x2 90909090
- .text          0x00102f7c      0x411 target/kernel/console.o
-                0x001031da                select_console
-                0x001030b9                init_screen
-                0x00103220                scroll_screen
-                0x00102f7c                out_char
- *fill*         0x0010338d        0x3 90909090
- .text          0x00103390       0x14 target/kernel/idle.o
-                0x00103390                idle_task
- .text          0x001033a4      0x56e target/kernel/alloc.o
-                0x00103494                alloc
-                0x001033a4                mem_init
-                0x001038eb                mem_dump
-                0x0010351d                free
- *fill*         0x00103912        0x2 90909090
- .text          0x00103914      0x11f target/kernel/mm.o
-                0x00103a0a                set_reply
-                0x00103914                mm_task
- *fill*         0x00103a33        0x1 90909090
- .text          0x00103a34      0x313 target/kernel/fork.o
-                0x00103a34                fork
- *fill*         0x00103d47        0x1 90909090
- .text          0x00103d48      0x15d target/kernel/mem_map.o
-                0x00103d48                new_mem_map
-                0x00103e56                get_mem_map
- *fill*         0x00103ea5        0x3 90909090
- .text          0x00103ea8      0x2ba target/kernel/exit.o
-                0x00104107                exit_cleanup
-                0x00103ea8                exit
- *fill*         0x00104162        0x2 90909090
- .text          0x00104164      0x101 target/kernel/wait.o
-                0x00104180                waitpid
-                0x00104164                wait
- *fill*         0x00104265        0x3 90909090
- .text          0x00104268     0x1102 target/kernel/at_wini.o
-                0x00104268                at_winchester_task
- *fill*         0x0010536a        0x2 90909090
- .text          0x0010536c      0xfdb target/kernel/fs.o
-                0x001057b1                get_super_block
-                0x00105800                get_inode
-                0x0010536c                fs_task
-                0x00106213                sync_inode
-                0x0010558a                rw_sector
-                0x0010598c                put_inode
- *fill*         0x00106347        0x1 90909090
- .text          0x00106348       0x81 target/lib/ansi/memcmp.o
-                0x00106348                memcmp
- *fill*         0x001063c9        0x3 90909090
- .text          0x001063cc      0x12b target/lib/ansi/cstring.o
-                0x001063cc                strncmp
-                0x00106472                strcmp
- *fill*         0x001064f7        0x1 90909090
- .text          0x001064f8      0x4a9 target/lib/stdio/kprintf.o
-                0x001064f8                kprintf
-                0x00106558                fmt_string
+ *fill*         0x00101ada        0x2 90909090
+ .text          0x00101adc      0x5d6 target/kernel/ipc.o
+                0x00102008                rm_proc_from_waiters
+                0x00101c29                aos_send
+                0x00101adc                sys_call
+                0x00101f1c                aos_park
+                0x00101de7                aos_receive
+                0x00101f60                aos_unpark
+ *fill*         0x001020b2        0x2 90909090
+ .text          0x001020b4      0x324 target/kernel/dump.o
+                0x001020b4                proc_dump
+                0x001022dd                map_dump
+ .text          0x001023d8      0x692 target/kernel/keyboard.o
+                0x001023d8                keyboard_handler
+                0x001024cf                keyboard_read
+                0x001024c5                kb_in_count
+                0x00102465                init_keyboard
+ *fill*         0x00102a6a        0x2 90909090
+ .text          0x00102a6c      0x4f6 target/kernel/tty.o
+                0x00102afc                in_process
+                0x00102c11                is_cur_console
+                0x00102a6c                tty_task
+ *fill*         0x00102f62        0x2 90909090
+ .text          0x00102f64      0x411 target/kernel/console.o
+                0x001031c2                select_console
+                0x001030a1                init_screen
+                0x00103208                scroll_screen
+                0x00102f64                out_char
+ *fill*         0x00103375        0x3 90909090
+ .text          0x00103378       0x14 target/kernel/idle.o
+                0x00103378                idle_task
+ .text          0x0010338c      0x56e target/kernel/alloc.o
+                0x0010347c                alloc
+                0x0010338c                mem_init
+                0x001038d3                mem_dump
+                0x00103505                free
+ *fill*         0x001038fa        0x2 90909090
+ .text          0x001038fc      0x11f target/kernel/mm.o
+                0x001039f2                set_reply
+                0x001038fc                mm_task
+ *fill*         0x00103a1b        0x1 90909090
+ .text          0x00103a1c      0x313 target/kernel/fork.o
+                0x00103a1c                fork
+ *fill*         0x00103d2f        0x1 90909090
+ .text          0x00103d30      0x15d target/kernel/mem_map.o
+                0x00103d30                new_mem_map
+                0x00103e3e                get_mem_map
+ *fill*         0x00103e8d        0x3 90909090
+ .text          0x00103e90      0x2ba target/kernel/exit.o
+                0x001040ef                exit_cleanup
+                0x00103e90                exit
+ *fill*         0x0010414a        0x2 90909090
+ .text          0x0010414c      0x101 target/kernel/wait.o
+                0x00104168                waitpid
+                0x0010414c                wait
+ *fill*         0x0010424d        0x3 90909090
+ .text          0x00104250     0x10f8 target/kernel/at_wini.o
+                0x00104250                at_winchester_task
+ .text          0x00105348     0x100f target/kernel/fs.o
+                0x001057c1                get_super_block
+                0x00105810                get_inode
+                0x00105348                fs_task
+                0x00106223                sync_inode
+                0x0010557f                rw_sector
+                0x0010599c                put_inode
+ *fill*         0x00106357        0x1 90909090
+ .text          0x00106358       0x81 target/lib/ansi/memcmp.o
+                0x00106358                memcmp
+ *fill*         0x001063d9        0x3 90909090
+ .text          0x001063dc      0x12b target/lib/ansi/cstring.o
+                0x001063dc                strncmp
+                0x00106482                strcmp
+ *fill*         0x00106507        0x1 90909090
+ .text          0x00106508      0x4a9 target/lib/stdio/kprintf.o
+                0x00106508                kprintf
+                0x00106568                fmt_string
  *(.text.*personality*)
  *(.gnu.warning)
 
 .fini
  *(.fini)
-                0x001069a1                PROVIDE (__etext, .)
-                0x001069a1                PROVIDE (_etext, .)
-                0x001069a1                PROVIDE (etext, .)
+                0x001069b1                PROVIDE (__etext, .)
+                0x001069b1                PROVIDE (_etext, .)
+                0x001069b1                PROVIDE (etext, .)
 
-.rodata         0x001069a8      0xda0
+.rodata         0x001069b8      0xdb0
  *(.rodata .rodata.* .gnu.linkonce.r.*)
- .rodata        0x001069a8       0x11 target/kernel/main.o
- .rodata        0x001069b9       0x1b target/kernel/init_c.o
- .rodata        0x001069d4      0x1f8 target/kernel/exception.o
- .rodata        0x00106bcc       0xb7 target/kernel/panic.o
- *fill*         0x00106c83        0x1 00
- .rodata        0x00106c84       0x25 target/kernel/i8259.o
- *fill*         0x00106ca9        0x3 00
- .rodata        0x00106cac       0xf2 target/kernel/clock.o
- .rodata        0x00106d9e       0x22 target/kernel/process.o
- .rodata        0x00106dc0       0x43 target/kernel/ipc.o
- *fill*         0x00106e03        0x1 00
- .rodata        0x00106e04       0xe4 target/kernel/dump.o
- .rodata        0x00106ee8       0x64 target/kernel/keyboard.o
- .rodata        0x00106f4c      0x108 target/kernel/tty.o
- .rodata        0x00107054       0x77 target/kernel/alloc.o
- *fill*         0x001070cb        0x1 00
- .rodata        0x001070cc       0x3c target/kernel/mm.o
- .rodata        0x00107108       0x40 target/kernel/fork.o
- .rodata        0x00107148       0x21 target/kernel/mem_map.o
- *fill*         0x00107169        0x3 00
- .rodata        0x0010716c       0x7b target/kernel/exit.o
- *fill*         0x001071e7        0x1 00
- .rodata        0x001071e8      0x273 target/kernel/at_wini.o
- *fill*         0x0010745b        0x1 00
- .rodata        0x0010745c      0x199 target/kernel/fs.o
- *fill*         0x001075f5        0x3 00
- .rodata        0x001075f8      0x150 target/lib/stdio/kprintf.o
+ .rodata        0x001069b8       0x11 target/kernel/main.o
+ .rodata        0x001069c9       0x1b target/kernel/init_c.o
+ .rodata        0x001069e4      0x1f8 target/kernel/exception.o
+ .rodata        0x00106bdc       0xb7 target/kernel/panic.o
+ *fill*         0x00106c93        0x1 00
+ .rodata        0x00106c94       0x25 target/kernel/i8259.o
+ *fill*         0x00106cb9        0x3 00
+ .rodata        0x00106cbc       0xf2 target/kernel/clock.o
+ .rodata        0x00106dae       0x17 target/kernel/process.o
+ *fill*         0x00106dc5        0x3 00
+ .rodata        0x00106dc8       0x43 target/kernel/ipc.o
+ *fill*         0x00106e0b        0x1 00
+ .rodata        0x00106e0c       0xe4 target/kernel/dump.o
+ .rodata        0x00106ef0       0x64 target/kernel/keyboard.o
+ .rodata        0x00106f54      0x108 target/kernel/tty.o
+ .rodata        0x0010705c       0x77 target/kernel/alloc.o
+ *fill*         0x001070d3        0x1 00
+ .rodata        0x001070d4       0x3c target/kernel/mm.o
+ .rodata        0x00107110       0x40 target/kernel/fork.o
+ .rodata        0x00107150       0x21 target/kernel/mem_map.o
+ *fill*         0x00107171        0x3 00
+ .rodata        0x00107174       0x7b target/kernel/exit.o
+ *fill*         0x001071ef        0x1 00
+ .rodata        0x001071f0      0x274 target/kernel/at_wini.o
+ .rodata        0x00107464      0x1b1 target/kernel/fs.o
+ *fill*         0x00107615        0x3 00
+ .rodata        0x00107618      0x150 target/lib/stdio/kprintf.o
 
-.lib            0x00107748       0xc0
- .lib           0x00107748       0x7e target/lib/ansi/string.o
-                0x00107798                strcpy
-                0x00107748                memcpy
-                0x00107774                memset
-                0x001077b0                strlen
- .lib           0x001077c6       0x42 target/lib/i386/ipc/ipc.o
-                0x001077de                send_rec
-                0x001077fe                park
-                0x001077c6                send
-                0x00107801                unpark
-                0x001077d2                receive
-                0x001077ea                in_outbox
+.lib            0x00107768       0xc0
+ .lib           0x00107768       0x7e target/lib/ansi/string.o
+                0x001077b8                strcpy
+                0x00107768                memcpy
+                0x00107794                memset
+                0x001077d0                strlen
+ .lib           0x001077e6       0x42 target/lib/i386/ipc/ipc.o
+                0x001077fe                send_rec
+                0x0010781e                park
+                0x001077e6                send
+                0x00107821                unpark
+                0x001077f2                receive
+                0x0010780a                in_outbox
 
 .rodata1
  *(.rodata1)
@@ -432,8 +432,8 @@ LOAD target/lib/i386/ipc/ipc.o
 
 .gcc_except_table
  *(.gcc_except_table .gcc_except_table.*)
-                0x00107808                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
-                0x00108808                . = (0x1000 DATA_SEGMENT_ALIGN 0x1000)
+                0x00107828                . = (ALIGN (0x1000) - ((0x1000 - .) & 0xfff))
+                0x00108828                . = (0x1000 DATA_SEGMENT_ALIGN 0x1000)
 
 .eh_frame
  *(.eh_frame)
@@ -448,22 +448,22 @@ LOAD target/lib/i386/ipc/ipc.o
  *(.tbss .tbss.* .gnu.linkonce.tb.*)
  *(.tcommon)
 
-.preinit_array  0x00108808        0x0
-                0x00108808                PROVIDE (__preinit_array_start, .)
+.preinit_array  0x00108828        0x0
+                0x00108828                PROVIDE (__preinit_array_start, .)
  *(.preinit_array)
-                0x00108808                PROVIDE (__preinit_array_end, .)
+                0x00108828                PROVIDE (__preinit_array_end, .)
 
-.init_array     0x00108808        0x0
-                0x00108808                PROVIDE (__init_array_start, .)
+.init_array     0x00108828        0x0
+                0x00108828                PROVIDE (__init_array_start, .)
  *(SORT(.init_array.*))
  *(.init_array)
-                0x00108808                PROVIDE (__init_array_end, .)
+                0x00108828                PROVIDE (__init_array_end, .)
 
-.fini_array     0x00108808        0x0
-                0x00108808                PROVIDE (__fini_array_start, .)
+.fini_array     0x00108828        0x0
+                0x00108828                PROVIDE (__fini_array_start, .)
  *(.fini_array)
  *(SORT(.fini_array.*))
-                0x00108808                PROVIDE (__fini_array_end, .)
+                0x00108828                PROVIDE (__fini_array_end, .)
 
 .ctors
  *crtbegin.o(.ctors)
@@ -491,139 +491,139 @@ LOAD target/lib/i386/ipc/ipc.o
 
 .got
  *(.got)
-                0x00108808                . = (. DATA_SEGMENT_RELRO_END 0xc)
+                0x00108828                . = (. DATA_SEGMENT_RELRO_END 0xc)
 
 .got.plt
  *(.got.plt)
 
-.data           0x00108820      0x9a6
+.data           0x00108840      0x9a6
  *(.data .data.* .gnu.linkonce.d.*)
- .data          0x00108820        0x1 target/kernel/kernel.o
- *fill*         0x00108821       0x1f 00
- .data          0x00108840       0xa8 target/kernel/main.o
-                0x00108840                sysProcs
- *fill*         0x001088e8       0x18 00
- .data          0x00108900      0x1b0 target/kernel/protect.o
-                0x00108900                s_initGateInfos
- .data          0x00108ab0        0x0 target/kernel/init_c.o
- *fill*         0x00108ab0       0x10 00
- .data          0x00108ac0       0x44 target/kernel/exception.o
- .data          0x00108b04        0x0 target/kernel/panic.o
- .data          0x00108b04        0x0 target/kernel/i8259.o
- *fill*         0x00108b04       0x1c 00
- .data          0x00108b20       0x50 target/kernel/clock.o
- .data          0x00108b70        0x0 target/kernel/process.o
- .data          0x00108b70        0x0 target/kernel/ipc.o
- .data          0x00108b70        0x8 target/kernel/dump.o
- *fill*         0x00108b78        0x8 00
- .data          0x00108b80      0x600 target/kernel/keyboard.o
-                0x00108b80                keyMap
- .data          0x00109180       0x20 target/kernel/tty.o
- .data          0x001091a0        0x0 target/kernel/console.o
- .data          0x001091a0        0x0 target/kernel/idle.o
- .data          0x001091a0        0x0 target/kernel/alloc.o
- .data          0x001091a0        0x0 target/kernel/mm.o
- .data          0x001091a0        0x4 target/kernel/fork.o
- .data          0x001091a4        0x0 target/kernel/mem_map.o
- .data          0x001091a4        0x0 target/kernel/exit.o
- .data          0x001091a4        0x0 target/kernel/wait.o
- .data          0x001091a4        0x0 target/kernel/at_wini.o
- .data          0x001091a4        0x0 target/kernel/fs.o
- .data          0x001091a4        0x0 target/lib/ansi/memcmp.o
- .data          0x001091a4        0x0 target/lib/ansi/cstring.o
- .data          0x001091a4       0x22 target/lib/stdio/kprintf.o
+ .data          0x00108840        0x1 target/kernel/kernel.o
+ *fill*         0x00108841       0x1f 00
+ .data          0x00108860       0xa8 target/kernel/main.o
+                0x00108860                sysProcs
+ *fill*         0x00108908       0x18 00
+ .data          0x00108920      0x1b0 target/kernel/protect.o
+                0x00108920                s_initGateInfos
+ .data          0x00108ad0        0x0 target/kernel/init_c.o
+ *fill*         0x00108ad0       0x10 00
+ .data          0x00108ae0       0x44 target/kernel/exception.o
+ .data          0x00108b24        0x0 target/kernel/panic.o
+ .data          0x00108b24        0x0 target/kernel/i8259.o
+ *fill*         0x00108b24       0x1c 00
+ .data          0x00108b40       0x50 target/kernel/clock.o
+ .data          0x00108b90        0x0 target/kernel/process.o
+ .data          0x00108b90        0x0 target/kernel/ipc.o
+ .data          0x00108b90        0x8 target/kernel/dump.o
+ *fill*         0x00108b98        0x8 00
+ .data          0x00108ba0      0x600 target/kernel/keyboard.o
+                0x00108ba0                keyMap
+ .data          0x001091a0       0x20 target/kernel/tty.o
+ .data          0x001091c0        0x0 target/kernel/console.o
+ .data          0x001091c0        0x0 target/kernel/idle.o
+ .data          0x001091c0        0x0 target/kernel/alloc.o
+ .data          0x001091c0        0x0 target/kernel/mm.o
+ .data          0x001091c0        0x4 target/kernel/fork.o
+ .data          0x001091c4        0x0 target/kernel/mem_map.o
+ .data          0x001091c4        0x0 target/kernel/exit.o
+ .data          0x001091c4        0x0 target/kernel/wait.o
+ .data          0x001091c4        0x0 target/kernel/at_wini.o
+ .data          0x001091c4        0x0 target/kernel/fs.o
+ .data          0x001091c4        0x0 target/lib/ansi/memcmp.o
+ .data          0x001091c4        0x0 target/lib/ansi/cstring.o
+ .data          0x001091c4       0x22 target/lib/stdio/kprintf.o
  *(.gnu.linkonce.d.*personality*)
 
 .data1
  *(.data1)
-                0x001091c6                _edata = .
-                0x001091c6                PROVIDE (edata, .)
-                0x001091c6                __bss_start = .
+                0x001091e6                _edata = .
+                0x001091e6                PROVIDE (edata, .)
+                0x001091e6                __bss_start = .
 
-.bss            0x001091e0    0xdedd4
+.bss            0x00109200    0xdedf4
  *(.dynbss)
  *(.bss .bss.* .gnu.linkonce.b.*)
- .bss           0x001091e0      0x800 target/kernel/kernel.o
-                0x001099e0                STACK_TOP
- .bss           0x001099e0        0x0 target/kernel/main.o
- .bss           0x001099e0      0x4a8 target/kernel/protect.o
- .bss           0x00109e88        0x0 target/kernel/init_c.o
- .bss           0x00109e88        0x0 target/kernel/exception.o
- .bss           0x00109e88        0x0 target/kernel/panic.o
- .bss           0x00109e88        0x0 target/kernel/i8259.o
- *fill*         0x00109e88       0x18 00
- .bss           0x00109ea0       0x50 target/kernel/clock.o
- .bss           0x00109ef0        0x1 target/kernel/process.o
- *fill*         0x00109ef1        0xf 00
- .bss           0x00109f00       0xdc target/kernel/ipc.o
- .bss           0x00109fdc        0x0 target/kernel/dump.o
- *fill*         0x00109fdc        0x4 00
- .bss           0x00109fe0       0x84 target/kernel/keyboard.o
- *fill*         0x0010a064       0x1c 00
- .bss           0x0010a080      0x160 target/kernel/tty.o
- .bss           0x0010a1e0        0x0 target/kernel/console.o
- .bss           0x0010a1e0        0x0 target/kernel/idle.o
- .bss           0x0010a1e0        0x8 target/kernel/alloc.o
- *fill*         0x0010a1e8       0x18 00
- .bss           0x0010a200       0x24 target/kernel/mm.o
- .bss           0x0010a224        0x0 target/kernel/fork.o
- .bss           0x0010a224        0x0 target/kernel/mem_map.o
- .bss           0x0010a224        0x0 target/kernel/exit.o
- .bss           0x0010a224        0x0 target/kernel/wait.o
- *fill*         0x0010a224       0x1c 00
- .bss           0x0010a240      0x6ac target/kernel/at_wini.o
- *fill*         0x0010a8ec       0x14 00
- .bss           0x0010a900       0x28 target/kernel/fs.o
- .bss           0x0010a928        0x0 target/lib/ansi/memcmp.o
- .bss           0x0010a928        0x0 target/lib/ansi/cstring.o
- *fill*         0x0010a928       0x18 00
- .bss           0x0010a940       0xa0 target/lib/stdio/kprintf.o
+ .bss           0x00109200      0x800 target/kernel/kernel.o
+                0x00109a00                STACK_TOP
+ .bss           0x00109a00        0x0 target/kernel/main.o
+ .bss           0x00109a00      0x4a8 target/kernel/protect.o
+ .bss           0x00109ea8        0x0 target/kernel/init_c.o
+ .bss           0x00109ea8        0x0 target/kernel/exception.o
+ .bss           0x00109ea8        0x0 target/kernel/panic.o
+ .bss           0x00109ea8        0x0 target/kernel/i8259.o
+ *fill*         0x00109ea8       0x18 00
+ .bss           0x00109ec0       0x50 target/kernel/clock.o
+ .bss           0x00109f10        0x1 target/kernel/process.o
+ *fill*         0x00109f11        0xf 00
+ .bss           0x00109f20       0xdc target/kernel/ipc.o
+ .bss           0x00109ffc        0x0 target/kernel/dump.o
+ *fill*         0x00109ffc        0x4 00
+ .bss           0x0010a000       0x84 target/kernel/keyboard.o
+ *fill*         0x0010a084       0x1c 00
+ .bss           0x0010a0a0      0x160 target/kernel/tty.o
+ .bss           0x0010a200        0x0 target/kernel/console.o
+ .bss           0x0010a200        0x0 target/kernel/idle.o
+ .bss           0x0010a200        0x8 target/kernel/alloc.o
+ *fill*         0x0010a208       0x18 00
+ .bss           0x0010a220       0x24 target/kernel/mm.o
+ .bss           0x0010a244        0x0 target/kernel/fork.o
+ .bss           0x0010a244        0x0 target/kernel/mem_map.o
+ .bss           0x0010a244        0x0 target/kernel/exit.o
+ .bss           0x0010a244        0x0 target/kernel/wait.o
+ *fill*         0x0010a244       0x1c 00
+ .bss           0x0010a260      0x6ac target/kernel/at_wini.o
+ *fill*         0x0010a90c       0x14 00
+ .bss           0x0010a920       0x28 target/kernel/fs.o
+ .bss           0x0010a948        0x0 target/lib/ansi/memcmp.o
+ .bss           0x0010a948        0x0 target/lib/ansi/cstring.o
+ *fill*         0x0010a948       0x18 00
+ .bss           0x0010a960       0xa0 target/lib/stdio/kprintf.o
  *(COMMON)
- COMMON         0x0010a9e0    0x1ccd4 target/kernel/main.o
-                0x0010a9e0                level0Fn
-                0x0010a9e4                gp_readyHeads
-                0x0010a9f0                gp_curProc
-                0x0010a9f4                gp_heldHead
-                0x0010aa00                inode_table
-                0x0010b500                sysProcStack
-                0x00124100                proc_in_use
-                0x00124120                g_procs
-                0x001260e0                g_tss
-                0x00126148                gp_bootParam
-                0x0012614c                mm_who
-                0x00126150                gp_idt
-                0x00126158                pcaller
-                0x0012615c                dd_map
-                0x00126160                mmsg_in
-                0x00126184                gp_billProc
-                0x00126188                nrCurConsole
-                0x001261a0                fs_msg
-                0x001261e0                f_desc_table
-                0x001265e0                g_dispPosition
-                0x001265e4                kernelReenter
-                0x00126600                gp_procs
-                0x0012669c                fsbuf
-                0x001266a0                gp_gdt
-                0x001266a8                root_inode
-                0x001266ac                g_kernelMap
-                0x001266c0                g_irqHandlers
-                0x00126700                super_block
-                0x001268e0                g_gdt
-                0x00126a40                consoles
-                0x00126a70                curr_mp
-                0x00126a74                gp_readyTails
-                0x00126a80                ttys
-                0x001276b0                gp_heldTail
- *fill*         0x001276b4        0xc 00
- COMMON         0x001276c0    0xc08f4 target/kernel/mm.o
-                0x001276c0                mmProcs
-                0x00127fc0                nodes
-                0x001e7fb4                . = ALIGN ((. != 0x0)?0x4:0x1)
-                0x001e7fb4                . = ALIGN (0x4)
-                0x001e7fb4                . = ALIGN (0x4)
-                0x001e7fb4                _end = .
-                0x001e7fb4                PROVIDE (end, .)
-                0x001e7fb4                . = DATA_SEGMENT_END (.)
+ COMMON         0x0010aa00    0x1ccf4 target/kernel/main.o
+                0x0010aa00                level0Fn
+                0x0010aa04                gp_readyHeads
+                0x0010aa10                gp_curProc
+                0x0010aa14                gp_heldHead
+                0x0010aa20                inode_table
+                0x0010b520                sysProcStack
+                0x00124120                proc_in_use
+                0x00124140                g_procs
+                0x00126100                superBlocks
+                0x001262e0                g_tss
+                0x00126348                gp_bootParam
+                0x0012634c                mm_who
+                0x00126350                gp_idt
+                0x00126358                pcaller
+                0x0012635c                dd_map
+                0x00126380                mmsg_in
+                0x001263a4                gp_billProc
+                0x001263a8                nrCurConsole
+                0x001263c0                fs_msg
+                0x00126400                f_desc_table
+                0x00126800                g_dispPosition
+                0x00126804                kernelReenter
+                0x00126820                gp_procs
+                0x001268bc                fsbuf
+                0x001268c0                gp_gdt
+                0x001268c8                root_inode
+                0x001268cc                g_kernelMap
+                0x001268e0                g_irqHandlers
+                0x00126920                g_gdt
+                0x00126a80                consoles
+                0x00126ab0                curr_mp
+                0x00126ab4                gp_readyTails
+                0x00126ac0                ttys
+                0x001276f0                gp_heldTail
+ *fill*         0x001276f4        0xc 00
+ COMMON         0x00127700    0xc08f4 target/kernel/mm.o
+                0x00127700                mmProcs
+                0x00128000                nodes
+                0x001e7ff4                . = ALIGN ((. != 0x0)?0x4:0x1)
+                0x001e7ff4                . = ALIGN (0x4)
+                0x001e7ff4                . = ALIGN (0x4)
+                0x001e7ff4                _end = .
+                0x001e7ff4                PROVIDE (end, .)
+                0x001e7ff4                . = DATA_SEGMENT_END (.)
 
 .stab
  *(.stab)

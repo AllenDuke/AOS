@@ -75,8 +75,8 @@ Message mmsg_in;     /* 传入的消息保存在这 */
 /* FS */
 struct file_desc f_desc_table[NR_FILE_DESC];
 struct inode inode_table[NR_INODE];
-struct super_block super_block[NR_SUPER_BLOCK];
-struct dev_drv_map dd_map[];
+struct super_block superBlocks[NR_SUPER_BLOCK];
+struct dev_drv_map dd_map[6];
 u8_t *fsbuf;
 Message fs_msg;
 struct proc *pcaller;

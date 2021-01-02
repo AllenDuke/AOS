@@ -77,7 +77,6 @@ PUBLIC void at_winchester_task(void) {
         /* 得到请求者以及需要服务的进程编号 */
         caller = msg.source;
         proc_nr = msg.PROC_NR;
-        kprintf("caller:%d\n", caller);
 
         /* 检查请求者是否合法：只能是文件系统或者其他的系统任务 */
         if (caller != FS_TASK && caller >= 0) {
@@ -128,7 +127,6 @@ PUBLIC void at_winchester_task(void) {
         msg.type = 60;
         msg.REPLY_PROC_NR = proc_nr;
         msg.REPLY_STATUS = rs;          /* 传输的字节数或错误代码 */
-        kprintf("caller:%d\n", caller);
         send(caller, &msg);             /* 走你 */
     }
 }
@@ -174,7 +172,7 @@ PRIVATE void init_params(void) {
  */
 PRIVATE int wini_do_open(int device) {
     int drive = DRIVER_OF_DEVICE(device);
-    if (device != 0) panic("device only be 0\n", PANIC_ERR_NUM); /* 现在只能处理一个硬盘，所以drive只能为0 */
+    if (drive != 0) panic("device only be 0\n", drive); /* 现在只能处理一个硬盘，所以drive只能为0 */
 
     wini_identify(drive);
 
@@ -421,7 +419,7 @@ PRIVATE int wini_do_readwrite(Message *p_msg) {
             p_msg->DEVICE < MAX_PRIM ? hd_info[drive].primary[p_msg->DEVICE].base : hd_info[drive].logical[logidx].base;
 
 //    kprintf("%d want to %s %d by %d | pos -> %u\n",
-//           msg->PROC_NR, msg->type == DEVICE_READ ? "read" : "write", msg->COUNT, drive, pos);
+//            p_msg->PROC_NR, p_msg->type == DEVICE_READ ? "read" : "write", p_msg->COUNT, drive, pos);
 
     /* 发出读/写命令，告诉驱动器开始读/写了。 */
     Command cmd;
@@ -462,6 +460,7 @@ PRIVATE int wini_do_readwrite(Message *p_msg) {
         }
         return p_msg->COUNT - left;   /* 成功返回读写的字节总量 */
     }
+    kprintf("io error\n");
     return EIO;
 }
 
@@ -588,7 +587,8 @@ PRIVATE int cmd_out(Command *cmd) {
      * 等待如果超时，系统无法继续。
      */
     if (!wini_wait_for(STATUS_BSY, 0)) {
-        panic("%s: controller no response", PANIC_ERR_NUM);
+        panic("%s: controller no response\n", PANIC_ERR_NUM);
+        return -1;
     }
 
     /**

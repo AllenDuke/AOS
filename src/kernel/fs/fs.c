@@ -33,11 +33,19 @@ PUBLIC void fs_task(void) {
 PRIVATE void fs_init() {
     in_outbox(&msg, &msg);
     /* 打开0号主设备 */
-    msg.source = FS_TASK;
-    msg.type = DEVICE_OPEN;
-    msg.DEVICE = 0;
-    send_rec(HD_TASK, &msg);
-    deviceNR = msg.REPLY_LARGEST_PART_NR;
+//    msg.source = FS_TASK;
+//    msg.type = DEVICE_OPEN;
+//    msg.DEVICE = 0;
+//    send_rec(HD_TASK, &msg);
+//    deviceNR = msg.REPLY_LARGEST_PART_NR;
+
+    dd_map[0].driver_nr=INVALID_DRIVER;
+    dd_map[1].driver_nr=INVALID_DRIVER;
+    dd_map[2].driver_nr=INVALID_DRIVER;
+    dd_map[3].driver_nr=HD_TASK;
+    dd_map[4].driver_nr=TTY_TASK;
+    dd_map[5].driver_nr=INVALID_DRIVER;
+
 
     /* f_desc_table[] */
     for (int i = 0; i < NR_FILE_DESC; i++)
@@ -48,14 +56,15 @@ PRIVATE void fs_init() {
         memset(&inode_table[i], 0, sizeof(struct inode));
 
     /* super_block[] */
-    struct super_block *sb = super_block;
-    for (; sb < &super_block[NR_SUPER_BLOCK]; sb++)
+    struct super_block *sb = superBlocks;
+    for (; sb < &superBlocks[NR_SUPER_BLOCK]; sb++)
         sb->sb_dev = NO_DEV;
 
     /* open the device: hard disk */
     Message driver_msg;
     driver_msg.type = DEVICE_OPEN;
     driver_msg.DEVICE = MINOR(ROOT_DEV);
+    kprintf("device:%d\n",MAJOR(ROOT_DEV));
 //    assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
     if (dd_map[MAJOR(ROOT_DEV)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
     send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
@@ -66,9 +75,10 @@ PRIVATE void fs_init() {
     sb = (struct super_block *) fsbuf;
     if (sb->magic != MAGIC_V1) {
         kprintf("{FS} mkfs\n");
+
         mkfs(); /* make FS */
     }
-
+    park();
     /* load super block of ROOT */
     read_super_block(ROOT_DEV);
 
@@ -106,6 +116,7 @@ PUBLIC int rw_sector(int io_type, int dev, u64_t pos, int bytes, int proc_nr,
     driver_msg.PROC_NR = proc_nr;
 //    assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
     if (dd_map[MAJOR(dev)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
+
     send_rec(dd_map[MAJOR(dev)].driver_nr, &driver_msg);
 
     return 0;
@@ -132,11 +143,13 @@ PRIVATE void read_super_block(int dev) {
     driver_msg.PROC_NR = FS_TASK;
 //    assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
     if (dd_map[MAJOR(dev)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
+    kprintf("MAJOR(dev):%d\n",MAJOR(dev));
     send_rec(dd_map[MAJOR(dev)].driver_nr, &driver_msg);
+
 
     /* find a free slot in super_block[] */
     for (i = 0; i < NR_SUPER_BLOCK; i++)
-        if (super_block[i].sb_dev == NO_DEV)
+        if (superBlocks[i].sb_dev == NO_DEV)
             break;
     if (i == NR_SUPER_BLOCK)
         panic("super_block slots used up", PANIC_ERR_NUM);
@@ -146,8 +159,8 @@ PRIVATE void read_super_block(int dev) {
 
     struct super_block *psb = (struct super_block *) fsbuf;
 
-    super_block[i] = *psb;
-    super_block[i].sb_dev = dev;
+    superBlocks[i] = *psb;
+    superBlocks[i].sb_dev = dev;
 }
 
 
@@ -162,8 +175,8 @@ PRIVATE void read_super_block(int dev) {
  * @return Super block ptr.
  *****************************************************************************/
 PUBLIC struct super_block *get_super_block(int dev) {
-    struct super_block *sb = super_block;
-    for (; sb < &super_block[NR_SUPER_BLOCK]; sb++)
+    struct super_block *sb = superBlocks;
+    for (; sb < &superBlocks[NR_SUPER_BLOCK]; sb++)
         if (sb->sb_dev == dev)
             return sb;
 
