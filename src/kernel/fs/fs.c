@@ -7,6 +7,8 @@
 PRIVATE Message msg;
 PRIVATE int deviceNR; /* 当前文件系统所在的分区，一个分区对应一个设备。这里去主硬盘中的最大分区 */
 
+const int FSBUF_SIZE = 0x100000;
+
 PRIVATE void fs_init();
 
 PRIVATE void check_format_FAT32();
@@ -23,7 +25,6 @@ PUBLIC void fs_task(void) {
 
     kprintf("fs_task working...\n");
     fs_init();
-    kprintf("<fs>: cur device num is:%d\n", deviceNR);
 
     while (TRUE) {
         rec(ANY);
@@ -32,12 +33,6 @@ PUBLIC void fs_task(void) {
 
 PRIVATE void fs_init() {
     in_outbox(&msg, &msg);
-    /* 打开0号主设备 */
-//    msg.source = FS_TASK;
-//    msg.type = DEVICE_OPEN;
-//    msg.DEVICE = 0;
-//    send_rec(HD_TASK, &msg);
-//    deviceNR = msg.REPLY_LARGEST_PART_NR;
 
     dd_map[0].driver_nr=INVALID_DRIVER;
     dd_map[1].driver_nr=INVALID_DRIVER;
@@ -46,47 +41,92 @@ PRIVATE void fs_init() {
     dd_map[4].driver_nr=TTY_TASK;
     dd_map[5].driver_nr=INVALID_DRIVER;
 
+    /* 打开0号主设备 */
+    msg.source = FS_TASK;
+    msg.type = DEVICE_OPEN;
+    msg.DEVICE = 0;
+    send_rec(HD_TASK, &msg);
+    deviceNR = msg.REPLY_LARGEST_PART_NR;
+    kprintf("<fs>: cur device num is:%d\n", deviceNR);
 
-    /* f_desc_table[] */
-    for (int i = 0; i < NR_FILE_DESC; i++)
-        memset(&f_desc_table[i], 0, sizeof(struct file_desc));
+    /* 9MB~10MB: buffer for FS */
+    fsbuf = (u8_t *) 0x900000;
 
-    /* inode_table[] */
-    for (int i = 0; i < NR_INODE; i++)
-        memset(&inode_table[i], 0, sizeof(struct inode));
+    deviceNR=ROOT_DEV;
 
-    /* super_block[] */
-    struct super_block *sb = superBlocks;
-    for (; sb < &superBlocks[NR_SUPER_BLOCK]; sb++)
-        sb->sb_dev = NO_DEV;
-
-    /* open the device: hard disk */
-    Message driver_msg;
-    driver_msg.type = DEVICE_OPEN;
-    driver_msg.DEVICE = MINOR(ROOT_DEV);
-    kprintf("device:%d\n",MAJOR(ROOT_DEV));
-//    assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
-    if (dd_map[MAJOR(ROOT_DEV)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
-    send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
-
-    /* read the super block of ROOT DEVICE */
-    RD_SECT(ROOT_DEV, 1);
-
-    sb = (struct super_block *) fsbuf;
-    if (sb->magic != MAGIC_V1) {
-        kprintf("{FS} mkfs\n");
-
-        mkfs(); /* make FS */
+    RD_SECT(deviceNR,1);
+    for (int i = 0; i < 512; ++i) {
+        kprintf("%d ",*fsbuf);
+        fsbuf++;
     }
-    park();
-    /* load super block of ROOT */
-    read_super_block(ROOT_DEV);
+    kprintf("\n");
 
-    sb = get_super_block(ROOT_DEV);
-//    assert(sb->magic == MAGIC_V1);
-    if (sb->magic != MAGIC_V1) panic("the magic num in super block err", PANIC_ERR_NUM);
+    fsbuf = (u8_t *) 0x900000;
+    for (int i = 0; i < 512; ++i) {
+        *fsbuf=i;
+        fsbuf++;
+    }
+    fsbuf = (u8_t *) 0x900000;
+    WR_SECT(deviceNR,1);
 
-    root_inode = get_inode(ROOT_DEV, ROOT_INODE);
+    for (int i = 0; i < 512; ++i) {
+        *fsbuf=0;
+        kprintf("%d ",*fsbuf);
+        fsbuf++;
+    }
+    kprintf("\n");
+
+    fsbuf = (u8_t *) 0x900000;
+    RD_SECT(deviceNR,1);
+    for (int i = 0; i < 512; ++i) {
+        kprintf("%d ",*fsbuf);
+        fsbuf++;
+    }
+    kprintf("\n");
+
+
+//
+//
+//    /* f_desc_table[] */
+//    for (int i = 0; i < NR_FILE_DESC; i++)
+//        memset(&f_desc_table[i], 0, sizeof(struct file_desc));
+//
+//    /* inode_table[] */
+//    for (int i = 0; i < NR_INODE; i++)
+//        memset(&inode_table[i], 0, sizeof(struct inode));
+//
+//    /* super_block[] */
+//    struct super_block *sb = superBlocks;
+//    for (; sb < &superBlocks[NR_SUPER_BLOCK]; sb++)
+//        sb->sb_dev = NO_DEV;
+//
+//    /* open the device: hard disk */
+//    Message driver_msg;
+//    driver_msg.type = DEVICE_OPEN;
+//    driver_msg.DEVICE = MINOR(ROOT_DEV);
+//    kprintf("device:%d\n",MAJOR(ROOT_DEV));
+////    assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
+//    if (dd_map[MAJOR(ROOT_DEV)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
+//    send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
+//
+//    /* read the super block of ROOT DEVICE */
+//    RD_SECT(ROOT_DEV, 1);
+//
+//    sb = (struct super_block *) fsbuf;
+//    if (sb->magic != MAGIC_V1) {
+//        kprintf("{FS} mkfs\n");
+//
+//        mkfs(); /* make FS */
+//    }
+//    park();
+//    /* load super block of ROOT */
+//    read_super_block(ROOT_DEV);
+//
+//    sb = get_super_block(ROOT_DEV);
+////    assert(sb->magic == MAGIC_V1);
+//    if (sb->magic != MAGIC_V1) panic("the magic num in super block err", PANIC_ERR_NUM);
+//
+//    root_inode = get_inode(ROOT_DEV, ROOT_INODE);
 }
 
 /*****************************************************************************
@@ -109,13 +149,13 @@ PUBLIC int rw_sector(int io_type, int dev, u64_t pos, int bytes, int proc_nr,
     Message driver_msg;
 
     driver_msg.type = io_type;
-    driver_msg.DEVICE = MINOR(dev);
+    driver_msg.DEVICE = MINOR(dev); /* 传入次设备号 */
     driver_msg.POSITION = pos;
     driver_msg.BUF = buf;
     driver_msg.CNT = bytes;
     driver_msg.PROC_NR = proc_nr;
 //    assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
-    if (dd_map[MAJOR(dev)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
+    if (dd_map[MAJOR(dev)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", MAJOR(dev));
 
     send_rec(dd_map[MAJOR(dev)].driver_nr, &driver_msg);
 
@@ -143,7 +183,7 @@ PRIVATE void read_super_block(int dev) {
     driver_msg.PROC_NR = FS_TASK;
 //    assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
     if (dd_map[MAJOR(dev)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
-    kprintf("MAJOR(dev):%d\n",MAJOR(dev));
+    kprintf("MAJOR(dev):%d\n", MAJOR(dev));
     send_rec(dd_map[MAJOR(dev)].driver_nr, &driver_msg);
 
 
@@ -326,18 +366,18 @@ PRIVATE void mkfs() {
     for (i = 0; i < (NR_CONSOLES + 3); i++)
         fsbuf[0] |= 1 << i;
 
-    if(fsbuf[0] != 0x3F) panic("fsbuf[0] err\n",PANIC_ERR_NUM);
+    if (fsbuf[0] != 0x3F) panic("fsbuf[0] err\n", PANIC_ERR_NUM);
 //    assert(fsbuf[0] == 0x3F);
-                                /* 0011 1111 :
-				  *   || ||||
-				  *   || |||`--- bit 0 : reserved
-				  *   || ||`---- bit 1 : the first inode,
-				  *   || ||              which indicates `/'
-				  *   || |`----- bit 2 : /dev_tty0
-				  *   || `------ bit 3 : /dev_tty1
-				  *   |`-------- bit 4 : /dev_tty2
-				  *   `--------- bit 5 : /cmd.tar
-				  */
+    /* 0011 1111 :
+*   || ||||
+*   || |||`--- bit 0 : reserved
+*   || ||`---- bit 1 : the first inode,
+*   || ||              which indicates `/'
+*   || |`----- bit 2 : /dev_tty0
+*   || `------ bit 3 : /dev_tty1
+*   |`-------- bit 4 : /dev_tty2
+*   `--------- bit 5 : /cmd.tar
+*/
     WR_SECT(ROOT_DEV, 2);
 
     /************************/
@@ -365,8 +405,8 @@ PRIVATE void mkfs() {
     /* cmd.tar */
     /* make sure it'll not be overwritten by the disk log */
 //    assert(INSTALL_START_SECT + INSTALL_NR_SECTS < sb.nr_sects - NR_SECTS_FOR_LOG);
-    if(INSTALL_START_SECT + INSTALL_NR_SECTS >= sb.nr_sects - NR_SECTS_FOR_LOG)
-        panic("mkfs err\n",PANIC_ERR_NUM);
+    if (INSTALL_START_SECT + INSTALL_NR_SECTS >= sb.nr_sects - NR_SECTS_FOR_LOG)
+        panic("mkfs err\n", PANIC_ERR_NUM);
     int bit_offset = INSTALL_START_SECT - sb.n_1st_sect + 1; /* sect M <-> bit (M - sb.n_1stsect + 1) */
     int bit_off_in_sect = bit_offset % (SECTOR_SIZE * 8);
     int bit_left = INSTALL_NR_SECTS;

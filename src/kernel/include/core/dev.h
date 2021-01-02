@@ -29,7 +29,7 @@
 #define	NO_DEV			        0   /* 0不存在 */
 #define DEV_FLOPPY              1   /* 软盘驱动 */
 #define DEV_CDROM               2   /* 光盘驱动 */
-#define DEV_HD                  3   /* AT硬盘驱动 */
+#define DEV_HD                  3   /* AT硬盘驱动，如果有两个硬盘称其为主从 */
 #define DEV_CHAR_TTY            4   /* 字符终端设备 */
 #define DEV_SCSI                5   /* SCSI接口硬盘 */
 
@@ -44,7 +44,7 @@
 
 /* 根据主号和次号进行设备编号 */
 #define MAJOR_SHIFT         8
-#define MAKE_DEV(a, b)      ((a << MAJOR_SHIFT) | b)
+#define MAKE_DEV(a, b)      ((a << MAJOR_SHIFT) | b)        /* 高8位放主要，低8位放此要 */
 #define ROOT_DEV            MAKE_DEV(DEV_HD, MINOR_BOOT)
 
 /* 这两个宏可以将主次设备号分开 */

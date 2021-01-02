@@ -18,8 +18,9 @@ PRIVATE HDInfo hd_info[1];              /* 暂时只支持一个硬盘... */
 PRIVATE int largestPrimDeviceNR = 0;     /*  最大块主分区索引，不包括扩展分区 */
 PRIVATE int largestLogicDeviceNR = 0;     /*  最大块逻辑分区索引 */
 
-/* 得到设备的驱动程序，一个分区对应一个设备 */
-#define DRIVER_OF_DEVICE(dev) (dev <= MAX_PRIM ? dev / NR_PRIM_PER_DRIVE : (dev - MINOR_hd1a) / NR_SUB_PER_DRIVE)
+/* 得到次设备的驱动程序，一个分区对应一个次设备 */
+#define DRIVER_OF_DEVICE(dev) (dev <= MAX_PRIM ? dev / NR_PRIM_PER_DRIVE  /* 是物理分区 */\
+: (dev - MINOR_hd1a) / NR_SUB_PER_DRIVE) /* 是逻辑分区 */
 
 PRIVATE void init_params(void);
 
@@ -167,7 +168,7 @@ PRIVATE void init_params(void) {
 
 /**
  * 打开硬盘设备
- * @param device 设备号
+ * @param device 次设备号
  * @return
  */
 PRIVATE int wini_do_open(int device) {
@@ -260,7 +261,7 @@ PRIVATE void wini_print_identify_info(u16_t *hdinfo) {
 
 /**
  * 读取分区信息
- * @param device 设备号
+ * @param device 次设备号
  * @param style 读主分区还是扩展分区？
  */
 PRIVATE void partition(int device, int style) {
@@ -327,7 +328,7 @@ PRIVATE void partition(int device, int style) {
 }
 
 /**
- * 获取设备分区表
+ * 获取分区表
  * @param drive 驱动器号（第一个磁盘为0，第二个磁盘为1，...）
  * @param sect_nr 分区表所在的扇区。
  * @param entry 指向一个分区
@@ -460,7 +461,7 @@ PRIVATE int wini_do_readwrite(Message *p_msg) {
         }
         return p_msg->COUNT - left;   /* 成功返回读写的字节总量 */
     }
-    kprintf("io error\n");
+    kprintf("hd io error\n");
     return EIO;
 }
 
