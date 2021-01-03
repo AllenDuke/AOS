@@ -414,12 +414,12 @@ PRIVATE int wini_do_readwrite(Message *p_msg) {
 //    assert((pos & 0x1FF) == 0);
     if ((pos & 0x1FF) != 0) panic("pos error\n", PANIC_ERR_NUM);
 
-    u32_t sect_nr = pos >> SECTOR_SIZE_SHIFT;  /* pos在分区内的扇区号 */
+    u32_t sect_nr = (u32_t) pos >> SECTOR_SIZE_SHIFT;  /* pos在分区内的扇区号 */
     int logidx = (p_msg->DEVICE - MINOR_hd1a) % NR_SUB_PER_DRIVE;
     sect_nr +=
             p_msg->DEVICE < MAX_PRIM ? hd_info[drive].primary[p_msg->DEVICE].base : hd_info[drive].logical[logidx].base;
 
-//    kprintf("%d want to %s %d by %d | pos -> %u\n",
+//    kprintf("%d want to %s %d by %d | pos -> %d\n",
 //            p_msg->PROC_NR, p_msg->type == DEVICE_READ ? "read" : "write", p_msg->COUNT, drive, pos);
 
     /* 发出读/写命令，告诉驱动器开始读/写了。 */

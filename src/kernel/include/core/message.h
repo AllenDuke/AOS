@@ -99,7 +99,6 @@ typedef struct message_s{
 #define REQUEST         m2_i3	/* io控制请求代码 */
 #define POSITION        m2_l1	/* 分区内文件偏移地址 */
 #define ADDRESS         m2_p1	/* 进程地址空间起的缓冲区偏移地址 */
-#define	CNT		        m2_i2
 #define	BUF		        m2_p1
 #define	PID		        m2_i2
 

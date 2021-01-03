@@ -34,7 +34,7 @@
 #define DEV_SCSI                5   /* SCSI接口硬盘 */
 
 /* 硬盘次设备号 */
-#define MINOR_hd1a          0x10
+#define MINOR_hd1a          0x10    /* 设定x为16，到时候在at_wini又会减去16，实际上有点多次一举 */
 #define MINOR_hd2a          (MINOR_hd1a + NR_SUB_PER_PART)
 #define MINOR_hd2c          (MINOR_hd1a + NR_SUB_PER_PART + 2)
 /* boot的次设备号
@@ -44,7 +44,7 @@
 
 /* 根据主号和次号进行设备编号 */
 #define MAJOR_SHIFT         8
-#define MAKE_DEV(a, b)      ((a << MAJOR_SHIFT) | b)        /* 高8位放主要，低8位放此要 */
+#define MAKE_DEV(a, b)      ((a << MAJOR_SHIFT) | b)        /* 高8位放主要，低8位放次要 */
 #define ROOT_DEV            MAKE_DEV(DEV_HD, MINOR_BOOT)
 
 /* 这两个宏可以将主次设备号分开 */
