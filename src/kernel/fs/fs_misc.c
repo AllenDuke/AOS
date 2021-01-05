@@ -21,7 +21,7 @@ PUBLIC int do_stat()
 	int name_len = fs_msg.NAME_LEN;	/* length of filename */
 	int src = fs_msg.source;	/* caller proc nr. */
 //	assert(name_len < MAX_PATH);
-    if(name_len>=MAX_PATH) panic("name is too long!\n",PANIC_ERR_NUM);
+    if(name_len>=MAX_PATH) panic("name is too long!\n",name_len);
     phys_copy((void*)proc_vir2phys(proc_addr(src), fs_msg.PATHNAME),
               (void*)proc_vir2phys(proc_addr(FS_TASK), pathname),
               name_len);
