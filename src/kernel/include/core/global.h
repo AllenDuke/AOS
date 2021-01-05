@@ -76,10 +76,9 @@ Message mmsg_in;     /* 传入的消息保存在这 */
 struct file_desc f_desc_table[NR_FILE_DESC];
 struct inode inode_table[NR_INODE];
 struct super_block superBlocks[NR_SUPER_BLOCK];
-struct dev_drv_map dd_map[6];
-u8_t *fsbuf;
+struct dev_drv_map dd_map[6]; /* 设备映射驱动程序 */
 Message fs_msg;
-struct proc *pcaller;
+Process *pcaller;
 struct inode *root_inode;
 
 

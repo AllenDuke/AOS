@@ -5,7 +5,6 @@
 #include "core/kernel.h"
 #include <ibm/partition.h>
 
-PRIVATE int wini_task_nr;               /* 硬盘驱动任务号 */
 PRIVATE int nr_drives;                  /* 磁盘驱动器的数量 */
 PRIVATE bool_t intr_open;               /* 中断打开状态，1开0关 */
 PRIVATE Message msg;                    /* 通信消息 */
@@ -15,8 +14,8 @@ PRIVATE u8_t hdbuf[SECTOR_SIZE * 2];    /* 硬盘缓冲区，DMA也用它 */
 PRIVATE phys_addr hdbuf_phys;           /* 缓冲区的物理地址 */
 PRIVATE HDInfo hd_info[1];              /* 暂时只支持一个硬盘... */
 
-PRIVATE int largestPrimDeviceNR = 0;     /*  最大块主分区索引，不包括扩展分区 */
-PRIVATE int largestLogicDeviceNR = 0;     /*  最大块逻辑分区索引 */
+PRIVATE int largestPrimDeviceNR = 0;    /*  最大块主分区索引，不包括扩展分区 */
+PRIVATE int largestLogicDeviceNR = 0;   /*  最大块逻辑分区索引 */
 
 /* 得到次设备的驱动程序，一个分区对应一个次设备 */
 #define DRIVER_OF_DEVICE(dev) (dev <= MAX_PRIM ? dev / NR_PRIM_PER_DRIVE  /* 是物理分区 */\
@@ -60,12 +59,6 @@ PRIVATE void get_part_table(int drive, int sect_nr, PartEntry *entry);
 
 PUBLIC void at_winchester_task(void) {
     int rs, caller, proc_nr;
-
-    /**
-     * 这是必须的，第一次执行的时候，硬盘驱动任务需要知道自己的任务编号。
-     * 用于中断唤醒自己。
-     */
-    wini_task_nr = gp_curProc->logicNum;
 
     init_params();
     kprintf("{HD}-> Drives count: %d\n", nr_drives);
@@ -281,7 +274,6 @@ PRIVATE void partition(int device, int style) {
             if (part_tab[i].sysind == NO_PART) {
                 continue;
             }
-
             nr_prim_parts++;
             int dev_nr = i + 1;          /* 主分区包括扩展分区 分区号1~4 */
             hdi->primary[dev_nr].base = part_tab[i].lowsec;
@@ -363,7 +355,7 @@ PRIVATE int wini_do_close(int device) {
 }
 
 /**
- *  硬盘IO控制
+ * 硬盘IO控制，获取或设置某设备的分区信息
  * @param msg 请求消息
  * @return
  */
@@ -388,7 +380,7 @@ PRIVATE int wini_do_ioctl(Message *p_msg) {
         phys_addr par_phys = vir2phys(par);
         /* 复制给用户，OK */
         phys_copy(par_phys, user_phys, (phys_addr) sizeof(tmp_par));
-    } else {    /* DIOCTL_SET_GEO */
+    } else {    /* IOCTL_SET_GEO */
         /* 先将用户的分区信息复制过来 */
         phys_copy(user_phys, vir2phys(&tmp_par), (phys_addr) sizeof(tmp_par));
         /* 设置分区信息 */
@@ -415,7 +407,7 @@ PRIVATE int wini_do_readwrite(Message *p_msg) {
     if ((pos & 0x1FF) != 0) panic("pos error\n", PANIC_ERR_NUM);
 
     u32_t sect_nr = (u32_t) pos >> SECTOR_SIZE_SHIFT;  /* pos在分区内的扇区号 */
-    int logidx = (p_msg->DEVICE - MINOR_hd1a) % NR_SUB_PER_DRIVE;
+    int logidx = (p_msg->DEVICE - MINOR_hd1a) % NR_SUB_PER_DRIVE; /* 次设备号 不会出现10~15 */
     sect_nr +=
             p_msg->DEVICE < MAX_PRIM ? hd_info[drive].primary[p_msg->DEVICE].base : hd_info[drive].logical[logidx].base;
 

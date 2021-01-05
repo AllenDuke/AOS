@@ -4,10 +4,11 @@
 
 #include "core/kernel.h"
 
-PRIVATE Message msg;
-PRIVATE int deviceNR; /* 当前文件系统所在的分区，一个分区对应一个设备。这里去主硬盘中的最大分区 */
-
+u8_t *fsbuf=(u8_t *) 0x900000;  /* 9M~10M用于文件系统 */
 const int FSBUF_SIZE = 0x100000;
+
+PRIVATE Message msg;
+PRIVATE int deviceNR; /* 当前文件系统所在的分区，一个分区对应一个次设备。这里去主硬盘中的最大分区 */
 
 PRIVATE void fs_init();
 
@@ -33,58 +34,14 @@ PUBLIC void fs_task(void) {
 
 PRIVATE void fs_init() {
     in_outbox(&msg, &msg);
-    fsbuf = (u8_t *) 0x900000;
 
+    /* 初始化设备映射驱动 */
     dd_map[0].driver_nr=INVALID_DRIVER;
     dd_map[1].driver_nr=INVALID_DRIVER;
     dd_map[2].driver_nr=INVALID_DRIVER;
-    dd_map[3].driver_nr=HD_TASK;
-    dd_map[4].driver_nr=TTY_TASK;
+    dd_map[3].driver_nr=HD_TASK;        /* 3号主要设备对应硬盘驱动 */
+    dd_map[4].driver_nr=TTY_TASK;       /* 4号主要设备对应TTY驱动 */
     dd_map[5].driver_nr=INVALID_DRIVER;
-
-//    /* 打开0号主设备 */
-//    msg.source = FS_TASK;
-//    msg.type = DEVICE_OPEN;
-//    msg.DEVICE = 0;
-//    send_rec(HD_TASK, &msg);
-//    deviceNR = msg.REPLY_LARGEST_PART_NR;
-//    kprintf("<fs>: cur device num is:%d\n", deviceNR);
-//
-//    /* 9MB~10MB: buffer for FS */
-//    fsbuf = (u8_t *) 0x900000;
-//
-//    deviceNR=ROOT_DEV;
-//
-//    RD_SECT(deviceNR,0);
-//    for (int i = 0; i < 512; ++i) {
-//        kprintf("%d ",*fsbuf);
-//        fsbuf++;
-//    }
-//    kprintf("\n");
-//
-//    fsbuf = (u8_t *) 0x900000;
-//    for (int i = 0; i < 512; ++i) {
-//        *fsbuf=i;
-//        fsbuf++;
-//    }
-//    fsbuf = (u8_t *) 0x900000;
-//    WR_SECT(deviceNR,0);
-//
-//    for (int i = 0; i < 512; ++i) {
-//        *fsbuf=0;
-////        kprintf("%d ",*fsbuf);
-//        fsbuf++;
-//    }
-//    kprintf("\n");
-//
-//    fsbuf = (u8_t *) 0x900000;
-//    RD_SECT(deviceNR,0);
-//    for (int i = 0; i < 512; ++i) {
-////        kprintf("%d ",*fsbuf);
-//        fsbuf++;
-//    }
-//    kprintf("\n");
-
 
     /* f_desc_table[] */
     for (int i = 0; i < NR_FILE_DESC; i++)
@@ -100,19 +57,17 @@ PRIVATE void fs_init() {
         sb->sb_dev = NO_DEV;
 
     /* open the device: hard disk */
-    Message driver_msg;
-    driver_msg.type = DEVICE_OPEN;
-    driver_msg.DEVICE = MINOR(ROOT_DEV);
-    kprintf("device:%d\n",MAJOR(ROOT_DEV));
+    msg.type = DEVICE_OPEN;
+    msg.DEVICE = MINOR(ROOT_DEV); /* 传入的是次设备号 */
 //    assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
     if (dd_map[MAJOR(ROOT_DEV)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
-    send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
+    send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &msg);
 
     /* read the super block of ROOT DEVICE */
     RD_SECT(ROOT_DEV, 1);
 
     sb = (struct super_block *) fsbuf;
-    if (sb->magic != MAGIC_V1) {
+    if (sb->magic != MAGIC_V1) { /* 魔数不对，开始格式化 */
         kprintf("{FS} mkfs\n");
 
         mkfs(); /* make FS */
@@ -128,23 +83,17 @@ PRIVATE void fs_init() {
     root_inode = get_inode(ROOT_DEV, ROOT_INODE);
 }
 
-/*****************************************************************************
- *                                rw_sector
- *****************************************************************************/
-/**
- * <Ring 1> R/W a sector via messaging with the corresponding driver.
- *
- * @param io_type  DEV_READ or DEV_WRITE
- * @param dev      device nr
- * @param pos      Byte offset from/to where to r/w.
- * @param bytes    r/w count in bytes.
- * @param proc_nr  To whom the buffer belongs.
- * @param buf      r/w buffer.
- *
- * @return Zero if success.
- *****************************************************************************/
-PUBLIC int rw_sector(int io_type, int dev, u64_t pos, int bytes, int proc_nr,
-                     void *buf) {
+ /**
+  *
+  * @param io_type DEVICE_READ or DEVICE_WRITE
+  * @param dev device nr
+  * @param pos Byte offset from/to where to r/w.
+  * @param bytes r/w count in bytes.
+  * @param proc_nr To whom the buffer belongs.
+  * @param buf r/w buffer.
+  * @return Zero if success.
+  */
+PUBLIC int rw_sector(int io_type, int dev, u64_t pos, int bytes, int proc_nr,void *buf) {
     Message driver_msg;
 
     driver_msg.type = io_type;
@@ -161,37 +110,27 @@ PUBLIC int rw_sector(int io_type, int dev, u64_t pos, int bytes, int proc_nr,
     return 0;
 }
 
-/*****************************************************************************
- *                                read_super_block
- *****************************************************************************/
 /**
- * <Ring 1> Read super block from the given device then write it into a free
- *          super_block[] slot.
- *
- * @param dev  From which device the super block comes.
- *****************************************************************************/
+ * Read super block from the given device then write it into a free super_block[] slot.
+ * @param dev From which device the super block comes.
+ */
 PRIVATE void read_super_block(int dev) {
     int i;
-    Message driver_msg;
-
-    driver_msg.type = DEVICE_READ;
-    driver_msg.DEVICE = MINOR(dev);
-    driver_msg.POSITION = SECTOR_SIZE * 1;
-    driver_msg.BUF = fsbuf;
-    driver_msg.COUNT = SECTOR_SIZE;
-    driver_msg.PROC_NR = FS_TASK;
+    msg.type = DEVICE_READ;
+    msg.DEVICE = MINOR(dev);
+    msg.POSITION = SECTOR_SIZE * 1;
+    msg.BUF = fsbuf;
+    msg.COUNT = SECTOR_SIZE;
+    msg.PROC_NR = FS_TASK;
 //    assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
     if (dd_map[MAJOR(dev)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
-    kprintf("MAJOR(dev):%d\n", MAJOR(dev));
-    send_rec(dd_map[MAJOR(dev)].driver_nr, &driver_msg);
-
+    send_rec(dd_map[MAJOR(dev)].driver_nr, &msg);
 
     /* find a free slot in super_block[] */
     for (i = 0; i < NR_SUPER_BLOCK; i++)
         if (superBlocks[i].sb_dev == NO_DEV)
             break;
-    if (i == NR_SUPER_BLOCK)
-        panic("super_block slots used up", PANIC_ERR_NUM);
+    if (i == NR_SUPER_BLOCK) panic("super_block slots used up", PANIC_ERR_NUM);
 
 //    assert(i == 0); /* currently we use only the 1st slot */
     if (i != 0) panic("super_block slots remaining", PANIC_ERR_NUM);
@@ -202,17 +141,11 @@ PRIVATE void read_super_block(int dev) {
     superBlocks[i].sb_dev = dev;
 }
 
-
-/*****************************************************************************
- *                                get_super_block
- *****************************************************************************/
-/**
- * <Ring 1> Get the super block from super_block[].
- *
- * @param dev Device nr.
- *
- * @return Super block ptr.
- *****************************************************************************/
+ /**
+  * Get the super block from super_block[].
+  * @param dev Device nr.
+  * @return Super block ptr.
+  */
 PUBLIC struct super_block *get_super_block(int dev) {
     struct super_block *sb = superBlocks;
     for (; sb < &superBlocks[NR_SUPER_BLOCK]; sb++)
@@ -289,36 +222,31 @@ PUBLIC void put_inode(struct inode *pinode) {
     pinode->i_cnt--;
 }
 
-/*****************************************************************************
- *                                mkfs
- *****************************************************************************/
+
 /**
- * <Ring 1> Make a available Orange'S FS in the disk. It will
- *          - Write a super block to sector 1.
- *          - Create three special files: dev_tty0, dev_tty1, dev_tty2
- *          - Create a file cmd.tar
- *          - Create the inode map
- *          - Create the sector map
- *          - Create the inodes of the files
- *          - Create `/', the root directory
- *****************************************************************************/
+ * Make a available FS in the disk. It will
+ * - Write a super block to sector 1.
+ * - Create three special files: dev_tty0, dev_tty1, dev_tty2
+ * - Create a file cmd.tar
+ * - Create the inode map
+ * - Create the sector map
+ * - Create the inodes of the files
+ * - Create `/', the root directory
+ */
 PRIVATE void mkfs() {
-    Message driver_msg;
     int i, j;
 
-    /************************/
-    /*      super block     */
-    /************************/
-    /* get the geometry of ROOTDEV */
+    /* super block */
+    /* get the geometry of ROOT_DEV */
     Partition geo;
-    driver_msg.type = DEVICE_IOCTL;
-    driver_msg.DEVICE = MINOR(ROOT_DEV);
-    driver_msg.REQUEST = DIOCTL_GET_GEO;
-    driver_msg.BUF = &geo;
-    driver_msg.PROC_NR = FS_TASK;
+    msg.type = DEVICE_IOCTL;
+    msg.DEVICE = MINOR(ROOT_DEV);
+    msg.REQUEST = DIOCTL_GET_GEO;
+    msg.BUF = &geo;
+    msg.PROC_NR = FS_TASK;
 //    assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
     if (dd_map[MAJOR(ROOT_DEV)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
-    send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &driver_msg);
+    send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &msg);
 
     kprintf("{FS} dev size: 0x%x sectors\n", geo.size);
 
@@ -326,13 +254,13 @@ PRIVATE void mkfs() {
     /* generate a super block */
     struct super_block sb;
     sb.magic = MAGIC_V1; /* 0x111 */
-    sb.nr_inodes = bits_per_sect;
-    sb.nr_inode_sects = sb.nr_inodes * INODE_SIZE / SECTOR_SIZE;
+    sb.nr_inodes = bits_per_sect; /* 512*8=4096，即最多支持4096个文件 */
+    sb.nr_inode_sects = sb.nr_inodes * INODE_SIZE / SECTOR_SIZE; /* inode占的扇区数 */
     sb.nr_sects = geo.size; /* partition size in sector */
     sb.nr_imap_sects = 1;
-    sb.nr_smap_sects = sb.nr_sects / bits_per_sect + 1;
-    sb.n_1st_sect = 1 + 1 +   /* boot sector & super block */
-                    sb.nr_imap_sects + sb.nr_smap_sects + sb.nr_inode_sects;
+    sb.nr_smap_sects = sb.nr_sects / bits_per_sect + 1; /* sector-map占的扇区数 */
+    sb.nr_db_sect = 1 + 1 +   /* boot sector & super block */
+                    sb.nr_imap_sects + sb.nr_smap_sects + sb.nr_inode_sects; /* 数据起始扇区号 */
     sb.root_inode = ROOT_INODE;
     sb.inode_size = INODE_SIZE;
     struct inode x;
@@ -341,9 +269,9 @@ PRIVATE void mkfs() {
     sb.dir_ent_size = DIR_ENTRY_SIZE;
     struct dir_entry de;
     sb.dir_ent_inode_off = (int) &de.inode_nr - (int) &de;
-    sb.dir_ent_fname_off = (int) &de.name - (int) &de;
+    sb.dir_ent_name_off = (int) &de.name - (int) &de;
 
-    memset(fsbuf, 0x90, SECTOR_SIZE);
+    memset(fsbuf, 0x90, SECTOR_SIZE); /* 这一扇区内容后面填充0x90 */
     memcpy(fsbuf, &sb, SUPER_BLOCK_SIZE);
 
     /* write the super block */
@@ -356,35 +284,32 @@ PRIVATE void mkfs() {
             (geo.base + 1 + 1) * 2,
             (geo.base + 1 + 1 + sb.nr_imap_sects) * 2,
             (geo.base + 1 + 1 + sb.nr_imap_sects + sb.nr_smap_sects) * 2,
-            (geo.base + sb.n_1st_sect) * 2);
+            (geo.base + sb.nr_db_sect) * 2);
 
-    /************************/
-    /*       inode map      */
-    /************************/
+    /* 设置索引节点映射 */
     memset(fsbuf, 0, SECTOR_SIZE);
+    /* free, /, dev_tty0, dev_tty1,  dev_tty2, cmd.tar */
     for (i = 0; i < (NR_CONSOLES + 3); i++)
         fsbuf[0] |= 1 << i;
 
     if (fsbuf[0] != 0x3F) panic("fsbuf[0] err\n", PANIC_ERR_NUM);
 //    assert(fsbuf[0] == 0x3F);
-    /* 0011 1111 :
-*   || ||||
-*   || |||`--- bit 0 : reserved
-*   || ||`---- bit 1 : the first inode,
-*   || ||              which indicates `/'
-*   || |`----- bit 2 : /dev_tty0
-*   || `------ bit 3 : /dev_tty1
-*   |`-------- bit 4 : /dev_tty2
-*   `--------- bit 5 : /cmd.tar
-*/
-    WR_SECT(ROOT_DEV, 2);
+    /** 0011 1111 :
+     *    || ||||
+     *    || |||`--- bit 0 : reserved
+     *    || ||`---- bit 1 : the first inode, which indicates `/'
+     *    || |`----- bit 2 : /dev_tty0
+     *    || `------ bit 3 : /dev_tty1
+     *    |`-------- bit 4 : /dev_tty2
+     *    `--------- bit 5 : /cmd.tar
+     */
+    WR_SECT(ROOT_DEV, 2); /* 第二个扇区为inode-map */
 
-    /************************/
-    /*      secter map      */
-    /************************/
+    /* 设置扇区映射 */
     memset(fsbuf, 0, SECTOR_SIZE);
-    int nr_sects = NR_DEFAULT_FILE_SECTS + 1;
-    /*             ~~~~~~~~~~~~~~~~~~~|~   |
+    int nr_sects = NR_DEFAULT_FILE_SECTS + 1; /* 初始时，已使用扇区 */
+    /**
+     *             ~~~~~~~~~~~~~~~~~~~|~   |
      *                                |    `--- bit 0 is reserved
      *                                `-------- for `/'
      */
@@ -394,19 +319,19 @@ PRIVATE void mkfs() {
     for (j = 0; j < nr_sects % 8; j++)
         fsbuf[i] |= (1 << j);
 
-    WR_SECT(ROOT_DEV, 2 + sb.nr_imap_sects);
+    WR_SECT(ROOT_DEV, 2 + sb.nr_imap_sects); /* inode-map接着是sector-map */
 
-    /* zeromemory the rest sector-map */
+    /* 用零填充剩余的扇区映射 */
     memset(fsbuf, 0, SECTOR_SIZE);
     for (i = 1; i < sb.nr_smap_sects; i++)
         WR_SECT(ROOT_DEV, 2 + sb.nr_imap_sects + i);
 
-    /* cmd.tar */
+    /* 创建文件cmd.tar */
     /* make sure it'll not be overwritten by the disk log */
 //    assert(INSTALL_START_SECT + INSTALL_NR_SECTS < sb.nr_sects - NR_SECTS_FOR_LOG);
     if (INSTALL_START_SECT + INSTALL_NR_SECTS >= sb.nr_sects - NR_SECTS_FOR_LOG)
         panic("mkfs err\n", PANIC_ERR_NUM);
-    int bit_offset = INSTALL_START_SECT - sb.n_1st_sect + 1; /* sect M <-> bit (M - sb.n_1stsect + 1) */
+    int bit_offset = INSTALL_START_SECT - sb.nr_db_sect + 1; /* sect M <-> bit (M - sb.n_1stsect + 1) */
     int bit_off_in_sect = bit_offset % (SECTOR_SIZE * 8);
     int bit_left = INSTALL_NR_SECTS;
     int cur_sect = bit_offset / (SECTOR_SIZE * 8);
@@ -426,19 +351,13 @@ PRIVATE void mkfs() {
     }
     WR_SECT(ROOT_DEV, 2 + sb.nr_imap_sects + cur_sect);
 
-    /************************/
-    /*       inodes         */
-    /************************/
+    /* 设置索引节点 */
     /* inode of `/' */
     memset(fsbuf, 0, SECTOR_SIZE);
     struct inode *pi = (struct inode *) fsbuf;
     pi->i_mode = I_DIRECTORY;
-    pi->i_size = DIR_ENTRY_SIZE * 5; /* 5 files:
-					  * `.',
-					  * `dev_tty0', `dev_tty1', `dev_tty2',
-					  * `cmd.tar'
-					  */
-    pi->i_start_sect = sb.n_1st_sect;
+    pi->i_size = DIR_ENTRY_SIZE * 5; /* 5 files:`.', `dev_tty0', `dev_tty1', `dev_tty2', `cmd.tar' */
+    pi->i_start_sect = sb.nr_db_sect;
     pi->i_nr_sects = NR_DEFAULT_FILE_SECTS;
     /* inode of `/dev_tty0~2' */
     for (i = 0; i < NR_CONSOLES; i++) {
@@ -456,13 +375,11 @@ PRIVATE void mkfs() {
     pi->i_nr_sects = INSTALL_NR_SECTS;
     WR_SECT(ROOT_DEV, 2 + sb.nr_imap_sects + sb.nr_smap_sects);
 
-    /************************/
-    /*          `/'         */
-    /************************/
+    /* 创建出根目录文件 */
     memset(fsbuf, 0, SECTOR_SIZE);
     struct dir_entry *pde = (struct dir_entry *) fsbuf;
 
-    pde->inode_nr = 1;
+    pde->inode_nr = ROOT_INODE; /* 根目录inode索引为1 */
     strcpy(pde->name, ".");
 
     /* dir entries of `/dev_tty0~2' */
@@ -470,10 +387,24 @@ PRIVATE void mkfs() {
         pde++;
         pde->inode_nr = i + 2; /* dev_tty0's inode_nr is 2 */
 //        sprintf(pde->name, "dev_tty%d", i);
+        switch (i) {
+            case 0:
+                strcpy(pde->name, "dev_tty0");
+                break;
+            case 1:
+                strcpy(pde->name, "dev_tty1");
+                break;
+            case 2:
+                strcpy(pde->name, "dev_tty2");
+                break;
+        }
     }
+
+    /* 最后是'cmd.tar'的 */
     (++pde)->inode_nr = NR_CONSOLES + 2;
 //    sprintf(pde->name, "cmd.tar", i);
-    WR_SECT(ROOT_DEV, sb.n_1st_sect);
+    strcpy(pde->name, "cmd.tar");
+    WR_SECT(ROOT_DEV, sb.nr_db_sect);
 }
 
 /*****************************************************************************
@@ -531,6 +462,51 @@ PUBLIC void sync_inode(struct inode *p) {
 //    }
 //    return 0;
 //}
+
+PRIVATE void test_rw(){
+    //    /* 打开0号主设备 */
+//    msg.source = FS_TASK;
+//    msg.type = DEVICE_OPEN;
+//    msg.DEVICE = 0;
+//    send_rec(HD_TASK, &msg);
+//    deviceNR = msg.REPLY_LARGEST_PART_NR;
+//    kprintf("<fs>: cur device num is:%d\n", deviceNR);
+//
+//    /* 9MB~10MB: buffer for FS */
+//    fsbuf = (u8_t *) 0x900000;
+//
+//    deviceNR=ROOT_DEV;
+//
+//    RD_SECT(deviceNR,0);
+//    for (int i = 0; i < 512; ++i) {
+//        kprintf("%d ",*fsbuf);
+//        fsbuf++;
+//    }
+//    kprintf("\n");
+//
+//    fsbuf = (u8_t *) 0x900000;
+//    for (int i = 0; i < 512; ++i) {
+//        *fsbuf=i;
+//        fsbuf++;
+//    }
+//    fsbuf = (u8_t *) 0x900000;
+//    WR_SECT(deviceNR,0);
+//
+//    for (int i = 0; i < 512; ++i) {
+//        *fsbuf=0;
+////        kprintf("%d ",*fsbuf);
+//        fsbuf++;
+//    }
+//    kprintf("\n");
+//
+//    fsbuf = (u8_t *) 0x900000;
+//    RD_SECT(deviceNR,0);
+//    for (int i = 0; i < 512; ++i) {
+////        kprintf("%d ",*fsbuf);
+//        fsbuf++;
+//    }
+//    kprintf("\n");
+}
 
 /* 读取分析当前分区的引导扇区，检查是否为FAT32文件系统，如果不是，那么将当前分区格式化为FAT32文件系统 */
 PRIVATE void check_format_FAT32() {

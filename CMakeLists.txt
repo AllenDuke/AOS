@@ -38,4 +38,4 @@ add_executable(
         src/kernel/clock/clock.c
         src/kernel/process.c
         src/kernel/dump.c
-        src/kernel/tty/keyboard.c src/kernel/tty/tty.c src/kernel/idle/idle.c src/kernel/mm/mm.c src/kernel/mm/alloc.c src/kernel/mm/fork.c src/kernel/mm/mem_map.c src/kernel/mm/exit.c src/kernel/mm/wait.c src/kernel/hd/at_wini.c src/kernel/fs/fs.c)
+        src/kernel/tty/keyboard.c src/kernel/tty/tty.c src/kernel/idle/idle.c src/kernel/mm/mm.c src/kernel/mm/alloc.c src/kernel/mm/fork.c src/kernel/mm/mem_map.c src/kernel/mm/exit.c src/kernel/mm/wait.c src/kernel/hd/at_wini.c src/kernel/fs/fs.c src/kernel/fs/open.c)

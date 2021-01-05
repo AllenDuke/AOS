@@ -262,17 +262,17 @@
 #define	NR_INODE	    64	/* FIXME */
 #define	NR_SUPER_BLOCK	8
 
+/* inode索引号 */
 #define	INVALID_INODE	0
 #define	ROOT_INODE		1
 
-#define	NR_DEFAULT_FILE_SECTS	2048 /* 2048 * 512 = 1MB */
+#define	NR_DEFAULT_FILE_SECTS	2048 /* 2048 * 512 = 1MB，用于根目录 */
 
 /**
- * Some sector are reserved for us (the gods of the os) to copy a tar file
- * there, which will be extracted and used by the OS.
- *
- * @attention INSTALL_NR_SECTS should be a multiple of NR_DEFAULT_FILE_SECTS:
- *                INSTALL_NR_SECTS = n * NR_DEFAULT_FILE_SECTS (n=1,2,3,...)
+ * 保留一些扇区供我们（操作系统创造者）在此处复制tar文件，该文件将由OS提取并使用。
+ * 文件里存放一些使用的程序。
+ * 注意，INSTALL_NR_SECTS应该是NR_DEFAULT_FILE_SECTS的倍数：
+ *      INSTALL_NR_SECTS = n * NR_DEFAULT_FILE_SECTS（int n）
  */
 #define	INSTALL_START_SECT		0x17000
 #define	INSTALL_NR_SECTS		0x800

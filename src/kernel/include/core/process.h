@@ -61,6 +61,8 @@ typedef struct process_s{
     int sendTo;                     /* 同上，保存要发送消息给谁？ */
     struct process_s* p_nextWaiter; /* 指向下一个要发送消息给我的人，为了实现等待队列 */
 
+    struct file_desc * filp[NR_FILES]; /* 文件描述符指针数组，指向打开的文件s */
+
     char name[32];                  /* 这个没啥好说的，就是进程的名称，记得起个好名字哦 */
 } Process;
 

@@ -33,13 +33,11 @@
 #define DEV_CHAR_TTY            4   /* 字符终端设备 */
 #define DEV_SCSI                5   /* SCSI接口硬盘 */
 
-/* 硬盘次设备号 */
+/* 硬盘次设备号 不应出现10~15 */
 #define MINOR_hd1a          0x10    /* 设定x为16，到时候在at_wini又会减去16，实际上有点多次一举 */
 #define MINOR_hd2a          (MINOR_hd1a + NR_SUB_PER_PART)
 #define MINOR_hd2c          (MINOR_hd1a + NR_SUB_PER_PART + 2)
-/* boot的次设备号
- * 对应于src/boot/load.inc::ROOT_BASE，如果更改，请连同一起更改。
- */
+/* boot的次设备号 */
 #define MINOR_BOOT          MINOR_hd2c
 
 /* 根据主号和次号进行设备编号 */
