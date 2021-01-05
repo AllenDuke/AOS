@@ -56,12 +56,5 @@
 #define NO_PART             0x00        /* 未使用的条目 */
 #define EXT_PART            0x05        /* 扩展分区 */
 
-#define DEVICE_READ          3    /* 终端功能索引代码，从终端读取数据 */
-#define DEVICE_WRITE         4    /* 终端功能索引代码，写入数据到终端 */
-#define DEVICE_IOCTL         5    /* 终端功能索引代码，终端io控制 */
-#define DEVICE_OPEN          6    /* 终端功能索引代码， */
-#define DEVICE_CLOSE         7    /* 终端功能索引代码，关闭一个终端设备  */
-#define DEVICE_SCATTER       8    /* fcn code for writing from a vector */
-#define DEVICE_GATHER        9    /* fcn code for reading into a vector */
 
 #endif //AOS_DEV_H

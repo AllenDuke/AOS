@@ -91,7 +91,6 @@
 #define DISABLE             0       /* 用于在中断后保持当前中断关闭的代码 */
 #define ENABLE              EOI	    /* 用于在中断后重新启用当前中断的代码 */
 
-#define HARD_INT            -1     /* 表示硬件中断，这是 HARDWARE 的唯一可能发送消息类型 */
 //======================================================================================================================
 
 
@@ -118,10 +117,6 @@
 /* 用户进程使用时间片轮转算法，这里可以对轮转时间进行配置 */
 #define SCHEDULE_MILLISECOND    100                     /* 用户进程调度的频率（毫秒），根据喜好设置就行 */
 #define SCHEDULE_TICKS          (SCHEDULE_MILLISECOND / ONE_TICK_MILLISECOND)  /* 用户进程调度的频率（滴答） */
-
-#define GET_UPTIME              1   /* 获取时钟运行时间(tick) */
-#define GET_TIME                2   /* 获取时钟实时时间(s) */
-#define SET_TIME                3   /* 设置时钟实时时间(s) */
 
 #define MINUTES                 60	                /* 1 分钟的秒数。 */
 #define HOURS                   (60 * MINUTES)	    /* 1 小时的秒数。 */
