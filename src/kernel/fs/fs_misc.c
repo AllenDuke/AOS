@@ -4,6 +4,7 @@
 #include "core/kernel.h"
 
 extern u8_t *fsbuf;
+extern Message fs_msg;
 
 /*****************************************************************************
  *                                do_stat

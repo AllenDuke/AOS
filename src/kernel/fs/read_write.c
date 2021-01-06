@@ -5,6 +5,7 @@
 
 extern u8_t *fsbuf;
 extern const int FSBUF_SIZE;
+extern Message fs_msg;
 
 /*****************************************************************************
  *                                do_rdwt

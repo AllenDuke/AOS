@@ -6,6 +6,9 @@
 
 /* 系统进程表，包含系统任务以及系统服务 */
 SysProc sysProcs[] = {
+#ifdef ENABLE_FS_TEST
+        { fs_test, TEST_TASK_STACK, "TEST" },
+#endif
         { tty_task, TTY_TASK_STACK, "TTY" },
         { at_winchester_task,HD_TASK_STACK,"HD"},// todo 交换hd和clock的位置会导致tty堆栈保护字被破坏，为什么？
         { fs_task, FS_TASK_STACK, "FS" },
@@ -114,49 +117,4 @@ void aos_main(void) {
      * 起时都要执行 restart,无论挂起原因是等待输入还是在轮到其他进程运行时将控制权转交给它们。
      */
     restart();
-}
-
-void TestA()
-{
-    int fd;
-    int n;
-    const char filename[] = "blah";
-    const char bufw[] = "abcde";
-    const int rd_bytes = 3;
-    char bufr[rd_bytes];
-
-//    assert(rd_bytes <= strlen(bufw));
-    if(rd_bytes > strlen(bufw)) panic("rd_bytes is too long\n",rd_bytes);
-
-    /* create */
-    fd = open(filename, O_CREAT | O_RDWR);
-//    assert(fd != -1);
-    if(fd==-1) panic("fd err\n",PANIC_ERR_NUM);
-    kprintf("File created. fd: %d\n", fd);
-
-    /* write */
-    n = write(fd, bufw, strlen(bufw));
-//    assert(n == strlen(bufw));
-    if(n!=strlen(bufw)) panic("write err\n",n);
-
-    /* close */
-    close(fd);
-
-    /* open */
-    fd = open(filename, O_RDWR);
-//    assert(fd != -1);
-    if(fd==-1) panic("fd err\n",PANIC_ERR_NUM);
-    kprintf("File opened. fd: %d\n", fd);
-
-    /* read */
-    n = read(fd, bufr, rd_bytes);
-//    assert(n == rd_bytes);
-    if(n!=rd_bytes) panic("write err\n",n);
-    bufr[n] = 0;
-    kprintf("%d bytes read: %s\n", n, bufr);
-
-    /* close */
-    close(fd);
-
-    park();
 }

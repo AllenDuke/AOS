@@ -7,7 +7,7 @@
 u8_t *fsbuf = (u8_t *) 0x900000;  /* 9M~10M用于文件系统 */
 const int FSBUF_SIZE = 0x100000;
 
-PRIVATE Message msg;
+Message fs_msg;
 PRIVATE int deviceNR; /* 当前文件系统所在的分区，一个分区对应一个次设备。这里去主硬盘中的最大分区 */
 
 PRIVATE void fs_init();
@@ -72,13 +72,13 @@ PUBLIC void fs_task(void) {
         /* reply */
         if (fs_msg.type != SUSPEND_PROC) {
             fs_msg.type = SYSCALL_RET;
-            send_rec(src, &fs_msg);
+            send(src, &fs_msg);
         }
     }
 }
 
 PRIVATE void fs_init() {
-    in_outbox(&msg, &msg);
+    in_outbox(&fs_msg, &fs_msg);
 
     /* 初始化设备映射驱动 */
     dd_map[0].driver_nr = INVALID_DRIVER;
@@ -102,11 +102,11 @@ PRIVATE void fs_init() {
         sb->sb_dev = NO_DEV;
 
     /* open the device: hard disk */
-    msg.type = DEVICE_OPEN;
-    msg.DEVICE = MINOR(ROOT_DEV); /* 传入的是次设备号 */
+    fs_msg.type = DEVICE_OPEN;
+    fs_msg.DEVICE = MINOR(ROOT_DEV); /* 传入的是次设备号 */
 //    assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
     if (dd_map[MAJOR(ROOT_DEV)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
-    send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &msg);
+    send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &fs_msg);
 
     /* read the super block of ROOT DEVICE */
     RD_SECT(ROOT_DEV, 1);
@@ -161,15 +161,15 @@ PUBLIC int rw_sector(int io_type, int dev, u64_t pos, int bytes, int proc_nr, vo
  */
 PRIVATE void read_super_block(int dev) {
     int i;
-    msg.type = DEVICE_READ;
-    msg.DEVICE = MINOR(dev);
-    msg.POSITION = SECTOR_SIZE * 1;
-    msg.BUF = fsbuf;
-    msg.COUNT = SECTOR_SIZE;
-    msg.PROC_NR = FS_TASK;
+    fs_msg.type = DEVICE_READ;
+    fs_msg.DEVICE = MINOR(dev);
+    fs_msg.POSITION = SECTOR_SIZE * 1;
+    fs_msg.BUF = fsbuf;
+    fs_msg.COUNT = SECTOR_SIZE;
+    fs_msg.PROC_NR = FS_TASK;
 //    assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
     if (dd_map[MAJOR(dev)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
-    send_rec(dd_map[MAJOR(dev)].driver_nr, &msg);
+    send_rec(dd_map[MAJOR(dev)].driver_nr, &fs_msg);
 
     /* find a free slot in super_block[] */
     for (i = 0; i < NR_SUPER_BLOCK; i++)
@@ -284,14 +284,14 @@ PRIVATE void mkfs() {
     /* super block */
     /* get the geometry of ROOT_DEV */
     Partition geo;
-    msg.type = DEVICE_IOCTL;
-    msg.DEVICE = MINOR(ROOT_DEV);
-    msg.REQUEST = DIOCTL_GET_GEO;
-    msg.BUF = &geo;
-    msg.PROC_NR = FS_TASK;
+    fs_msg.type = DEVICE_IOCTL;
+    fs_msg.DEVICE = MINOR(ROOT_DEV);
+    fs_msg.REQUEST = DIOCTL_GET_GEO;
+    fs_msg.BUF = &geo;
+    fs_msg.PROC_NR = FS_TASK;
 //    assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
     if (dd_map[MAJOR(ROOT_DEV)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
-    send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &msg);
+    send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &fs_msg);
 
     kprintf("{FS} dev size: 0x%x sectors\n", geo.size);
 
