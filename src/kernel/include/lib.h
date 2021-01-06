@@ -11,6 +11,10 @@ int send_rec(int src, Message *p_msg);
 int in_outbox(Message *p_inMsg, Message *p_outMsg);
 void park(); /* 进程调用后阻塞自己，等待别人unpark */
 void unpark(int pid); /* 调用者进程就绪一个进程号为pid的进程，用户进程调用时要求pid>=0 */
+int open(const char *pathname, int flags);
+int close(int fd);
+int read(int fd, void *buf, int count);
+int write(int fd, const void *buf, int count);
 
 /* AOS 系统库 */
 int send(int dest, Message* p_msg);

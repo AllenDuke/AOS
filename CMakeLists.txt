@@ -10,21 +10,21 @@ include_directories(HEAD "src/kernel/include")
 add_executable(
         AOS
 
-#        src/kernel/include/core/config.h
-#        src/kernel/include/core/constant.h
-#        src/kernel/include/core/struct_type.h
-#        src/kernel/include/types.h
-#
-#        src/kernel/include/ansi.h
-#        src/kernel/include/core/errno.h
-#        src/kernel/include/core/stddef.h
-#        src/kernel/include/unistd.h
-#
-#        src/kernel/include/assert.h
-#        src/kernel/include/core/global.h
-#        src/kernel/include/core/protect.h
-#        src/kernel/include/core/prototype.h
-#        src/kernel/include/core/process.h
+        #        src/kernel/include/core/config.h
+        #        src/kernel/include/core/constant.h
+        #        src/kernel/include/core/struct_type.h
+        #        src/kernel/include/types.h
+        #
+        #        src/kernel/include/ansi.h
+        #        src/kernel/include/core/errno.h
+        #        src/kernel/include/core/stddef.h
+        #        src/kernel/include/unistd.h
+        #
+        #        src/kernel/include/assert.h
+        #        src/kernel/include/core/global.h
+        #        src/kernel/include/core/protect.h
+        #        src/kernel/include/core/prototype.h
+        #        src/kernel/include/core/process.h
         src/kernel/main.c
         src/kernel/protect.c
         src/kernel/init_c.c
@@ -38,4 +38,4 @@ add_executable(
         src/kernel/clock/clock.c
         src/kernel/process.c
         src/kernel/dump.c
-        src/kernel/tty/keyboard.c src/kernel/tty/tty.c src/kernel/idle/idle.c src/kernel/mm/mm.c src/kernel/mm/alloc.c src/kernel/mm/fork.c src/kernel/mm/mem_map.c src/kernel/mm/exit.c src/kernel/mm/wait.c src/kernel/hd/at_wini.c src/kernel/fs/fs.c src/kernel/fs/open.c)
+        src/kernel/tty/keyboard.c src/kernel/tty/tty.c src/kernel/idle/idle.c src/kernel/mm/mm.c src/kernel/mm/alloc.c src/kernel/mm/fork.c src/kernel/mm/mem_map.c src/kernel/mm/exit.c src/kernel/mm/wait.c src/kernel/hd/at_wini.c src/kernel/fs/fs.c src/kernel/fs/open.c src/kernel/lib/stdio/close.c src/kernel/lib/stdio/open.c src/kernel/lib/stdio/read.c src/kernel/lib/stdio/write.c)

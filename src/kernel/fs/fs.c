@@ -4,7 +4,7 @@
 
 #include "core/kernel.h"
 
-u8_t *fsbuf=(u8_t *) 0x900000;  /* 9M~10M用于文件系统 */
+u8_t *fsbuf = (u8_t *) 0x900000;  /* 9M~10M用于文件系统 */
 const int FSBUF_SIZE = 0x100000;
 
 PRIVATE Message msg;
@@ -29,6 +29,51 @@ PUBLIC void fs_task(void) {
 
     while (TRUE) {
         rec(ANY);
+
+        int msgtype = fs_msg.type;
+        int src = fs_msg.source;
+        pcaller = proc_addr(src);
+
+        switch (msgtype) {
+            case OPEN:
+                fs_msg.FD = do_open();
+                break;
+            case CLOSE:
+                fs_msg.RETVAL = do_close();
+                break;
+            case READ:
+            case WRITE:
+                fs_msg.COUNT = do_rdwt();
+                break;
+            case UNLINK:
+                fs_msg.RETVAL = do_unlink();
+                break;
+            case RESUME_PROC:
+                src = fs_msg.PROC_NR;
+                break;
+            case FORK:
+                fs_msg.RETVAL = fs_fork();
+                break;
+            case EXIT:
+                fs_msg.RETVAL = fs_exit();
+                break;
+            case LSEEK:
+                fs_msg.OFFSET = do_lseek();
+                break;
+            case STAT:
+                fs_msg.RETVAL = do_stat();
+                break;
+            default:
+                kprintf("FS::unknown message:%s\n", &fs_msg);
+                panic("wrong msg type\n", msgtype);
+                break;
+        }
+
+        /* reply */
+        if (fs_msg.type != SUSPEND_PROC) {
+            fs_msg.type = SYSCALL_RET;
+            send_rec(src, &fs_msg);
+        }
     }
 }
 
@@ -36,12 +81,12 @@ PRIVATE void fs_init() {
     in_outbox(&msg, &msg);
 
     /* 初始化设备映射驱动 */
-    dd_map[0].driver_nr=INVALID_DRIVER;
-    dd_map[1].driver_nr=INVALID_DRIVER;
-    dd_map[2].driver_nr=INVALID_DRIVER;
-    dd_map[3].driver_nr=HD_TASK;        /* 3号主要设备对应硬盘驱动 */
-    dd_map[4].driver_nr=TTY_TASK;       /* 4号主要设备对应TTY驱动 */
-    dd_map[5].driver_nr=INVALID_DRIVER;
+    dd_map[0].driver_nr = INVALID_DRIVER;
+    dd_map[1].driver_nr = INVALID_DRIVER;
+    dd_map[2].driver_nr = INVALID_DRIVER;
+    dd_map[3].driver_nr = HD_TASK;        /* 3号主要设备对应硬盘驱动 */
+    dd_map[4].driver_nr = TTY_TASK;       /* 4号主要设备对应TTY驱动 */
+    dd_map[5].driver_nr = INVALID_DRIVER;
 
     /* f_desc_table[] */
     for (int i = 0; i < NR_FILE_DESC; i++)
@@ -83,17 +128,17 @@ PRIVATE void fs_init() {
     root_inode = get_inode(ROOT_DEV, ROOT_INODE);
 }
 
- /**
-  *
-  * @param io_type DEVICE_READ or DEVICE_WRITE
-  * @param dev device nr
-  * @param pos Byte offset from/to where to r/w.
-  * @param bytes r/w count in bytes.
-  * @param proc_nr To whom the buffer belongs.
-  * @param buf r/w buffer.
-  * @return Zero if success.
-  */
-PUBLIC int rw_sector(int io_type, int dev, u64_t pos, int bytes, int proc_nr,void *buf) {
+/**
+ *
+ * @param io_type DEVICE_READ or DEVICE_WRITE
+ * @param dev device nr
+ * @param pos Byte offset from/to where to r/w.
+ * @param bytes r/w count in bytes.
+ * @param proc_nr To whom the buffer belongs.
+ * @param buf r/w buffer.
+ * @return Zero if success.
+ */
+PUBLIC int rw_sector(int io_type, int dev, u64_t pos, int bytes, int proc_nr, void *buf) {
     Message driver_msg;
 
     driver_msg.type = io_type;
@@ -141,11 +186,11 @@ PRIVATE void read_super_block(int dev) {
     superBlocks[i].sb_dev = dev;
 }
 
- /**
-  * Get the super block from super_block[].
-  * @param dev Device nr.
-  * @return Super block ptr.
-  */
+/**
+ * Get the super block from super_block[].
+ * @param dev Device nr.
+ * @return Super block ptr.
+ */
 PUBLIC struct super_block *get_super_block(int dev) {
     struct super_block *sb = superBlocks;
     for (; sb < &superBlocks[NR_SUPER_BLOCK]; sb++)
@@ -432,38 +477,36 @@ PUBLIC void sync_inode(struct inode *p) {
     WR_SECT(p->i_dev, blk_nr);
 }
 
-//PRIVATE int fs_fork()
-//{
-//    int i;
-//    struct proc* child = gp_procs[fs_msg.PID];
-//    for (i = 0; i < NR_FILES; i++) {
-//        if (child->filp[i]) {
-//            child->filp[i]->fd_cnt++;
-//            child->filp[i]->fd_inode->i_cnt++;
-//        }
-//    }
-//
-//    return 0;
-//}
-//
-//PRIVATE int fs_exit()
-//{
-//    int i;
-//    struct proc* p = &gp_procs[fs_msg.PID];
-//    for (i = 0; i < NR_FILES; i++) {
-//        if (p->filp[i]) {
-//            /* release the inode */
-//            p->filp[i]->fd_inode->i_cnt--;
-//            /* release the file desc slot */
-//            if (--p->filp[i]->fd_cnt == 0)
-//                p->filp[i]->fd_inode = 0;
-//            p->filp[i] = 0;
-//        }
-//    }
-//    return 0;
-//}
+PRIVATE int fs_fork(){
+    int i;
+    Process * child = gp_procs[fs_msg.PID];
+    for (i = 0; i < NR_FILES; i++) {
+        if (child->filp[i]) {
+            child->filp[i]->fd_cnt++;
+            child->filp[i]->fd_inode->i_cnt++;
+        }
+    }
 
-PRIVATE void test_rw(){
+    return 0;
+}
+
+PRIVATE int fs_exit() {
+    int i;
+    Process *p = gp_procs[fs_msg.PID];
+    for (i = 0; i < NR_FILES; i++) {
+        if (p->filp[i]) {
+            /* release the inode */
+            p->filp[i]->fd_inode->i_cnt--;
+            /* release the file desc slot */
+            if (--p->filp[i]->fd_cnt == 0)
+                p->filp[i]->fd_inode = 0;
+            p->filp[i] = 0;
+        }
+    }
+    return 0;
+}
+
+PRIVATE void test_rw() {
     //    /* 打开0号主设备 */
 //    msg.source = FS_TASK;
 //    msg.type = DEVICE_OPEN;
