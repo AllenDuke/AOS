@@ -44,6 +44,6 @@
 #define BP_MEMORY_SIZE_INDEX      1
 #define BP_KERNEL_FILE_INDEX      2
 
-//#define ENABLE_FS_TEST /* 定义这个即开启fs测试 */
+#define ENABLE_TEST /* 定义这个即开启fs测试 */
 
 #endif //AOS_CONFIG_H

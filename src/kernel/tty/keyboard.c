@@ -45,7 +45,8 @@ PUBLIC int keyboard_handler(int irq) {
     }
     if (initCount >= 1) { /* todo 初始时，莫名其妙产生的一次键盘中断 */
 //        ready(proc_addr(TTY_TASK));
-        aos_unpark(TTY_TASK);
+//        aos_unpark(TTY_TASK);
+          interrupt(TTY_TASK);
 //        unpark(TTY_TASK); /* unpark是系统调用，在中断中嵌套调用会页异常 */
     } else initCount++;
 

@@ -6,8 +6,9 @@
 
 /* 系统进程表，包含系统任务以及系统服务 */
 SysProc sysProcs[] = {
-#ifdef ENABLE_FS_TEST
-        { fs_test, TEST_TASK_STACK, "TEST" },
+#ifdef ENABLE_TEST
+//        { fs_test, TEST_TASK_STACK, "TEST" },
+        { tty_test, TEST_TASK_STACK, "TEST" },
 #endif
         { tty_task, TTY_TASK_STACK, "TTY" },
         { at_winchester_task,HD_TASK_STACK,"HD"},// todo 交换hd和clock的位置会导致tty堆栈保护字被破坏，为什么？

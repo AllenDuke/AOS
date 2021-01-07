@@ -26,6 +26,7 @@
 #define INIT_TASK_PSW 0x1202    /* initial psw for tasks (with IOPL 1) : IF=1, IOPL=1, 位2一直是1*/
 
 #define NR_CMDS         8     /* 预设命令数量，该值为2的次方数，利于利用位运算，加快速度 */
+
 //======================================================================================================================
 
 
@@ -158,7 +159,7 @@
 #define ANY                 0x3ea
 
 /* 系统任务数量 */
-#ifdef ENABLE_FS_TEST
+#ifdef ENABLE_TEST
 #define NR_TASKS    (7 + NR_CONTROLLERS+1)
 #else
 #define NR_TASKS    (7 + NR_CONTROLLERS)
@@ -167,7 +168,7 @@
 
 /* 每个系统任务的任务号和它的功能服务号(消息类型)以及回复代码，将在下面开始定义 */
 #define INVALID_DRIVER        -20
-#ifdef ENABLE_FS_TEST
+#ifdef ENABLE_TEST
 #define TEST_TASK           -8
 #endif
 #define TTY_TASK            -7
@@ -312,7 +313,7 @@
 /* 这是一个普通堆栈大小，1KB */
 #define NORMAL_STACK        (256 * sizeof(char*))
 
-#ifdef ENABLE_FS_TEST
+#ifdef ENABLE_TEST
 #define TEST_TASK_STACK     SMALL_STACK
 #else
 #define TEST_TASK_STACK     0

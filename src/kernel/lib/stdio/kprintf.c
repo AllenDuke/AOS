@@ -41,6 +41,26 @@ PUBLIC int kprintf(const char *p_string, ...){
     return len;
 }
 
+PUBLIC int printf(const char *fmt, ...)
+{
+    va_list ap;
+    int len;
+    char t_buf[1024];
+
+    /* 准备开始访问可变参数 */
+    va_start(ap, fmt);
+
+    /* 格式化字符串 */
+    len = fmt_str(t_buf, fmt, ap);
+
+    int c = write(1, t_buf, len);
+
+//    assert(c == i);
+    if(c!=len) panic("printf err\n",c);
+
+    return len;
+}
+
 /**
  * 只是简单的格式化字符串，但不进行输出
  * @param buf 存储格式化后的字符串
