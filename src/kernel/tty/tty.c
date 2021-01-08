@@ -18,7 +18,6 @@ PRIVATE void tty_do_read(TTY *tty, Message *msg);
 
 PRIVATE void tty_do_write(TTY *tty, Message *msg);
 
-
 PRIVATE Message ttyMsg;
 
 PUBLIC void tty_task() {
@@ -37,15 +36,13 @@ PUBLIC void tty_task() {
     select_console(0);
 
     while (1) {
-//        if (kb_in_count() == 0) {
-////            rec(ANY);
-//            park();
-//        }
-        for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++) {
-            tty_dev_read(p_tty);
-            tty_dev_write(p_tty);
-        }
 
+        for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++) {
+            do {
+                tty_dev_read(p_tty);
+                tty_dev_write(p_tty);
+            } while (p_tty->inBufCount);
+        }
         receive(ANY, &ttyMsg);
 
         int src = ttyMsg.source;

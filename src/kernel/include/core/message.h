@@ -180,4 +180,9 @@ enum msgtype {
     DEVICE_GATHER,         /* fcn code for reading into a vector */
 };
 
+typedef struct {
+    int to;
+    Message msg;
+}IntMsg;
+
 #endif //AOS_MESSAGE_H

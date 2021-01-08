@@ -9,6 +9,10 @@
  */
 PRIVATE bool_t switching = FALSE;
 
+PUBLIC const u8_t intMsgsCapacity=100;
+PUBLIC IntMsg intMsgs[100]; /* 存放即将在interrupt中忽略的int信息 */
+PUBLIC u8_t intMsgsSize=0;
+
 /* 本地函数声明 */
 FORWARD void hunter(void);
 FORWARD void schedule(void);
@@ -136,6 +140,7 @@ PUBLIC void schedule_stop(void){
 }
 
 PUBLIC void interrupt(int task) {
+
     /**
      * 在接受到一条硬件中断后，相应设备的底层中断服务例程将调用该函数。
      * 功能是将中断转换为向该设备所对应的系统任务发送一条消息，而且通常
@@ -147,25 +152,26 @@ PUBLIC void interrupt(int task) {
      * 如果发生中断重入或正在发送一个进程切换，则将当前中断加入排队队列，函数到此结束，
      * 当前挂起的中断将在以后调用 unhold 时再处理。
      */
-    if(kernelReenter != 0 || switching) {
-        interrupt_lock();
-        /**
-         * 如果进程没有中断被挂起正在等待处理时才继续
-         * 这样做是为了保证一个任务的中断不会重复的被挂起，因为这是无用功，
-         * 最重要的是让任务尽快完成首次被挂起的中断
-         */
-        if(!p_target->intHeld) {
-            p_target->intHeld = TRUE;
-            if(gp_heldHead == NIL_PROC)
-                gp_heldHead = p_target;
-            else
-                gp_heldTail->p_nextHeld = p_target;
-            gp_heldTail = p_target;             /* 无论如何，尾指针都指向最新挂起的 p_target */
-            p_target->p_nextHeld = NIL_PROC;
-        }
-        interrupt_unlock();
-        return;
-    }
+//    if(kernelReenter != 0 || switching) {
+//        interrupt_lock();
+//        /**
+//         * 如果进程没有中断被挂起正在等待处理时才继续
+//         * 这样做是为了保证一个任务的中断不会重复的被挂起，因为这是无用功，
+//         * 最重要的是让任务尽快完成首次被挂起的中断
+//         */
+//        if(!p_target->intHeld) {
+//            p_target->intHeld = TRUE;
+//            if(gp_heldHead == NIL_PROC)
+//                gp_heldHead = p_target;
+//            else
+//                gp_heldTail->p_nextHeld = p_target;
+//            gp_heldTail = p_target;             /* 无论如何，尾指针都指向最新挂起的 p_target */
+//            p_target->p_nextHeld = NIL_PROC;
+//        }
+//        interrupt_unlock();
+//        return;
+//    }
+
 
     /**
      * 现在检查任务是否正在等待一个中断，如果任务未做好接收中断准备，则其 int_blocked
@@ -174,7 +180,18 @@ PUBLIC void interrupt(int task) {
      */
     if( (p_target->flags & (RECEIVING | SENDING)) != RECEIVING || /* 不处于单纯的接收消息的状态 */
         !is_any_hardware(p_target->getFrom)) {
-        p_target->intBlocked = TRUE;     /* 该中断被堵塞 */
+        if(intMsgsSize==intMsgsCapacity){   /* 队列已满 */
+            p_target->intBlocked = TRUE;    /* 中断被堵塞 */
+            kprintf("ignore int to %d, attention!!!\n",task);
+            return;
+        }
+        int i=0;
+        while (intMsgs[i].to==0) i++;
+        intMsgs[i].to=p_target->logicNum;
+        intMsgs[i].msg.source=HARDWARE;
+        intMsgs[i].msg.type=HARD_INT;
+        intMsgsSize++;
+        kprintf("int msg into queue\n");
         return;
     }
 

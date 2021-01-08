@@ -112,9 +112,9 @@ PRIVATE void fs_init() {
     RD_SECT(ROOT_DEV, 1);
 
     sb = (struct super_block *) fsbuf;
-    if (sb->magic != MAGIC_V1) { /* 魔数不对，开始格式化 */
+    if (sb->magic != MAGIC_V1)
+    { /* 魔数不对，开始格式化 */
         kprintf("{FS} mkfs\n");
-
         mkfs(); /* make FS */
     }
 

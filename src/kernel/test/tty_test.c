@@ -6,14 +6,14 @@
 
 void tty_test()
 {
-    char tty_name[] = "/dev_tty1";
+    char tty_name[] = "/dev_tty0";
 
     int fd_stdin  = open(tty_name, O_RDWR);
 //    assert(fd_stdin  == 0);
-    if(fd_stdin  != 0) panic("tty1 fd err\n",fd_stdin);
+    if(fd_stdin  != 0) panic("tty0 fd err\n",fd_stdin);
     int fd_stdout = open(tty_name, O_RDWR);
 //    assert(fd_stdout == 1);
-    if(fd_stdout  != 1) panic("tty1 fd err\n",fd_stdin);
+    if(fd_stdout  != 1) panic("tty0 fd err\n",fd_stdin);
 
     char rdbuf[128];
 

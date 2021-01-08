@@ -17,6 +17,10 @@
  */
 PRIVATE Process *waiters[NR_TASKS + NR_PROCS];
 
+extern const u8_t intMsgsCapacity;
+extern IntMsg intMsgs[];
+extern u8_t intMsgsSize;
+
 /**
  * 系统调用，所有的系统调用都会经过这里，从这里根据op来调用真正的例程
  * @param op 执行的操作：发送，接收，或发送并等待对方响应，以及设置收发件箱
@@ -203,6 +207,17 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
      */
     register Process *sender, *prev;
 
+    if (intMsgsSize > 0) /* 优先处理中断信息 */
+        for (int i = 0; i < intMsgsCapacity; ++i) {
+            if (intMsgs[i].to != caller->logicNum) continue;
+            caller->inBox->source = HARDWARE;
+            caller->inBox->type = HARD_INT;
+            caller->flags &= ~RECEIVING;
+            caller->intBlocked = FALSE;
+            intMsgsSize--;
+            return OK;
+        }
+
     /* 检查有没有要发消息过来给我并符合我的要求的 */
     if (!(caller->flags & SENDING)) {          /* 首先，我自己不能处于发送消息的状态中 */
         /* 遍历等待队列，看有木有人给我发消息啊 */
@@ -243,12 +258,12 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
  * 与park unpark配合使用。
  * 主要用于轻量级的进程通信，和接收异步的外部中断（如，硬盘中断），防止lost-wakeup
  */
-PRIVATE i8_t spinLocks[NR_TASKS+NR_PROCS]={0}; /* 最大值为1，即这是值为1的信号量，理论上[-1,1] */
+PRIVATE i8_t spinLocks[NR_TASKS + NR_PROCS] = {0}; /* 最大值为1，即这是值为1的信号量，理论上[-1,1] */
 
 PUBLIC void aos_park() {
-    int i=logic_nr_2_index(gp_curProc->logicNum);
+    int i = logic_nr_2_index(gp_curProc->logicNum);
     spinLocks[i]--;
-    if(spinLocks[i]<0) {
+    if (spinLocks[i] < 0) {
 //        gp_curProc->flags|=PARKING; /* 进入parking状态 */
         unready(gp_curProc);
     }
@@ -257,35 +272,35 @@ PUBLIC void aos_park() {
 PUBLIC void aos_unpark(int pid) {
     /* if the caller is a user process, then the pid must be >=0 */
     if (gp_curProc->pid >= 0 && pid < 0) {/* 当前进程没有权限 */
-        kprintf("cur:%s, pid:%d\n",gp_curProc->name,pid);
+        kprintf("cur:%s, pid:%d\n", gp_curProc->name, pid);
 
         panic("cur process can not able to unpark target process!", EACCES);
     }
-    int i=logic_nr_2_index(pid);
-    if(spinLocks[i]<1) spinLocks[i]++;
+    int i = logic_nr_2_index(pid);
+    if (spinLocks[i] < 1) spinLocks[i]++;
     Process *p_proc = proc_addr(pid);
-    if(spinLocks[i]==0){
+    if (spinLocks[i] == 0) {
 //        p_proc->flags&=(~PARKING); /* 解出parking状态 */
         ready(p_proc);
     }
 }
 
-PUBLIC void rm_proc_from_waiters(Process* proc){
-    for(int i=0;i<NR_TASKS + NR_PROCS;i++){
-        if(waiters[i]==NIL_PROC) continue;
-        if(proc==waiters[i]){
-            waiters[i]=proc->p_nextWaiter;
+PUBLIC void rm_proc_from_waiters(Process *proc) {
+    for (int i = 0; i < NR_TASKS + NR_PROCS; i++) {
+        if (waiters[i] == NIL_PROC) continue;
+        if (proc == waiters[i]) {
+            waiters[i] = proc->p_nextWaiter;
             return;
         }
-        Process *pre=waiters[i];
-        Process *cur=waiters[i]->p_nextWaiter;
-        while(cur!=NIL_PROC){
-            if(proc!=cur){
-                pre=cur;
-                cur=cur->p_nextWaiter;
+        Process *pre = waiters[i];
+        Process *cur = waiters[i]->p_nextWaiter;
+        while (cur != NIL_PROC) {
+            if (proc != cur) {
+                pre = cur;
+                cur = cur->p_nextWaiter;
                 continue;
             }
-            pre->p_nextWaiter=cur->p_nextWaiter;
+            pre->p_nextWaiter = cur->p_nextWaiter;
         }
     }
 };

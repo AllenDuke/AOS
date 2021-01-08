@@ -80,5 +80,4 @@ struct dev_drv_map dd_map[6]; /* 设备映射驱动程序 */
 Process *pcaller;
 struct inode *root_inode;
 
-
 #endif // AOS_GLOBAL_H
