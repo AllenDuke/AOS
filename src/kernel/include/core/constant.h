@@ -213,7 +213,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 #define CRTC_ADDR_REG                0x3D4    /* CRT Controller Registers - Address Register */
 #define CRTC_DATA_REG                0x3D5    /* CRT Controller Registers - Data Registers */
-#define CRTC_DATA_IDX_START_ADDR_H  0xC        /* register index of video mem start address (MSB) */
+#define CRTC_DATA_IDX_START_ADDR_H   0xC        /* register index of video mem start address (MSB) */
 #define CRTC_DATA_IDX_START_ADDR_L    0xD        /* register index of video mem start address (LSB) */
 #define CRTC_DATA_IDX_CURSOR_H        0xE        /* register index of cursor position (MSB) */
 #define CRTC_DATA_IDX_CURSOR_L        0xF        /* register index of cursor position (LSB) */
@@ -286,7 +286,7 @@
 #define ENABLE_DISK_LOG
 #define SET_LOG_SECT_SMAP_AT_STARTUP
 #define MEMSET_LOG_SECTS
-#define    NR_SECTS_FOR_LOG        NR_DEFAULT_FILE_SECTS
+#define NR_SECTS_FOR_LOG        NR_DEFAULT_FILE_SECTS
 
 /* INODE::i_mode (octal, lower 12 bits reserved) */
 #define I_TYPE_MASK     0170000    /* 该字段给出inode类型 */
@@ -312,6 +312,9 @@
 #define SMALL_STACK         (128 * sizeof(char*))
 /* 这是一个普通堆栈大小，1KB */
 #define NORMAL_STACK        (256 * sizeof(char*))
+
+#define	PROC_IMAGE_SIZE_DEFAULT	0x100000 /*  1 MB */
+#define PROC_ORIGIN_STACK   0x400 /* 1kB 干嘛用的 */
 
 #ifdef ENABLE_TEST
 #define TEST_TASK_STACK     SMALL_STACK

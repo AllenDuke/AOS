@@ -186,7 +186,7 @@ PUBLIC void interrupt(int task) {
             return;
         }
         int i=0;
-        while (intMsgs[i].to==0) i++;
+        while (intMsgs[i].to==0) i++; /* todo 更改0 */
         intMsgs[i].to=p_target->logicNum;
         intMsgs[i].msg.source=HARDWARE;
         intMsgs[i].msg.type=HARD_INT;

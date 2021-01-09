@@ -121,6 +121,7 @@ typedef struct message_s {
 #define POSITION        m2_l1    /* 分区内字节偏移地址 */
 #define ADDRESS         m2_p1    /* 进程地址空间起的缓冲区偏移地址 */
 #define BUF             m2_p1
+#define	BUF_LEN		    m2_i3
 #define PID             m2_i2
 #define NAME_LEN        m2_i2
 #define PATHNAME        m2_p1

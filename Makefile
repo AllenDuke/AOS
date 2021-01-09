@@ -62,13 +62,13 @@ KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/prote
                   $(tk)/process.o $(tk)/ipc.o $(tk)/dump.o $(tk)/keyboard.o $(tk)/tty.o \
                   $(tk)/console.o $(tk)/idle.o $(tk)/alloc.o $(tk)/mm.o $(tk)/fork.o $(tk)/mem_map.o \
                   $(tk)/exit.o $(tk)/wait.o $(tk)/at_wini.o $(tk)/fs.o $(tk)/open.o $(tk)/fs_misc.o \
-                  $(tk)/read_write.o $(tk)/link.o $(tk)/fs_test.o $(tk)/tty_test.o
+                  $(tk)/read_write.o $(tk)/link.o $(tk)/fs_test.o $(tk)/tty_test.o $(tk)/exec.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LibObjs         = $(AnsiObjs) $(StdioObjs) $(I386Objs)
 AnsiObjs        = $(tl)/ansi/string.o $(tl)/ansi/memcmp.o $(tl)/ansi/cstring.o
 StdioObjs       = $(tl)/stdio/kprintf.o $(tl)/stdio/open.o $(tl)/stdio/close.o $(tl)/stdio/write.o \
-                  $(tl)/stdio/read.o
+                  $(tl)/stdio/read.o $(tl)/stdio/stat.o
 I386Objs        = $(tl)/i386/ipc/ipc.o
 
 Objs            = $(KernelObjs) $(LibObjs)
@@ -222,6 +222,9 @@ $(tk)/mem_map.o: $(sk)/mm/mem_map.c
 $(tk)/exit.o: $(sk)/mm/exit.c
 	$(CC) $(CFlags) -o $@ $<
 
+$(tk)/exec.o: $(sk)/mm/exec.c
+	$(CC) $(CFlags) -o $@ $<
+
 $(tk)/wait.o: $(sk)/mm/wait.c
 	$(CC) $(CFlags) -o $@ $<
 
@@ -271,6 +274,9 @@ $(tl)/stdio/read.o: $(lstdio)/read.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tl)/stdio/write.o: $(lstdio)/write.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/stdio/stat.o: $(lstdio)/stat.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tl)/i386/ipc/ipc.o: $(li386)/ipc/ipc.asm
