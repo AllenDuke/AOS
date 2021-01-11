@@ -5,6 +5,8 @@
 #ifndef AOS_FAT_H
 #define AOS_FAT_H
 
+#include "types.h"
+
 /* FAT文件系统的BPB结构，512字节，位于分区的0号扇区 */
 typedef struct bpb_t {
     u8_t BS_jmpBoot[3];             /* 一个短跳转指令 */

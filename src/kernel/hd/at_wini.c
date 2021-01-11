@@ -2,8 +2,13 @@
 // Created by 杜科 on 2020/12/27.
 //
 
-#include "core/kernel.h"
+#include <core/config.h>
+#include <core/global.h>
+#include <errno.h>
+#include <cstring.h>
 #include <ibm/partition.h>
+#include <core/hd.h>
+#include "stdio.h"
 
 PRIVATE int nr_drives;                  /* 磁盘驱动器的数量 */
 PRIVATE bool_t intr_open;               /* 中断打开状态，1开0关 */

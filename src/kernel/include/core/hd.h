@@ -5,6 +5,9 @@
 #ifndef AOS_HD_H
 #define AOS_HD_H
 
+#include "types.h"
+#include "dev.h"
+
 /********************************************/
 /* I/O Ports used by hard disk controllers. */
 /********************************************/

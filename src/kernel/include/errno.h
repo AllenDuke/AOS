@@ -29,18 +29,16 @@
  * 从Minix中引入...个人有些许修改
  */
 
-#ifndef _ERRNO_H		/* check if <errno.h> is already included */
-#define _ERRNO_H		/* it is not included; note that fact */
+#ifndef _ERRNO_H        /* check if <errno.h> is already included */
+#define _ERRNO_H        /* it is not included; note that fact */
 
 /* Now define _SIGN as "" or "-" depending on _SYSTEM. */
-#ifdef _SYSTEM
-#   define _SIGN         -
-#   define OK            0
-#else
-#   define _SIGN         
-#endif
 
-extern int errno;		  /* 错误编号所在的位置 */
+#define _SIGN         -
+#define OK            0
+
+
+extern int errno;          /* 错误编号所在的位置 */
 
 /* 这是错误编号的数值。 */
 #define _NERROR               70  /* 错误数量 */
@@ -94,13 +92,13 @@ extern int errno;		  /* 错误编号所在的位置 */
 #define EWOULDBLOCK   (_SIGN 54)
 #define EBADDEST      (_SIGN 55)  /* not a valid destination address */
 #define EDSTNOTRCH    (_SIGN 56)  /* destination not reachable */
-#define EISCONN	      (_SIGN 57)  /* all ready connected */
+#define EISCONN          (_SIGN 57)  /* all ready connected */
 #define EADDRINUSE    (_SIGN 58)  /* address in use */
 #define ECONNREFUSED  (_SIGN 59)  /* connection refused */
 #define ECONNRESET    (_SIGN 60)  /* connection reset */
 #define ETIMEDOUT     (_SIGN 61)  /* connection timed out */
-#define EURG	      (_SIGN 62)  /* urgent data present */
-#define ENOURG	      (_SIGN 63)  /* no urgent data present */
+#define EURG          (_SIGN 62)  /* urgent data present */
+#define ENOURG          (_SIGN 63)  /* no urgent data present */
 #define ENOTCONN      (_SIGN 64)  /* no connection (yet or anymore) */
 #define ESHUTDOWN     (_SIGN 65)  /* a write call to a shutdown connection */
 #define ENOCONN       (_SIGN 66)  /* no such connection */
@@ -110,19 +108,19 @@ extern int errno;		  /* 错误编号所在的位置 */
 #define ERROR_BAD_CALL     (_SIGN 102)  /* 发送/接收错误 */
 
 /* 以下错误代码由内核本身生成。 */
-#ifdef _SYSTEM
+
 #define ERROR_BAD_ELF      -6552    /* 错误的ELF文件头 */
-#define ERROR_BAD_DEST     -1001	/* 目的地址非法 */
-#define ERROR_BAD_SRC      -1002	/* 源地址非法 */
-#define ERROR_TRY_AGAIN    -1003	/* can't send-- tables full */
-#define ERROR_OVERRUN      -1004	/* interrupt for task that is not waiting */
-#define ERROR_BAD_BUF      -1005	/* message buf outside caller's addr space */
-#define ERROR_TASK         -1006	/* 无法发送到任务，任务可能是错误的 */
-#define ERROR_NO_MESSAGE   -1007	/* 接收失败：现在没有消息（用于告诉用户别等待了） */
-#define ERROR_NO_PERM      -1008	/* 普通用户无法直接发送消息到任务 */
-#define ERROR_BAD_FCN      -1009	/* 只有有效的功能索引号才能得到系统功能 */
-#define ERROR_BAD_ADDR     -1010	/* bad address given to utility routine */
-#define ERROR_BAD_PROC     -1011	/* bad proc number given to utility */
-#endif /* _SYSTEM */
+#define ERROR_BAD_DEST     -1001    /* 目的地址非法 */
+#define ERROR_BAD_SRC      -1002    /* 源地址非法 */
+#define ERROR_TRY_AGAIN    -1003    /* can't send-- tables full */
+#define ERROR_OVERRUN      -1004    /* interrupt for task that is not waiting */
+#define ERROR_BAD_BUF      -1005    /* message buf outside caller's addr space */
+#define ERROR_TASK         -1006    /* 无法发送到任务，任务可能是错误的 */
+#define ERROR_NO_MESSAGE   -1007    /* 接收失败：现在没有消息（用于告诉用户别等待了） */
+#define ERROR_NO_PERM      -1008    /* 普通用户无法直接发送消息到任务 */
+#define ERROR_BAD_FCN      -1009    /* 只有有效的功能索引号才能得到系统功能 */
+#define ERROR_BAD_ADDR     -1010    /* bad address given to utility routine */
+#define ERROR_BAD_PROC     -1011    /* bad proc number given to utility */
+
 
 #endif /* _ERRNO_H */

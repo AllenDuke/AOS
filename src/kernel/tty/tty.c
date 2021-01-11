@@ -2,9 +2,10 @@
 // Created by 杜科 on 2020/12/8.
 //
 
-#include "core/kernel.h"
+#include <core/console.h>
+#include <core/global.h>
 #include "core/keyboard.h"
-
+#include "stdio.h"
 /* 本文件内函数声明 */
 PRIVATE void init_tty(TTY *p_tty);
 

@@ -7,6 +7,8 @@
 #ifndef AOS_STRUCT_TYPE_H
 #define AOS_STRUCT_TYPE_H
 
+#include "types.h"
+
 /* 引导参数 */
 typedef struct boot_params_s{
     u32_t memorySize;               /* 内存大小 单位是KB */

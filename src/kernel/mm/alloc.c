@@ -1,8 +1,8 @@
 //
 // Created by 杜科 on 2020/12/24.
 //
-#include "core/kernel.h"
 
+#include "stdio.h"
 extern CardNode nodes[];
 
 PRIVATE void change_down(int i,bool_t val);

@@ -30,9 +30,6 @@
 /* 进程表中的用户进程的槽数，这个配置决定了 AOS 能同时运行多少个用户进程。 */
 #define NR_PROCS          32
 
-/* 控制器任务的数量（/dev/cN设备类）。 */
-#define NR_CONTROLLERS          0
-
 /**
  * 引导参数相关信息
  * 引导参数由加载程序存储，它们应该放在内核正在运行时也不应该去覆盖的地方， 因为内核可能随时使用它们。
@@ -43,6 +40,15 @@
 #define BP_MAGIC_INDEX            0
 #define BP_MEMORY_SIZE_INDEX      1
 #define BP_KERNEL_FILE_INDEX      2
+
+/**
+ * 保留一些扇区供我们（操作系统创造者）在此处复制tar文件，该文件将由OS提取并使用。
+ * 文件里存放一些使用的程序。
+ * 注意，INSTALL_NR_SECTS应该是NR_DEFAULT_FILE_SECTS的倍数：
+ *      INSTALL_NR_SECTS = n * NR_DEFAULT_FILE_SECTS（int n）
+ */
+#define INSTALL_START_SECT      0x17000
+#define INSTALL_NR_SECTS        0x800 /* 1MB */
 
 #define ENABLE_TEST /* 定义这个即开启fs测试 */
 

@@ -2,8 +2,6 @@
  * ansi标准函数memcmp实现。
  */
 
-
-
 #include <types.h>
 
 /**

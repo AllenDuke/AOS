@@ -11,6 +11,8 @@
 #ifndef AOS_PROTECT_H
 #define AOS_PROTECT_H
 
+#include "types.h"
+
 /* 描述符表指针结构 */
 typedef struct descriptor_s{
     char limit[sizeof(u16_t)];

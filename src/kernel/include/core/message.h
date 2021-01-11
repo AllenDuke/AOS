@@ -5,6 +5,13 @@
 #ifndef AOS_MESSAGE_H
 #define AOS_MESSAGE_H
 
+#include "types.h"
+/* 与消息类型有关的定义。 */
+#define M1                 1        /* 消息类型1：消息域使用mess_union1 */
+#define M3                 3        /* 同上 */
+#define M4                 4        /* 同上 */
+#define M3_STRING         15        /* 消息类型3携带字符串的长度 */
+
 /* 定义6种消息域将使得更易于在不同的体系结构上重新编译。 */
 typedef struct {
     int m1i1, m1i2, m1i3;
@@ -129,6 +136,7 @@ typedef struct message_s {
 #define OFFSET          m2_i2
 #define WHENCE          m2_i3
 #define	RETVAL		    m2_i1
+#define	STATUS		    m2_i1
 
 /* 任务回复消息中使用的消息字段名称。 */
 #define REPLY_PROC_NR   m2_i1       /* 代表I/O完成的进程索引号 */

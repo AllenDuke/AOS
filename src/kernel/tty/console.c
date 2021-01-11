@@ -1,7 +1,10 @@
 //
 // Created by 杜科 on 2020/12/8.
 //
-#include "core/kernel.h"
+
+#include <core/global.h>
+#include <core/prototype.h>
+#include <types.h>
 
 PRIVATE void set_cursor(unsigned int position);
 

@@ -1,12 +1,16 @@
 //
 // Created by 杜科 on 2020/10/22.
 //
-#include <core/kernel.h>
-#include <stdarg.h>
+#include <core/console.h>
+#include <core/global.h>
+#include "limit.h"
+#include "stdio.h"
+#include "stdarg.h"
 
 #define isdigit(c)    ((unsigned) ((c) - '0') <  (unsigned) 10)
 
 PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg);
+extern void out_char(CONSOLE* p_con, char ch);
 
 /**
  * kprintf函数，将字符串常量p_string格式化输出，用于系统任务和服务可用
@@ -15,7 +19,7 @@ PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg);
  * @param ... 可变参数
  * @return
  */
-PUBLIC int kprintf(const char *p_string, ...){
+PUBLIC int kprintf(const char *p_string, ...) {
     va_list ap;
     int len;
     /**
@@ -32,8 +36,8 @@ PUBLIC int kprintf(const char *p_string, ...){
 
 //    /* 调用low_print函数打印格式化后的字符串 */
 //    low_print(buf);
-    for(int i=0;i<len;i++){
-        out_char(&consoles[0],buf[i]);
+    for (int i = 0; i < len; i++) {
+        out_char(&consoles[0], buf[i]);
     }
 
     /* 可变参数访问结束 */
@@ -41,8 +45,7 @@ PUBLIC int kprintf(const char *p_string, ...){
     return len;
 }
 
-PUBLIC int printf(const char *fmt, ...)
-{
+PUBLIC int printf(const char *fmt, ...) {
     va_list ap;
     int len;
     char t_buf[1024];
@@ -56,7 +59,7 @@ PUBLIC int printf(const char *fmt, ...)
     int c = write(1, t_buf, len);
 
 //    assert(c == i);
-    if(c!=len) panic("printf err\n",c);
+    if (c != len) panic("printf err\n", c);
 
     return len;
 }
@@ -68,7 +71,7 @@ PUBLIC int printf(const char *fmt, ...)
  * @param ... 可变参数
  * @return
  */
-PUBLIC int fmt_string(char *buf, const char *p_string, ...){
+PUBLIC int fmt_string(char *buf, const char *p_string, ...) {
     va_list ap;
 
     /* 准备访问可变参数 */
@@ -89,14 +92,18 @@ PUBLIC int fmt_string(char *buf, const char *p_string, ...){
  * @param p_arg
  * @return
  */
-PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg){
+PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg) {
     int c;
-    enum { LEFT, RIGHT } adjust;
-    enum { LONG, INT } intsize;
+    enum {
+        LEFT, RIGHT
+    } adjust;
+    enum {
+        LONG, INT
+    } intsize;
     int fill;
     int width, max, len, base;
-    static char X2C_tab[]= "0123456789ABCDEF";
-    static char x2c_tab[]= "0123456789abcdef";
+    static char X2C_tab[] = "0123456789ABCDEF";
+    static char x2c_tab[] = "0123456789abcdef";
     char *x2c;
     char *p;
     long i;
@@ -106,7 +113,7 @@ PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg){
 
     /* 只要还没有访问到字符串的结束符0，就继续 */
     while ((c = *p_string++) != 0) {
-        if(c != '%'){
+        if (c != '%') {
             /* 普通字符，将其回显 */
             *buf = c;
             buf++;
@@ -121,27 +128,26 @@ PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg){
 
         adjust = RIGHT;
         if (c == '-') {
-            adjust= LEFT;
-            c= *p_string++;
+            adjust = LEFT;
+            c = *p_string++;
         }
 
         fill = ' ';
         if (c == '0') {
-            fill= '0';
-            c= *p_string++;
+            fill = '0';
+            c = *p_string++;
         }
 
         width = 0;
         if (c == '*') {
             /* 宽度被指定为参数，例如 %*d。 */
             width = (int) va_arg(p_arg, int);
-            c= *p_string++;
-        } else
-        if (isdigit(c)) {
+            c = *p_string++;
+        } else if (isdigit(c)) {
             /* 数字表示宽度，例如 %10d。 */
             do {
-                width= width * 10 + (c - '0');
-            } while (isdigit(c= *p_string++));
+                width = width * 10 + (c - '0');
+            } while (isdigit(c = *p_string++));
         }
 
         max = INT_MAX;
@@ -150,8 +156,7 @@ PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg){
             if ((c = *p_string++) == '*') {
                 max = (int) va_arg(p_arg, int);
                 c = *p_string++;
-            } else
-            if (isdigit(c)) {
+            } else if (isdigit(c)) {
                 max = 0;
                 do {
                     max = max * 10 + (c - '0');
@@ -174,19 +179,19 @@ PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg){
         switch (c) {
             /* 十进制 */
             case 'd':
-                i = intsize == LONG ? (long)va_arg(p_arg, long)
+                i = intsize == LONG ? (long) va_arg(p_arg, long)
                                     : (long) va_arg(p_arg, int);
                 u = i < 0 ? -i : i;
                 goto int2ascii;
 
                 /* 八进制 */
             case 'o':
-                base= 010;
+                base = 010;
                 goto getint;
 
                 /* 指针，解释为%X 或 %lX。 */
             case 'p':
-                if (sizeof(char *) > sizeof(int)) intsize= LONG;
+                if (sizeof(char *) > sizeof(int)) intsize = LONG;
 
                 /* 十六进制。 %X打印大写字母A-F，而不打印%lx。 */
             case 'X':
@@ -198,20 +203,20 @@ PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg){
                 /* 无符号十进制 */
             case 'u':
             getint:
-                u = intsize == LONG ? (unsigned long)va_arg(p_arg, unsigned long)
-                                    : (unsigned long)va_arg(p_arg, unsigned int);
+                u = intsize == LONG ? (unsigned long) va_arg(p_arg, unsigned long)
+                                    : (unsigned long) va_arg(p_arg, unsigned int);
             int2ascii:
                 p = temp + sizeof(temp) - 1;
                 *p = 0;
                 do {
-                    *--p= x2c[(int) (u % base)];
+                    *--p = x2c[(int) (u % base)];
                 } while ((u /= base) > 0);
                 goto string_length;
 
                 /* 一个字符 */
             case 'c':
                 p = temp;
-                *p = (int)va_arg(p_arg, int);
+                *p = (int) va_arg(p_arg, int);
                 len = 1;
                 goto string_print;
 
@@ -227,7 +232,7 @@ PRIVATE int fmt_str(char *buf, const char *p_string, char *p_arg){
                 p = va_arg(p_arg, char *);
 
             string_length:
-                for (len= 0; p[len] != 0 && len < max; len++) {}
+                for (len = 0; p[len] != 0 && len < max; len++) {}
 
             string_print:
                 width -= len;

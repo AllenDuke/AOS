@@ -2,7 +2,13 @@
 // Created by 杜科 on 2020/12/28.
 //
 
-#include "core/kernel.h"
+#include <core/fs.h>
+#include <core/config.h>
+#include <core/global.h>
+#include <cstring.h>
+#include <core/dev.h>
+#include <core/hd.h>
+#include "stdio.h"
 
 u8_t *fsbuf = (u8_t *) 0x900000;  /* 9M~10M用于文件系统 */
 const int FSBUF_SIZE = 0x100000;
@@ -375,7 +381,7 @@ PRIVATE void mkfs() {
     /* make sure it'll not be overwritten by the disk log */
 //    assert(INSTALL_START_SECT + INSTALL_NR_SECTS < sb.nr_sects - NR_SECTS_FOR_LOG);
     if (INSTALL_START_SECT + INSTALL_NR_SECTS >= sb.nr_sects - NR_SECTS_FOR_LOG)
-        panic("mkfs err\n", PANIC_ERR_NUM);
+        panic("install sec err\n", INSTALL_START_SECT + INSTALL_NR_SECTS);
     int bit_offset = INSTALL_START_SECT - sb.nr_db_sect + 1; /* sect M <-> bit (M - sb.n_1stsect + 1) */
     int bit_off_in_sect = bit_offset % (SECTOR_SIZE * 8);
     int bit_left = INSTALL_NR_SECTS;

@@ -2,7 +2,12 @@
 // Created by 杜科 on 2020/10/8.
 //
 
-#include "core/kernel.h"
+#include <core/config.h>
+#include <core/global.h>
+#include <errno.h>
+#include <cstring.h>
+#include "stdio.h"
+
 
 /* 系统进程表，包含系统任务以及系统服务 */
 SysProc sysProcs[] = {

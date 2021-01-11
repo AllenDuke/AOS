@@ -5,6 +5,10 @@
 #ifndef AOS_MM_H
 #define AOS_MM_H
 
+#include "types.h"
+#include "struct_type.h"
+#include "message.h"
+
 /**
  * 二叉堆的形式
  * 一个节点管理一段连续的页，这里以页为单位 ，比用树的形式减少12字节的指针大小，

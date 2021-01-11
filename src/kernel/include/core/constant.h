@@ -134,11 +134,6 @@
 //----------------------------------------------------------------------------------------------------------------------
 //  进程相关
 //----------------------------------------------------------------------------------------------------------------------
-/* 与消息类型有关的定义。 */
-#define M1                 1        /* 消息类型1：消息域使用mess_union1 */
-#define M3                 3        /* 同上 */
-#define M4                 4        /* 同上 */
-#define M3_STRING         15        /* 消息类型3携带字符串的长度 */
 
 /* 消息常用宏定义 */
 #define MESSAGE_SIZE    (sizeof(Message))   /* 一个消息的字节大小 */
@@ -157,6 +152,9 @@
 #define IN_OUTBOX           0x4    /* 0100: 设置固定收发件箱  */
 /* 魔数，它是一个不存在的进程逻辑编号，用于表示任何进程receive(ANY, msg_buf) 表示接收任何进程的消息 */
 #define ANY                 0x3ea
+
+/* 控制器任务的数量（/dev/cN设备类）。 */
+#define NR_CONTROLLERS          0
 
 /* 系统任务数量 */
 #ifdef ENABLE_TEST
@@ -270,15 +268,6 @@
 #define    ROOT_INODE        1
 
 #define    NR_DEFAULT_FILE_SECTS    2048 /* 2048 * 512 = 1MB，用于根目录 */
-
-/**
- * 保留一些扇区供我们（操作系统创造者）在此处复制tar文件，该文件将由OS提取并使用。
- * 文件里存放一些使用的程序。
- * 注意，INSTALL_NR_SECTS应该是NR_DEFAULT_FILE_SECTS的倍数：
- *      INSTALL_NR_SECTS = n * NR_DEFAULT_FILE_SECTS（int n）
- */
-#define    INSTALL_START_SECT        0x17000
-#define    INSTALL_NR_SECTS        0x800
 
 /*
  * disk log

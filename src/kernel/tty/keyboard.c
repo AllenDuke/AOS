@@ -2,7 +2,9 @@
 // Created by 杜科 on 2020/12/8.
 //
 
-#include "core/kernel.h"
+#include <core/prototype.h>
+#include <core/message.h>
+#include <core/constant.h>
 #include "core/keyboard.h"
 #include "core/keymap.h"
 

@@ -9,8 +9,10 @@
  * 工作需要消耗很多的系统资源，所以如果想优化 aos 内核，第一步就是解决消息
  * 的资源消耗问题。
  */
-#include "core/kernel.h"
-
+#include <core/config.h>
+#include <core/global.h>
+#include <errno.h>
+#include "stdio.h"
 /**
  * 每个进程有各自的等待队列，如
  * waiters[0]，下标为0的进程的等待队列，结合p_nextWaiter使用

@@ -5,6 +5,8 @@
 #ifndef AOS_ELF_H
 #define AOS_ELF_H
 
+#include "types.h"
+
 typedef u32_t Elf32_Word,Elf32_Addr,Elf32_Off;
 typedef u16_t Elf32_Half;
 

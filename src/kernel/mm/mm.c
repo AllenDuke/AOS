@@ -1,8 +1,10 @@
 //
 // Created by 杜科 on 2020/12/23.
 //
-#include "core/kernel.h"
 
+#include <core/global.h>
+#include <core/config.h>
+#include "stdio.h"
 PRIVATE void mm_init();
 
 /**

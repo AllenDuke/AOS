@@ -31,3 +31,10 @@ KERNEL_KEEP_SPACE   equ LOADER_PHY_ADDR - KERNEL_PHY_ADDR
 ; 注意：以下的宏应该和C代码里的同步，它们在include/flyanx/config.h下
 BOOT_PARAM_ADDR     equ 0x700
 BOOT_PARAM_MAGIC    equ 0x0123
+
+; 根设备的基地址所处扇区号
+; ===== 加载时我们不计算根设备的基本扇区号
+; ===== 但将其定义为宏有两个原因：
+; ===== 1. 它对于任何特定系统都是一个常数
+; ===== 2. 它简化了引导扇区和加载程序
+ROOT_BASE		equ	0xF000

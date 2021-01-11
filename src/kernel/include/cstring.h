@@ -5,8 +5,10 @@
  * 包含串处理函数原型
  */
 
-#ifndef _CSTRING_H
-#define _CSTRING_H
+#ifndef AOS_CSTRING_H
+#define AOS_CSTRING_H
+
+#include "types.h"
 
 int strncmp(register const char *p_s1, register const char *p_s2, register size_t n);
 int strcmp(register const char *p_s1, register const char *p_s2);
@@ -17,4 +19,4 @@ char* strcpy(char* p_dst, char* p_src);
 void memset(void* p_dst, char ch, int size);
 void*	memcpy(void* p_dst, void* p_src, int size);
 
-#endif //_CSTRING_H
+#endif //AOS_CSTRING_H

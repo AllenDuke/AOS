@@ -20,9 +20,10 @@ ib = $i/ibm
 sk = src/kernel
 
 # 库文件所在目录
-lansi = src/kernel/lib/ansi
-lstdio = src/kernel/lib/stdio
-li386 = src/kernel/lib/i386
+l=src/kernel/lib
+lansi = $l/ansi
+lstdio = $l/stdio
+li386 = $l/i386
 
 # 编译链接中间目录
 t = target
@@ -46,6 +47,9 @@ ASMFlagsOfBoot  = -I src/boot/include/
 ASMFlagsOfKernel= -f elf -I src/kernel/include/core/
 CFlags			= -std=c99 -I $i -c -fno-builtin -Wall
 LDFlags			= -Ttext $(ENTRY_POINT) -Map kernel.map  # -Ttext 选项参数用来调整elf文件的可执行代码中的p_vaddr的值
+
+AR              = ar
+ARFLAGS		    = rcs
 # ======================================================================================================================
 
 
@@ -65,10 +69,11 @@ KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/prote
                   $(tk)/read_write.o $(tk)/link.o $(tk)/fs_test.o $(tk)/tty_test.o $(tk)/exec.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
+LIB		        = $(l)/aos_lib.a
 LibObjs         = $(AnsiObjs) $(StdioObjs) $(I386Objs)
 AnsiObjs        = $(tl)/ansi/string.o $(tl)/ansi/memcmp.o $(tl)/ansi/cstring.o
 StdioObjs       = $(tl)/stdio/kprintf.o $(tl)/stdio/open.o $(tl)/stdio/close.o $(tl)/stdio/write.o \
-                  $(tl)/stdio/read.o $(tl)/stdio/stat.o
+                  $(tl)/stdio/read.o $(tl)/stdio/stat.o $(tl)/stdio/exit.o
 I386Objs        = $(tl)/i386/ipc/ipc.o
 
 Objs            = $(KernelObjs) $(LibObjs)
@@ -90,7 +95,7 @@ nop:
 	@echo "realclean        完全清理：清理所有的中间编译文件以及生成的目标文件（二进制文件）	"
 
 # 编译所有文件
-everything: $(AOSBoot) $(AOSKernel) # 这表示依赖的东西
+everything: $(AOSBoot) $(AOSKernel) $(LIB)# 这表示依赖的东西
 	@echo "已经生成 AOS 内核！"
 
 # 生成系统镜像文件
@@ -123,7 +128,7 @@ clean:
 
 # 完全清理：清理所有的中间编译文件以及生成的目标文件（二进制文件）
 realclean: clean
-	-rm -f $(AOSBoot) $(AOSKernel) $(Objs)
+	-rm -f $(AOSBoot) $(AOSKernel) $(Objs) $(LIB)
 
 all: realclean everything
 # ======================================================================================================================
@@ -152,6 +157,9 @@ $(tb)/loader.bin: src/boot/loader.asm
 # 内核
 $(AOSKernel): $(Objs)
 	$(LD) $(LDFlags) -o $(AOSKernel) $^
+
+$(LIB) : $(LibObjs)
+	$(AR) $(ARFLAGS) $@ $^
 # ======================================================================================================================
 
 
@@ -277,6 +285,9 @@ $(tl)/stdio/write.o: $(lstdio)/write.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tl)/stdio/stat.o: $(lstdio)/stat.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/stdio/exit.o: $(lstdio)/exit.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tl)/i386/ipc/ipc.o: $(li386)/ipc/ipc.asm

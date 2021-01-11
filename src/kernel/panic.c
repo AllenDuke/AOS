@@ -2,8 +2,7 @@
 // Created by 杜科 on 2020/10/24.
 //
 
-#include "include/core/kernel.h"
-
+#include "stdio.h"
 /**
  * 内核遇到了不可恢复的异常或错误，立即准备进入宕机状态
  * @param msg 错误信息

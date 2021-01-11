@@ -1,9 +1,10 @@
 //
 // Created by 杜科 on 2020/12/25.
 //
-
-#include "core/kernel.h"
-
+#include <core/global.h>
+#include <errno.h>
+#include <core/config.h>
+#include "stdio.h"
 PRIVATE pid_t nextPid = ORIGIN_PID + 1;
 
 PRIVATE int do_fork(int child_nr, int pre_nr, int pid);

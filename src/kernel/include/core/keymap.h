@@ -4,7 +4,7 @@
 
 #ifndef AOS_KEYMAP_H
 #define AOS_KEYMAP_H
-
+#include "types.h"
 /* Keymap for US MF-2 keyboard. */
 
 u32_t keyMap[NR_SCAN_CODES * MAP_COLS] = {

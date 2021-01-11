@@ -4,6 +4,11 @@
 
 #ifndef AOS_PROCESS_H
 #define AOS_PROCESS_H
+#include "types.h"
+#include "struct_type.h"
+#include "protect.h"
+#include "message.h"
+#include "constant.h"
 
 /**
  * 进程，一个进程是包含 进程的寄存器信息(栈帧) 和 LDT(本地描述符表) 以及 自定义的一些属性

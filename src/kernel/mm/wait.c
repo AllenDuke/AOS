@@ -1,8 +1,11 @@
 //
 // Created by 杜科 on 2020/12/26.
 //
-#include "core/kernel.h"
 
+#include <errno.h>
+#include <core/global.h>
+#include <core/config.h>
+#include "stdio.h"
 PRIVATE int mm_waitpid(int pid, int options);
 
 extern MMProcess mmProcs[];

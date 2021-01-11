@@ -1,7 +1,13 @@
 //
 // Created by 杜科 on 2020/12/25.
 //
-#include "core/kernel.h"
+
+#include <core/global.h>
+#include <core/prototype.h>
+#include <errno.h>
+#include <core/constant.h>
+#include <core/process.h>
+#include <core/config.h>
 
 PUBLIC int new_mem_map(int child_nr, int pre_nr, MemoryMap *map) {
     /* 在一个FORK调用之后，存储管理器为子进程分配内存。内核必须知道子进程位于内存何处以在运行子进程时能正确

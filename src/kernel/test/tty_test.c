@@ -2,7 +2,8 @@
 // Created by 杜科 on 2021/1/7.
 //
 
-#include "core/kernel.h"
+#include "cstring.h"
+#include "stdio.h"
 
 void tty_test()
 {

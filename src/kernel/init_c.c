@@ -8,9 +8,9 @@
  * 该文件的入口点是：
  *  - cstart:      进入内核主函数前做一些准备工作
  */
-
-#include "include/core/kernel.h"
-
+#include <core/config.h>
+#include <core/global.h>
+#include "stdio.h"
 /**
  * 进入内核主函数前做一些初始化工作。
  */

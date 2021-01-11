@@ -2,8 +2,11 @@
 // Created by 杜科 on 2020/10/27.
 //
 
-#include "core/kernel.h"
-
+#include <core/global.h>
+#include <errno.h>
+#include <limit.h>
+#include <core/times.h>
+#include "stdio.h"
 PRIVATE clock_t ticks;                              /* 时钟运行的时间(滴答数)，也是开机后时钟运行的时间 */
 PRIVATE clock_t  pending_ticks; /* 中断挂起的时间 */
 PRIVATE Message msg;

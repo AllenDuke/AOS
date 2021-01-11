@@ -1,13 +1,21 @@
 //
 // Created by 杜科 on 2020/12/26.
 //
-#include "core/kernel.h"
+
+#include <core/global.h>
+#include <lib.h>
+#include <core/prototype.h>
+#include <core/constant.h>
+#include <core/mm.h>
+#include <cstring.h>
+#include <errno.h>
+#include <core/config.h>
 
 PRIVATE int do_exit();
 
 extern MMProcess mmProcs[];
 
-PUBLIC int exit(void){
+PUBLIC int mm_do_exit(void){
     /* 这个例程接收EXIT调用，但全部工作都是mm_exit()做的。
      * 这样划分是因为POSIX要求应该实现信号，但我们还没有实
      * 现，当以后信号被支持以后，被信号终止运行的进程也需要

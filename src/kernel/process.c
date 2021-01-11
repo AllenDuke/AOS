@@ -1,8 +1,8 @@
 /**
  * 进程调度相关
  */
-#include "core/kernel.h"
-
+#include <core/global.h>
+#include "stdio.h"
 /**
  * 进程正在切换则为TRUE，否则为FALSE；当为TRUE应该禁止硬件中断的产生，不然会
  * 产生一些严重的问题。

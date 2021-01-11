@@ -2,8 +2,8 @@
 // Created by 杜科 on 2020/10/24.
 //
 
-#include "../include/core/kernel.h"
-
+#include <core/global.h>
+#include "stdio.h"
 
 /* 本地函数声明 */
 FORWARD int default_irq_handler (int irq);

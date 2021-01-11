@@ -2,8 +2,10 @@
 // Created by 杜科 on 2021/1/8.
 //
 
-#include "core/kernel.h"
 #include "core/elf.h"
+#include "core/global.h"
+#include "cstring.h"
+#include "stdio.h"
 
 extern Message mm_msg;
 extern u8_t *mmbuf;

@@ -5,8 +5,10 @@
  * protect.c包含与Intel处理器保护模式相关的例程。
  */
 
-#include "include/core/kernel.h"
-
+#include <core/config.h>
+#include <core/global.h>
+#include "stdio.h"
+#include <cstring.h>
 /* 中断描述符表IDT */
 PRIVATE GateDescriptor s_idt[IDT_SIZE];
 

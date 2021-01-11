@@ -8,7 +8,7 @@
  *  - exception_handler:         异常公共处理例程，所有例程都会被中断到这
  */
 
-#include "core/kernel.h"
+#include "stdio.h"
 
 /* 异常信息表 */
 PRIVATE char* sp_exceptionInfos[] = {

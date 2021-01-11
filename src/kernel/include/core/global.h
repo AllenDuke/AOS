@@ -5,6 +5,15 @@
 #ifndef AOS_GLOBAL_H
 #define AOS_GLOBAL_H
 
+#include "protect.h"
+#include "constant.h"
+#include "struct_type.h"
+#include "process.h"
+#include "tty.h"
+#include "console.h"
+#include <core/fs.h>
+#include "config.h"
+
 /* 全局描述符表GDT */
 SegDescriptor g_gdt[GDT_SIZE];
 

@@ -1,7 +1,10 @@
 /**
  * 该文件包含一些内核调试转储例程
  */
-#include "core/kernel.h"
+
+#include <core/config.h>
+#include <core/global.h>
+#include "stdio.h"
 
 FORWARD char *proc_name(int proc_nr);
 
