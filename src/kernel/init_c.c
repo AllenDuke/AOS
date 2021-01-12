@@ -27,8 +27,7 @@ PUBLIC void init_c(void) {
     /* 加载引导参数 */
     u32_t *p_bootParam = (u32_t *) BOOT_PARAM_ADDR;
     /* 断言：魔数正常 */
-//    assert(p_bootParam[BP_MAGIC_INDEX] == BOOT_PARAM_MAGIC);
-    if (p_bootParam[BP_MAGIC_INDEX] != BOOT_PARAM_MAGIC) panic("魔数错误\n", PANIC_ERR_NUM);
+    assert(p_bootParam[BP_MAGIC_INDEX] == BOOT_PARAM_MAGIC);
 
     /* 魔数正常，让我们的引导参数指针指向它 */
     gp_bootParam = (BootParam *) (BOOT_PARAM_ADDR + 4);
