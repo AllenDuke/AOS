@@ -3,6 +3,7 @@
 //
 
 #include "core/kernel.h"
+#include "stdio.h"
 
 void tty_test()
 {

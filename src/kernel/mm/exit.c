@@ -7,7 +7,7 @@ PRIVATE int do_exit();
 
 extern MMProcess mmProcs[];
 
-PUBLIC int exit(void){
+PUBLIC int mm_do_exit(void){
     /* 这个例程接收EXIT调用，但全部工作都是mm_exit()做的。
      * 这样划分是因为POSIX要求应该实现信号，但我们还没有实
      * 现，当以后信号被支持以后，被信号终止运行的进程也需要

@@ -4,6 +4,7 @@
 
 #include "core/kernel.h"
 #include "core/elf.h"
+#include "stdio.h"
 
 extern Message mm_msg;
 extern u8_t *mmbuf;

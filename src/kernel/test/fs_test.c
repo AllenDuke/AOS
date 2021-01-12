@@ -2,6 +2,7 @@
 // Created by 杜科 on 2021/1/6.
 //
 #include "core/kernel.h"
+#include "stdio.h"
 
 PUBLIC void fs_test(){
     int fd;

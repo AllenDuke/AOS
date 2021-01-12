@@ -2,6 +2,7 @@
 // Created by 杜科 on 2021/1/6.
 //
 #include "core/kernel.h"
+#include "../include/stdio.h"
 
 /*****************************************************************************
  *                                open

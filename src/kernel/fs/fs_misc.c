@@ -2,6 +2,7 @@
 // Created by 杜科 on 2021/1/5.
 //
 #include "core/kernel.h"
+#include "stdio.h"
 
 extern u8_t *fsbuf;
 extern Message fs_msg;
