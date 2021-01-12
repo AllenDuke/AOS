@@ -41,4 +41,6 @@ int close(int fd);
 int read(int fd, void *buf, int count);
 int write(int fd, const void *buf, int count);
 int stat(const char *path, struct stat *buf);
+int unlink(const char *pathname);
+int wait(int *status);
 #endif //AOS_STDIO_H

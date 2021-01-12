@@ -160,10 +160,11 @@
 
 /* 系统任务数量 */
 #ifdef ENABLE_TEST
-#define NR_TASKS    (7 + NR_CONTROLLERS+1)
+#define NR_TASKS    (7 +1)
 #else
-#define NR_TASKS    (7 + NR_CONTROLLERS)
+#define NR_TASKS    (7)
 #endif
+
 #define NR_LAST_TASK        -1       /* 系统任务的逻辑号从 NR_TASKS 到 NR_LAST_TASK */
 
 /* 每个系统任务的任务号和它的功能服务号(消息类型)以及回复代码，将在下面开始定义 */
@@ -183,6 +184,8 @@
 #define ORIGIN_PROC_NR       0        /* 初始化 -- 将会fork为多用户进程 */
 
 #define ORIGIN_PID           0      /* origin 第一个用户进程，linux中init的进程号为1 */
+
+#define NO_TASK		(NR_TASKS + NR_PROCS + 20)
 //======================================================================================================================
 
 
