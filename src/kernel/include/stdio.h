@@ -43,4 +43,8 @@ int write(int fd, const void *buf, int count);
 int stat(const char *path, struct stat *buf);
 int unlink(const char *pathname);
 int wait(int *status);
+int fork();
+int exec(const char * path);
+int execl(const char *path, const char *arg, ...);
+int execv(const char *path, char * argv[]);
 #endif //AOS_STDIO_H

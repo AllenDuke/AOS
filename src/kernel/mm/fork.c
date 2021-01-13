@@ -14,7 +14,7 @@ extern MMProcess mmProcs[];
  * 当一个进程想要创建一个新进程的时候，使用FORK调用生成一个新的进程分支，
  * 这个新进程是调用进程的子进程。
  */
-PUBLIC int fork(void) {
+PUBLIC int mm_do_fork(void) {
     register MMProcess *parent;     /* 指向父进程，即调用者 */
     register MMProcess *child;      /* 指向fork出来的子进程 */
     MMProcess *search;

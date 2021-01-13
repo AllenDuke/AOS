@@ -72,7 +72,8 @@ LIB		        = $(l)/aos_lib.a
 LibObjs         = $(AnsiObjs) $(StdioObjs) $(I386Objs)
 AnsiObjs        = $(tl)/ansi/string.o $(tl)/ansi/memcmp.o $(tl)/ansi/cstring.o
 StdioObjs       = $(tl)/stdio/printf.o $(tl)/stdio/open.o $(tl)/stdio/close.o $(tl)/stdio/write.o \
-                  $(tl)/stdio/read.o $(tl)/stdio/stat.o $(tl)/stdio/exit.o $(tl)/stdio/vsprintf.o
+                  $(tl)/stdio/read.o $(tl)/stdio/stat.o $(tl)/stdio/exit.o $(tl)/stdio/vsprintf.o \
+                  $(tl)/stdio/fork.o $(tl)/stdio/exec.o
 I386Objs        = $(tl)/i386/ipc/ipc.o
 
 Objs            = $(KernelObjs) $(LibObjs)
@@ -290,6 +291,12 @@ $(tl)/stdio/stat.o: $(lstdio)/stat.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tl)/stdio/exit.o: $(lstdio)/exit.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/stdio/exec.o: $(lstdio)/exec.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/stdio/fork.o: $(lstdio)/fork.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tl)/i386/ipc/ipc.o: $(li386)/ipc/ipc.asm
