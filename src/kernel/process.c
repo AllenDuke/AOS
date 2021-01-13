@@ -70,7 +70,7 @@ PUBLIC void unready(register Process* p_proc){
     if(is_task_proc(p_proc)){        /* 系统任务？ */
         /* 如果系统任务的堆栈已经不完整，内核出错。 */
         if(*p_proc->stackGuardWord != SYS_TASK_STACK_GUARD){
-            panic("stack over run by task", p_proc->logicNum);
+            panic("stack over run by task", p_proc->pid);
         }
 
         p_preProc = gp_readyHeads[TASK_QUEUE];   /* 得到就绪队列头的进程 */
@@ -187,7 +187,7 @@ PUBLIC void interrupt(int task) {
         }
         int i=0;
         while (intMsgs[i].to==0) i++; /* todo 更改0 */
-        intMsgs[i].to=p_target->logicNum;
+        intMsgs[i].to=p_target->pid;
         intMsgs[i].msg.source=HARDWARE;
         intMsgs[i].msg.type=HARD_INT;
         intMsgsSize++;
@@ -232,7 +232,7 @@ PUBLIC void unhold(void) {
     do {
         gp_heldHead = gp_heldHead->p_nextHeld;   /* 队列下一个成员 */
         interrupt_lock();
-        interrupt(p_target->logicNum);        /* 产生一条硬件消息给它 */
+        interrupt(p_target->pid);        /* 产生一条硬件消息给它 */
         interrupt_unlock();
     } while ( (p_target = gp_heldHead) != NIL_PROC );
     gp_heldTail = NIL_PROC;                   /* 已经处理完毕，尾指针也指向 NULL */

@@ -40,7 +40,7 @@ typedef struct process_s{
     pid_t pid;                      /* 进程号，用户可见的 */
     u8_t priority;                  /* 权限：任务0/服务1/用户进程3 */
     struct process_s* p_nextReady;  /* 指向下一个就绪的进程，形成一个队列 */
-    int logicNum;                   /* 进程在进程表中的逻辑编号，主要用于表中的进程快速访问 */
+    int slotIndex;                  /* 进程在进程表中的物理槽位下标 */
     bool_t intBlocked;              /* 被置位，当目标进程有一条中断消息被繁忙的任务堵塞了 */
     bool_t intHeld;                 /* 被置位，当目标进程有一条中断消息被繁忙的系统调用挂起保留了 */
     struct process_s* p_nextHeld;   /* 被挂起保留的中断过程队列 */

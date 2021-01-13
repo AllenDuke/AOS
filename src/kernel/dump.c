@@ -17,10 +17,10 @@ PUBLIC void dump_proc(void) {
         /* 空的进程请跳过 */
         if (is_empty_proc(target)) continue;
         if (++n > 20) break;
-        if (target->logicNum < 0) {
-            kprintf("#{%3d}", target->logicNum);
+        if (target->pid < 0) {
+            kprintf("#{%3d}", target->pid);
         } else {
-            kprintf("%5d", target->logicNum);
+            kprintf("%5d", target->pid);
         }
         kprintf(" %5lx %6lx %2x %6lus %6lus %5uK %5uK ",
                 (unsigned long) target->regs.eip,
@@ -56,7 +56,7 @@ PUBLIC void dump_proc_map(void) {
         if (is_empty_proc(target)) continue;    /* 空进程跳过 */
         if (++n > 20) break;
         kprintf("%3d %s  %12xB  %5uK\n",
-                target->logicNum,
+                target->pid,
                 target->name,
                 target->map.base,
                 bytes2round_k(target->map.size));

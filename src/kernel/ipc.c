@@ -70,7 +70,7 @@ PUBLIC int sys_call(int op, int srcOrDestOrMagAddr, Message *p_msg) {
     if (op & SEND) {
 
         /* 自己给自己发送消息，会发生死锁！ */
-        assert(caller->logicNum != srcOrDestOrMagAddr);
+        assert(caller->pid != srcOrDestOrMagAddr);
 
         /* 获取调用者消息的物理地址，这一步很重要，因为我们现在处于内核空间，直接对进程虚拟地址操作是没有用的 */
         if (p_msg == NIL_MESSAGE)
@@ -81,7 +81,7 @@ PUBLIC int sys_call(int op, int srcOrDestOrMagAddr, Message *p_msg) {
 //        printf("p_msg: %d\n", p_msg);
 
         /* 设置消息源，即对方要知道是谁发来的这条消息，我们需要设置一下 */
-        msgPhysPtr->source = caller->logicNum;
+        msgPhysPtr->source = caller->pid;
 
         /* 调用 aos_send，完成发送消息的实际处理 */
         rs = aos_send(caller, srcOrDestOrMagAddr, msgPhysPtr);
@@ -156,7 +156,7 @@ PUBLIC int aos_send(Process *caller, int dest, Message *p_msg) {
      * 如果他正好在等待我或者是任何人，那么我们就可以给它发送消息，将消息拷贝给它。
      */
     if ((target->flags & (SENDING | RECEIVING)) == RECEIVING    /* RECEIVING | SENDING是为了保证对方不处于 SEND_REC 调用上 */
-        && (target->getFrom == caller->logicNum || target->getFrom == ANY)) {
+        && (target->getFrom == caller->pid || target->getFrom == ANY)) {
         /* 拷贝消息 */
         msg_copy((phys_addr) p_msg, (phys_addr) target->transfer);
         /* 解除对方的堵塞状态 */
@@ -209,7 +209,7 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
 
     if (intMsgsSize > 0) /* 优先处理中断信息 */
         for (int i = 0; i < intMsgsCapacity; ++i) {
-            if (intMsgs[i].to != caller->logicNum) continue;
+            if (intMsgs[i].to != caller->pid) continue;
             caller->inBox->source = HARDWARE;
             caller->inBox->type = HARD_INT;
             caller->flags &= ~RECEIVING;
@@ -221,10 +221,10 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
     /* 检查有没有要发消息过来给我并符合我的要求的 */
     if (!(caller->flags & SENDING)) {          /* 首先，我自己不能处于发送消息的状态中 */
         /* 遍历等待队列，看有木有人给我发消息啊 */
-        for (sender = waiters[caller->logicNum];
+        for (sender = waiters[caller->pid];
              sender != NIL_PROC; prev = sender, sender = sender->p_nextWaiter) {
             /* 当我对发送者无需求 或 对方就是我获取消息的期望，那么可以拿到对方的消息了 */
-            if (sender->logicNum == src || src == ANY) {
+            if (sender->pid == src || src == ANY) {
                 /* 拷贝消息 */
                 msg_copy((phys_addr) sender->transfer, (phys_addr) p_msg);
 
@@ -233,8 +233,8 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
                  * 如果对方是队头：队头改为队列下一个人
                  * 对方处于队头后：对方出队，排在下一个的人顶替他原来的位置
                  */
-                if (sender == waiters[caller->logicNum])
-                    waiters[caller->logicNum] = sender->p_nextWaiter;
+                if (sender == waiters[caller->pid])
+                    waiters[caller->pid] = sender->p_nextWaiter;
                 else
                     prev->p_nextWaiter = sender->p_nextWaiter;
 
@@ -261,7 +261,7 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
 PRIVATE i8_t spinLocks[NR_TASKS + NR_PROCS] = {0}; /* 最大值为1，即这是值为1的信号量，理论上[-1,1] */
 
 PUBLIC void aos_park() {
-    int i = logic_nr_2_index(gp_curProc->logicNum);
+    int i = logic_nr_2_index(gp_curProc->pid);
     spinLocks[i]--;
     if (spinLocks[i] < 0) {
 //        gp_curProc->flags|=PARKING; /* 进入parking状态 */

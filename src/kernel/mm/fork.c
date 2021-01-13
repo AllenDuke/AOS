@@ -123,7 +123,7 @@ PRIVATE int do_fork(int child_nr, int pre_nr, int pid) {
     *child = *parent;                   /* 拷贝进程结构体 */
     child->ldtSelector = old_ldt_sel;  /* 恢复LDT选择子 */
     /* 设置子进程一些独有的信息 */
-    child->logicNum = child_nr;      /* 子进程要记住自己的索引号 */
+    child->slotIndex = child_nr;      /* 子进程要记住自己的索引号 */
     child->flags |= NO_MAP;             /* 禁止子进程运行，因为它刚刚出生 */
     child->flags &= ~(PENDING | SIG_PENDING | PROC_STOP);   /* 复位标志，它们不应该继承父进程的这些状态 */
     child->pid = pid;          /* 记住自己的进程号 */
