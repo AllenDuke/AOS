@@ -25,7 +25,6 @@ void tty_test() {
         cmdBuf[r] = 0;
 
         exec_cmd(cmdLen,cmdBuf);
-        cmdLen=0;
     }
 
 
@@ -47,7 +46,7 @@ void tty_test() {
 }
 
 PRIVATE void exec_cmd(int cmdLen,char* cmdBuf) {
-    if (cmdLen == 0) return;
+    if (cmdLen <= 0) return;
     int hash = 0;
 
     /**

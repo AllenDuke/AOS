@@ -5,20 +5,13 @@
 #include "core/kernel.h"
 #include "../include/stdio.h"
 
-/*****************************************************************************
- *                                fork
- *****************************************************************************/
-/**
- * Create a child process, which is actually a copy of the caller.
- *
- * @return   On success, the PID of the child process is returned in the
- *         parent's thread of execution, and a 0 is returned in the child's
- *         thread of execution.
- *           On failure, a -1 will be returned in the parent's context, no
- *         child process will be created.
- *****************************************************************************/
-PUBLIC int fork()
-{
+ /**
+  * fork出一条子进程（父进程的一份复制）。
+  * @return
+  * 成功时，父进程得到子进程的pid，子进程得到0。
+  * 失败时，父进程得到-1，子进程创建失败。
+  */
+PUBLIC int fork() { // todo 增加优先级参数
     Message msg;
     msg.type = FORK;
 

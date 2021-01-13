@@ -6,6 +6,7 @@
 PRIVATE int do_exit();
 
 extern MMProcess mmProcs[];
+extern Message mm_msg;
 
 PUBLIC int mm_do_exit(void){
     /* 这个例程接收EXIT调用，但全部工作都是mm_exit()做的。
@@ -16,7 +17,7 @@ PUBLIC int mm_do_exit(void){
      */
 
     MMProcess *exit_proc=curr_mp;
-    int exit_status=m_status;
+    int exit_status=mm_msg.STATUS;
     MMProcess *wait_parent; /* 可能在等待退出进程完成退出的父进程 */
     register int proc_nr;   /* 退出进程的进程索引号 */
 

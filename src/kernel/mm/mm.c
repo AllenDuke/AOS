@@ -27,7 +27,36 @@ PUBLIC void mm_task(void) {
     in_outbox(&mm_msg, &mm_msg);
     while (TRUE) {
         rec(ANY);
+        int src = mm_msg.source;
+        int reply = 1;
 
+        int msgtype = mm_msg.type;
+
+        switch (msgtype) {
+            case FORK:
+                mm_msg.RETVAL = mm_do_fork();
+                break;
+            case EXIT:
+                mm_do_exit();
+                reply = 0;
+                break;
+            case EXEC:
+                mm_msg.RETVAL = mm_do_exec();
+                break;
+            case WAIT:
+                mm_do_wait();
+                reply = 0;
+                break;
+            default:
+                dump_msg("{MM}->unknown msg: ", &mm_msg);
+                assert(0);
+                break;
+        }
+
+        if (reply) {
+            mm_msg.type = SYSCALL_RET;
+            send(src, &mm_msg);
+        }
 
     }
 

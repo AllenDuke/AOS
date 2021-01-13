@@ -35,7 +35,7 @@ PUBLIC void tty_task() {
 
     select_console(0);
 
-    while (1) {
+    while (TRUE) {
 
         for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++) {
             do {
@@ -70,7 +70,7 @@ PUBLIC void tty_task() {
 //                key_pressed = 0;
                 continue;
             default:
-                kprintf("TTY::unknown ttyMsg:%s", &ttyMsg);
+                dump_msg("{TTY}->unknown ttyMsg: ", &ttyMsg);
                 break;
         }
     }

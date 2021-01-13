@@ -6,8 +6,9 @@
 PRIVATE int mm_waitpid(int pid, int options);
 
 extern MMProcess mmProcs[];
+extern Message mm_msg;
 
-PUBLIC int wait(void){
+PUBLIC int mm_do_wait(void){
     /* 如果进程执行了wait()，那么进程A将会被堵塞等待直到一个子进程完成运行（或被终止）。
      * WAIT会完成以下操作：
      *  1 - 遍历进程表，寻找进程A的子进程B，如果找到有僵尸进程。
@@ -23,16 +24,7 @@ PUBLIC int wait(void){
     /* pid：-1，代表等待所有子进程
      * options：0，这个参数wait并没有，所以无所谓，随便给就好，你给个666也行。
      */
-    return mm_waitpid(-1, 0);
-}
-
-PUBLIC int waitpid(void){
-    /* 它和wait的区别就是本调用可以可以非常精准的等待某一个
-     * 子进程，而不是所有的。同时，waitpid还允许设置等待选
-     * 项，如果等待的子进程还在运行，也可以不堵塞自己，继续
-     * 运行。
-     */
-    return mm_waitpid(m_pid, m_sig_nr);
+    return mm_waitpid(mm_msg.PID, 0);
 }
 
 PRIVATE int mm_waitpid(int pid, int options){

@@ -18,7 +18,7 @@ extern const int MMBUF_SIZE;
  *
  * @return  Zero if successful, otherwise -1.
  *****************************************************************************/
-PUBLIC int do_exec() {
+PUBLIC int mm_do_exec() {
     /* get parameters from the message */
     int name_len = mm_msg.NAME_LEN;    /* length of filename */
     int src = mm_msg.source;    /* caller proc nr. */

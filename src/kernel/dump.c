@@ -6,7 +6,7 @@
 FORWARD char *proc_name(int proc_nr);
 
 /* 转储进程信息 */
-PUBLIC void proc_dump(void) {
+PUBLIC void dump_proc(void) {
     /* 为所有的进程显示基本的处理信息。 */
     register Process *target;
     static Process *old_proc = BEG_PROC_ADDR;
@@ -23,13 +23,13 @@ PUBLIC void proc_dump(void) {
             kprintf("%5d", target->logicNum);
         }
         kprintf(" %5lx %6lx %2x %6lus %6lus %5uK %5uK ",
-               (unsigned long) target->regs.eip,
-               (unsigned long) target->regs.esp,
-               target->flags,
-               tick2sec(target->userTime),
-               tick2sec(target->sysTime),
-               tick2sec(target->map.base),
-               bytes2round_k(target->map.size));
+                (unsigned long) target->regs.eip,
+                (unsigned long) target->regs.esp,
+                target->flags,
+                tick2sec(target->userTime),
+                tick2sec(target->sysTime),
+                tick2sec(target->map.base),
+                bytes2round_k(target->map.size));
         if (target->flags & RECEIVING) {
             kprintf("%-7.7s", proc_name(target->getFrom));
         } else if (target->flags & SENDING) {
@@ -44,9 +44,8 @@ PUBLIC void proc_dump(void) {
     kprintf("\n");
 }
 
-
 /* 转储进程内存影响信息 */
-PUBLIC void map_dump(void) {
+PUBLIC void dump_proc_map(void) {
     /* 提供详细的内存使用信息。 */
     register Process *target;
     static Process *old_proc = cproc_addr(HARDWARE);
@@ -57,10 +56,10 @@ PUBLIC void map_dump(void) {
         if (is_empty_proc(target)) continue;    /* 空进程跳过 */
         if (++n > 20) break;
         kprintf("%3d %s  %12xB  %5uK\n",
-               target->logicNum,
-               target->name,
-               target->map.base,
-               bytes2round_k(target->map.size));
+                target->logicNum,
+                target->name,
+                target->map.base,
+                bytes2round_k(target->map.size));
     }
     if (target == END_PROC_ADDR) target = cproc_addr(HARDWARE); else kprintf("--more--\r");
     old_proc = target;
@@ -71,4 +70,26 @@ PUBLIC void map_dump(void) {
 PRIVATE inline char *proc_name(int proc_nr) {
     if (proc_nr == ANY) return "ANY";
     return proc_addr(proc_nr)->name;
+}
+
+PUBLIC void dump_msg(const char *title, Message *m) {
+    int packed = 0;
+    kprintf("{%s}<0x%x>{%ssrc:%s(%d),%stype:%d,%s(0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x)%s}%s",  //, (0x%x, 0x%x, 0x%x)}",
+            title,
+            (int) m,
+            packed ? "" : "\n        ",
+            g_procs[m->source].name,
+            m->source,
+            packed ? " " : "\n        ",
+            m->type,
+            packed ? " " : "\n        ",
+            m->m2_i1,
+            m->m2_i2,
+            m->m2_i3,
+            (int) m->m2_l1,
+            (int) m->m2_l2,
+            (int) m->m2_p1,
+            packed ? "" : "\n",
+            packed ? "" : "\n"/* , */
+    );
 }
