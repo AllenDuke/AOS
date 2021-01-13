@@ -70,7 +70,7 @@ PUBLIC int sys_call(int op, int srcOrDestOrMagAddr, Message *p_msg) {
     if (op & SEND) {
 
         /* 自己给自己发送消息，会发生死锁！ */
-//        assert(caller->logicNum != srcOrDestOrMagAddr);
+        assert(caller->logicNum != srcOrDestOrMagAddr);
 
         /* 获取调用者消息的物理地址，这一步很重要，因为我们现在处于内核空间，直接对进程虚拟地址操作是没有用的 */
         if (p_msg == NIL_MESSAGE)

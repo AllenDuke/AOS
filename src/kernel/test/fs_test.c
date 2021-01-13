@@ -33,14 +33,14 @@ PUBLIC void fs_test(){
 /* 已存在时调用 */
     /* open */
     fd = open(filename, O_RDWR);
-//    assert(fd != -1);
-    if(fd==-1) panic("fd err\n",PANIC_ERR_NUM);
+    assert(fd != -1);
+//    if(fd==-1) panic("fd err\n",PANIC_ERR_NUM);
     kprintf("File opened. fd: %d\n", fd);
 
     /* read */
     n = read(fd, bufr, rd_bytes);
-//    assert(n == rd_bytes);
-    if(n!=rd_bytes) panic("write err\n",n);
+    assert(n == rd_bytes);
+//    if(n!=rd_bytes) panic("write err\n",n);
     bufr[n] = 0;
     kprintf("%d bytes read: %s\n", n, bufr);
 

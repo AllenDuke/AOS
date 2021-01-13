@@ -46,8 +46,8 @@ PUBLIC void tty_task() {
         receive(ANY, &ttyMsg);
 
         int src = ttyMsg.source;
-//        assert(src != TASK_TTY);
-        if (src == TTY_TASK) panic("dead lock found, tty can not send msg to tty\n", PANIC_ERR_NUM);
+        assert(src != TTY_TASK);
+//        if (src == TTY_TASK) panic("dead lock found, tty can not send msg to tty\n", PANIC_ERR_NUM);
 
         TTY *ptty = &ttys[ttyMsg.DEVICE];
 

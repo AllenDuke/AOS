@@ -399,12 +399,12 @@ PRIVATE int wini_do_readwrite(Message *p_msg) {
     int drive = DRIVER_OF_DEVICE(p_msg->DEVICE);
 
     off_t pos = p_msg->POSITION;
-//    assert((pos >> SECTOR_SIZE_SHIFT) < (1 << 31));
-    if ((pos >> SECTOR_SIZE_SHIFT) >= (1 << 31)) panic("pos error\n", PANIC_ERR_NUM);
+    assert((pos >> SECTOR_SIZE_SHIFT) < (1 << 31));
+//    if ((pos >> SECTOR_SIZE_SHIFT) >= (1 << 31)) panic("pos error\n", PANIC_ERR_NUM);
 
     /* 我们仅允许从扇区边界进行读/写： */
-//    assert((pos & 0x1FF) == 0);
-    if ((pos & 0x1FF) != 0) panic("pos error\n", PANIC_ERR_NUM);
+    assert((pos & 0x1FF) == 0);
+//    if ((pos & 0x1FF) != 0) panic("pos error\n", PANIC_ERR_NUM);
 
     u32_t sect_nr = (u32_t) pos >> SECTOR_SIZE_SHIFT;  /* pos在分区内的扇区号 */
     int logidx = (p_msg->DEVICE - MINOR_hd1a) % NR_SUB_PER_DRIVE; /* 次设备号 不会出现10~15 */

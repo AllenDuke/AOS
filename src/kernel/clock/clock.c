@@ -58,10 +58,7 @@ PUBLIC void clock_task(void) {
     /* 初始化收发件箱 */
     io_box(&msg);
 
-    /* 测试毫秒级延迟函数 */
-    kprintf("i am zangsan, i am man!\n");
 //    milli_delay(sec2ms(1));     /* todo 这个函数时不阻塞，不放弃cpu时间片的 */
-    kprintf("i am zangsan, no!\n");
     kprintf("#{CLOCK}-> Working...\n");
     while (TRUE) {
         /* 等待外界消息 */

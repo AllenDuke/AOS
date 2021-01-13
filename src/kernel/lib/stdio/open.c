@@ -26,7 +26,7 @@ PUBLIC int open(const char *pathname, int flags)
     msg.NAME_LEN	= strlen(pathname);
 
     send_rec(FS_TASK, &msg);
-//    assert(msg.type == SYSCALL_RET);
-    if(msg.type != SYSCALL_RET) panic("msg type err\n",msg.type);
+    assert(msg.type == SYSCALL_RET);
+//    if(msg.type != SYSCALL_RET) panic("msg type err\n",msg.type);
     return msg.FD;
 }

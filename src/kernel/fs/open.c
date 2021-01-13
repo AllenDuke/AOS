@@ -34,8 +34,8 @@ PUBLIC int do_open() {
     int flags = fs_msg.FLAGS;    /* access mode */
     int name_len = fs_msg.NAME_LEN;    /* length of filename */
     int src = fs_msg.source;    /* caller proc nr. */
-//    assert(name_len < MAX_PATH);
-    if (name_len >= MAX_PATH) panic("name is too long!\n", PANIC_ERR_NUM);
+    assert(name_len < MAX_PATH);
+//    if (name_len >= MAX_PATH) panic("name is too long!\n", PANIC_ERR_NUM);
 
     phys_copy((void *) proc_vir2phys(proc_addr(src), fs_msg.PATHNAME),
               (void *) proc_vir2phys(proc_addr(FS_TASK), pathname),
@@ -73,14 +73,14 @@ PUBLIC int do_open() {
         }
     } else if (flags & O_RDWR) { /* file exists */
         if ((flags & O_CREAT) && (!(flags & O_TRUNC))) {
-//            assert(flags == (O_RDWR | O_CREAT));
-            if(flags != (O_RDWR | O_CREAT)) panic("flags err\n", flags);
+            assert(flags == (O_RDWR | O_CREAT));
+//            if(flags != (O_RDWR | O_CREAT)) panic("flags err\n", flags);
             kprintf("{FS} file exists: %s\n", pathname);
             return -1;
         }
-//        assert((flags == O_RDWR) || (flags == (O_RDWR | O_TRUNC)) || (flags == (O_RDWR | O_TRUNC | O_CREAT)));
-        if((flags != O_RDWR) && (flags != (O_RDWR | O_TRUNC)) && (flags != (O_RDWR | O_TRUNC | O_CREAT)))
-            panic("flags err\n", flags);
+        assert((flags == O_RDWR) || (flags == (O_RDWR | O_TRUNC)) || (flags == (O_RDWR | O_TRUNC | O_CREAT)));
+//        if((flags != O_RDWR) && (flags != (O_RDWR | O_TRUNC)) && (flags != (O_RDWR | O_TRUNC | O_CREAT)))
+//            panic("flags err\n", flags);
         char filename[MAX_PATH];
         struct inode *dir_inode;
         if (strip_path(filename, pathname, &dir_inode) != 0)
@@ -92,8 +92,8 @@ PUBLIC int do_open() {
     }
 
     if (flags & O_TRUNC) {
-//        assert(pin);
-        if(!pin) panic("pin err\n",flags);
+        assert(pin);
+//        if(!pin) panic("pin err\n",flags);
         pin->i_size = 0;
         sync_inode(pin);
     }
@@ -116,16 +116,16 @@ PUBLIC int do_open() {
             driver_msg.type = DEVICE_OPEN;
             int dev = pin->i_start_sect;
             driver_msg.DEVICE = MINOR(dev);
-//            assert(MAJOR(dev) == 4);
-//            assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
-            if(MAJOR(dev) != 4) panic("dev major err\n",MAJOR(dev));
-            send_rec(dd_map[MAJOR(dev)].driver_nr,&driver_msg);
+            assert(MAJOR(dev) == 4);
+            assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
+//            if(MAJOR(dev) != 4) panic("dev major err\n",MAJOR(dev));
+//            send_rec(dd_map[MAJOR(dev)].driver_nr,&driver_msg);
         } else if (imode == I_DIRECTORY) {
-//            assert(pin->i_num == ROOT_INODE);
-            if(pin->i_num != ROOT_INODE) panic("pin err\n",flags);
+            assert(pin->i_num == ROOT_INODE);
+//            if(pin->i_num != ROOT_INODE) panic("pin err\n",flags);
         } else {
-//            assert(pin->i_mode == I_REGULAR);
-            if(pin->i_mode != I_REGULAR) panic("pin err\n",flags);
+            assert(pin->i_mode == I_REGULAR);
+//            if(pin->i_mode != I_REGULAR) panic("pin err\n",flags);
         }
     } else {
         return -1;
@@ -303,8 +303,8 @@ PRIVATE int alloc_smap_bit(int dev, int nr_sects_to_alloc) {
             }
 
             for (; k < 8; k++) { /* repeat till enough bits are set */
-//                assert(((fsbuf[j] >> k) & 1) == 0);
-                if(((fsbuf[j] >> k) & 1) != 0) panic("fsbuf err\n",fsbuf[j]);
+                assert(((fsbuf[j] >> k) & 1) == 0);
+//                if(((fsbuf[j] >> k) & 1) != 0) panic("fsbuf err\n",fsbuf[j]);
                 fsbuf[j] |= (1 << k);
                 if (--nr_sects_to_alloc == 0)
                     break;
@@ -318,8 +318,8 @@ PRIVATE int alloc_smap_bit(int dev, int nr_sects_to_alloc) {
             break;
     }
 
-//    assert(nr_sects_to_alloc == 0);
-    if(nr_sects_to_alloc != 0) panic("nr_sects_to_alloc err\n",nr_sects_to_alloc);
+    assert(nr_sects_to_alloc == 0);
+//    if(nr_sects_to_alloc != 0) panic("nr_sects_to_alloc err\n",nr_sects_to_alloc);
 
     return free_sect_nr;
 }

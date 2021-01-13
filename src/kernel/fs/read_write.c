@@ -26,9 +26,9 @@ PUBLIC int do_rdwt() {
 
     int src = fs_msg.source;        /* caller proc nr. */
 
-//	assert((pcaller->filp[fd] >= &f_desc_table[0]) &&(pcaller->filp[fd] < &f_desc_table[NR_FILE_DESC]));
-    if (!(pcaller->filp[fd] >= &f_desc_table[0]) || !(pcaller->filp[fd] < &f_desc_table[NR_FILE_DESC]))
-        panic("fd err\n", fd);
+	assert((pcaller->filp[fd] >= &f_desc_table[0]) &&(pcaller->filp[fd] < &f_desc_table[NR_FILE_DESC]));
+//    if (!(pcaller->filp[fd] >= &f_desc_table[0]) || !(pcaller->filp[fd] < &f_desc_table[NR_FILE_DESC]))
+//        panic("fd err\n", fd);
     if (!(pcaller->filp[fd]->fd_mode & O_RDWR))
         return 0;
 
@@ -36,8 +36,8 @@ PUBLIC int do_rdwt() {
 
     struct inode *pin = pcaller->filp[fd]->fd_inode;
 
-//	assert(pin >= &inode_table[0] && pin < &inode_table[NR_INODE]);
-    if (pin < &inode_table[0] || pin >= &inode_table[NR_INODE]) panic("pin err\n", PANIC_ERR_NUM);
+	assert(pin >= &inode_table[0] && pin < &inode_table[NR_INODE]);
+//    if (pin < &inode_table[0] || pin >= &inode_table[NR_INODE]) panic("pin err\n", PANIC_ERR_NUM);
 
     int imode = pin->i_mode & I_TYPE_MASK;
 
@@ -46,24 +46,24 @@ PUBLIC int do_rdwt() {
         fs_msg.type = t;
 
         int dev = pin->i_start_sect;
-//		assert(MAJOR(dev) == 4);
-//        assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
-        if (MAJOR(dev) != 4) panic("dev major err\n", MAJOR(dev));
+		assert(MAJOR(dev) == 4);
+        assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
+//        if (MAJOR(dev) != 4) panic("dev major err\n", MAJOR(dev));
 
         fs_msg.DEVICE = MINOR(dev);
         fs_msg.BUF = buf;
         fs_msg.COUNT = len;
         fs_msg.PROC_NR = src;
         send_rec(dd_map[MAJOR(dev)].driver_nr, &fs_msg);
-//		assert(fs_msg.COUNT == len);
-        if (fs_msg.COUNT != len) panic("fs_msg count err\n", fs_msg.COUNT);
+		assert(fs_msg.COUNT == len);
+//        if (fs_msg.COUNT != len) panic("fs_msg count err\n", fs_msg.COUNT);
 
         return fs_msg.COUNT;
     } else {
-//		assert(pin->i_mode == I_REGULAR || pin->i_mode == I_DIRECTORY);
-        if (pin->i_mode != I_REGULAR && pin->i_mode != I_DIRECTORY) panic("pin err\n", PANIC_ERR_NUM);
-//		assert((fs_msg.type == READ) || (fs_msg.type == WRITE));
-        if ((fs_msg.type != READ) && (fs_msg.type != WRITE)) panic("fs_msg type err\n", fs_msg.type);
+		assert(pin->i_mode == I_REGULAR || pin->i_mode == I_DIRECTORY);
+//        if (pin->i_mode != I_REGULAR && pin->i_mode != I_DIRECTORY) panic("pin err\n", PANIC_ERR_NUM);
+		assert((fs_msg.type == READ) || (fs_msg.type == WRITE));
+//        if ((fs_msg.type != READ) && (fs_msg.type != WRITE)) panic("fs_msg type err\n", fs_msg.type);
 
         int pos_end;
         if (fs_msg.type == READ)

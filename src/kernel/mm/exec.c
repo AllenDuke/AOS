@@ -22,8 +22,8 @@ PUBLIC int do_exec() {
     /* get parameters from the message */
     int name_len = mm_msg.NAME_LEN;    /* length of filename */
     int src = mm_msg.source;    /* caller proc nr. */
-//    assert(name_len < MAX_PATH);
-    if (name_len >= MAX_PATH) panic("name is too long\n", name_len);
+    assert(name_len < MAX_PATH);
+//    if (name_len >= MAX_PATH) panic("name is too long\n", name_len);
 
     char pathname[MAX_PATH];
     phys_copy((void *) proc_vir2phys(proc_addr(src), mm_msg.PATHNAME),
@@ -43,8 +43,8 @@ PUBLIC int do_exec() {
     int fd = open(pathname, O_RDWR);
     if (fd == -1)
         return -1;
-//    assert(s.st_size < MMBUF_SIZE);
-    if (s.st_size >= MMBUF_SIZE) panic("st_size is too large\n", s.st_size);
+    assert(s.st_size < MMBUF_SIZE);
+//    if (s.st_size >= MMBUF_SIZE) panic("st_size is too large\n", s.st_size);
     read(fd, mmbuf, s.st_size);
     close(fd);
 
@@ -55,9 +55,9 @@ PUBLIC int do_exec() {
         Elf32_Phdr *prog_hdr = (Elf32_Phdr *) (mmbuf + elf_hdr->e_phoff +
                                                (i * elf_hdr->e_phentsize));
         if (prog_hdr->p_type == PT_LOAD) {
-//            assert(prog_hdr->p_vaddr + prog_hdr->p_memsz <PROC_IMAGE_SIZE_DEFAULT);
-            if (prog_hdr->p_vaddr + prog_hdr->p_memsz >= PROC_IMAGE_SIZE_DEFAULT)
-                panic("img is too large\n", prog_hdr->p_vaddr + prog_hdr->p_memsz);
+            assert(prog_hdr->p_vaddr + prog_hdr->p_memsz <PROC_IMAGE_SIZE_DEFAULT);
+//            if (prog_hdr->p_vaddr + prog_hdr->p_memsz >= PROC_IMAGE_SIZE_DEFAULT)
+//                panic("img is too large\n", prog_hdr->p_vaddr + prog_hdr->p_memsz);
             phys_copy((void *) proc_vir2phys(proc_addr(MM_TASK), mmbuf + prog_hdr->p_offset),
                       (void *) proc_vir2phys(proc_addr(src), (void *) prog_hdr->p_vaddr),
                       prog_hdr->p_filesz);

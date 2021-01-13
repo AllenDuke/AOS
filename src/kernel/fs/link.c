@@ -25,8 +25,8 @@ PUBLIC int do_unlink()
 	/* get parameters from the message */
 	int name_len = fs_msg.NAME_LEN;	/* length of filename */
 	int src = fs_msg.source;	/* caller proc nr. */
-//	assert(name_len < MAX_PATH);
-	if(name_len >= MAX_PATH) panic("name is too long\n",name_len);
+	assert(name_len < MAX_PATH);
+//	if(name_len >= MAX_PATH) panic("name is too long\n",name_len);
     phys_copy((void*)proc_vir2phys(proc_addr(src), fs_msg.PATHNAME),
               (void*)proc_vir2phys(proc_addr(FS_TASK), pathname),
               name_len);
@@ -71,12 +71,12 @@ PUBLIC int do_unlink()
 	/*************************/
 	int byte_idx = inode_nr / 8;
 	int bit_idx = inode_nr % 8;
-//	assert(byte_idx < SECTOR_SIZE);	/* we have only one i-map sector */
-	if(byte_idx >= SECTOR_SIZE) panic("byte_idx err\n",byte_idx);
+	assert(byte_idx < SECTOR_SIZE);	/* we have only one i-map sector */
+//	if(byte_idx >= SECTOR_SIZE) panic("byte_idx err\n",byte_idx);
     /* read sector 2 (skip bootsect and superblk): */
 	RD_SECT(pin->i_dev, 2);
-//	assert(fsbuf[byte_idx % SECTOR_SIZE] & (1 << bit_idx));
-    if(!(fsbuf[byte_idx % SECTOR_SIZE] & (1 << bit_idx))) panic("byte_idx err\n",byte_idx);
+	assert(fsbuf[byte_idx % SECTOR_SIZE] & (1 << bit_idx));
+//    if(!(fsbuf[byte_idx % SECTOR_SIZE] & (1 << bit_idx))) panic("byte_idx err\n",byte_idx);
 	fsbuf[byte_idx % SECTOR_SIZE] &= ~(1 << bit_idx);
 	WR_SECT(pin->i_dev, 2);
 
@@ -109,8 +109,8 @@ PUBLIC int do_unlink()
 	int i;
 	/* clear the first byte */
 	for (i = bit_idx % 8; (i < 8) && bits_left; i++,bits_left--) {
-//		assert((fsbuf[byte_idx % SECTOR_SIZE] >> i & 1) == 1);
-        if((fsbuf[byte_idx % SECTOR_SIZE] >> i & 1) != 1) panic("byte_idx err\n",byte_idx);
+		assert((fsbuf[byte_idx % SECTOR_SIZE] >> i & 1) == 1);
+//        if((fsbuf[byte_idx % SECTOR_SIZE] >> i & 1) != 1) panic("byte_idx err\n",byte_idx);
 		fsbuf[byte_idx % SECTOR_SIZE] &= ~(1 << i);
 	}
 
@@ -123,8 +123,8 @@ PUBLIC int do_unlink()
 			WR_SECT(pin->i_dev, s);
 			RD_SECT(pin->i_dev, ++s);
 		}
-//		assert(fsbuf[i] == 0xFF);
-        if(fsbuf[i] != 0xFF) panic("fsbuf err",fsbuf[i]);
+		assert(fsbuf[i] == 0xFF);
+//        if(fsbuf[i] != 0xFF) panic("fsbuf err",fsbuf[i]);
 		fsbuf[i] = 0;
 	}
 
@@ -135,8 +135,8 @@ PUBLIC int do_unlink()
 		RD_SECT(pin->i_dev, ++s);
 	}
 	unsigned char mask = ~((unsigned char)(~0) << bits_left);
-//	assert((fsbuf[i] & mask) == mask);
-	if((fsbuf[i] & mask) != mask) panic("fsbuf err",fsbuf[i]);
+	assert((fsbuf[i] & mask) == mask);
+//	if((fsbuf[i] & mask) != mask) panic("fsbuf err",fsbuf[i]);
  	fsbuf[i] &= (~0) << bits_left;
 	WR_SECT(pin->i_dev, s);
 
@@ -192,8 +192,8 @@ PUBLIC int do_unlink()
 		    flg) /* file is found */
 			break;
 	}
-//	assert(flg);
-	if(!flg) panic("flg err\n",flg);
+	assert(flg);
+//	if(!flg) panic("flg err\n",flg);
 	if (m == nr_dir_entries) { /* the file is the last one in the dir */
 		dir_inode->i_size = dir_size;
 		sync_inode(dir_inode);

@@ -22,8 +22,8 @@ PUBLIC int do_stat()
 	/* get parameters from the message */
 	int name_len = fs_msg.NAME_LEN;	/* length of filename */
 	int src = fs_msg.source;	/* caller proc nr. */
-//	assert(name_len < MAX_PATH);
-    if(name_len>=MAX_PATH) panic("name is too long!\n",name_len);
+	assert(name_len < MAX_PATH);
+//    if(name_len>=MAX_PATH) panic("name is too long!\n",name_len);
     phys_copy((void*)proc_vir2phys(proc_addr(src), fs_msg.PATHNAME),
               (void*)proc_vir2phys(proc_addr(FS_TASK), pathname),
               name_len);
@@ -44,8 +44,8 @@ PUBLIC int do_stat()
 		 * (it would have failed earlier when
 		 *  search_file() was called)
 		 */
-//		assert(0);
-		panic("something wrong while strip_path\n",PANIC_ERR_NUM);
+		assert(0);
+//		panic("something wrong while strip_path\n",PANIC_ERR_NUM);
 	}
 	pin = get_inode(dir_inode->i_dev, inode_nr);
 

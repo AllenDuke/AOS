@@ -30,5 +30,5 @@ PUBLIC void assertion_failure(char *exp, char *file, char *base_file, int line) 
            MAG_CH_ASSERT,
            exp, file, base_file, line);
 
-    panic("bad assertion", PANIC_ERR_NUM);
+    panic("assertion_failure", PANIC_ERR_NUM);
 }

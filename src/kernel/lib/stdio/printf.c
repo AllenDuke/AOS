@@ -51,8 +51,8 @@ PUBLIC int printf(const char *fmt, ...) {
 
     int c = write(1, t_buf, len);
 
-//    assert(c == i);
-    if (c != len) panic("printf err\n", c);
+    assert(c == len);
+//    if (c != len) panic("printf err\n", c);
 
     return len;
 }

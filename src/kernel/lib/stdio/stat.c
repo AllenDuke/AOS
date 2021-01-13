@@ -26,8 +26,8 @@ PUBLIC int stat(const char *path, struct stat *buf)
     msg.NAME_LEN	= strlen(path);
 
     send_rec(FS_TASK, &msg);
-//    assert(msg.type == SYSCALL_RET);
-    if(msg.type!=SYSCALL_RET) panic("msg type err\n",msg.type);
+    assert(msg.type == SYSCALL_RET);
+//    if(msg.type!=SYSCALL_RET) panic("msg type err\n",msg.type);
 
     return msg.RETVAL;
 }

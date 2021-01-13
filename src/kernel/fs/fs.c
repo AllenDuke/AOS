@@ -104,8 +104,8 @@ PRIVATE void fs_init() {
     /* open the device: hard disk */
     fs_msg.type = DEVICE_OPEN;
     fs_msg.DEVICE = MINOR(ROOT_DEV); /* 传入的是次设备号 */
-//    assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
-    if (dd_map[MAJOR(ROOT_DEV)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
+    assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
+//    if (dd_map[MAJOR(ROOT_DEV)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
     send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &fs_msg);
 
     /* read the super block of ROOT DEVICE */
@@ -122,8 +122,8 @@ PRIVATE void fs_init() {
     read_super_block(ROOT_DEV);
 
     sb = get_super_block(ROOT_DEV);
-//    assert(sb->magic == MAGIC_V1);
-    if (sb->magic != MAGIC_V1) panic("the magic num in super block err", PANIC_ERR_NUM);
+    assert(sb->magic == MAGIC_V1);
+//    if (sb->magic != MAGIC_V1) panic("the magic num in super block err", PANIC_ERR_NUM);
 
     root_inode = get_inode(ROOT_DEV, ROOT_INODE);
 }
@@ -147,8 +147,8 @@ PUBLIC int rw_sector(int io_type, int dev, u64_t pos, int bytes, int proc_nr, vo
     driver_msg.BUF = buf;
     driver_msg.COUNT = bytes;
     driver_msg.PROC_NR = proc_nr;
-//    assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
-    if (dd_map[MAJOR(dev)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", MAJOR(dev));
+    assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
+//    if (dd_map[MAJOR(dev)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", MAJOR(dev));
 
     send_rec(dd_map[MAJOR(dev)].driver_nr, &driver_msg);
 
@@ -167,8 +167,8 @@ PRIVATE void read_super_block(int dev) {
     fs_msg.BUF = fsbuf;
     fs_msg.COUNT = SECTOR_SIZE;
     fs_msg.PROC_NR = FS_TASK;
-//    assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
-    if (dd_map[MAJOR(dev)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
+    assert(dd_map[MAJOR(dev)].driver_nr != INVALID_DRIVER);
+//    if (dd_map[MAJOR(dev)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
     send_rec(dd_map[MAJOR(dev)].driver_nr, &fs_msg);
 
     /* find a free slot in super_block[] */
@@ -177,8 +177,8 @@ PRIVATE void read_super_block(int dev) {
             break;
     if (i == NR_SUPER_BLOCK) panic("super_block slots used up", PANIC_ERR_NUM);
 
-//    assert(i == 0); /* currently we use only the 1st slot */
-    if (i != 0) panic("super_block slots remaining", PANIC_ERR_NUM);
+    assert(i == 0); /* currently we use only the 1st slot */
+//    if (i != 0) panic("super_block slots remaining", PANIC_ERR_NUM);
 
     struct super_block *psb = (struct super_block *) fsbuf;
 
@@ -262,8 +262,8 @@ PUBLIC struct inode *get_inode(int dev, int num) {
  * @param pinode I-node ptr.
  *****************************************************************************/
 PUBLIC void put_inode(struct inode *pinode) {
-//    assert(pinode->i_cnt > 0);
-    if (pinode->i_cnt <= 0) panic("pinode i_cnt err\n", PANIC_ERR_NUM);
+    assert(pinode->i_cnt > 0);
+//    if (pinode->i_cnt <= 0) panic("pinode i_cnt err\n", PANIC_ERR_NUM);
     pinode->i_cnt--;
 }
 
@@ -289,8 +289,8 @@ PRIVATE void mkfs() {
     fs_msg.REQUEST = DIOCTL_GET_GEO;
     fs_msg.BUF = &geo;
     fs_msg.PROC_NR = FS_TASK;
-//    assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
-    if (dd_map[MAJOR(ROOT_DEV)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
+    assert(dd_map[MAJOR(ROOT_DEV)].driver_nr != INVALID_DRIVER);
+//    if (dd_map[MAJOR(ROOT_DEV)].driver_nr == INVALID_DRIVER) panic("the driver_nr is invalid\n", PANIC_ERR_NUM);
     send_rec(dd_map[MAJOR(ROOT_DEV)].driver_nr, &fs_msg);
 
     kprintf("{FS} dev size: 0x%x sectors\n", geo.size);
@@ -337,8 +337,8 @@ PRIVATE void mkfs() {
     for (i = 0; i < (NR_CONSOLES + 3); i++)
         fsbuf[0] |= 1 << i;
 
-    if (fsbuf[0] != 0x3F) panic("fsbuf[0] err\n", PANIC_ERR_NUM);
-//    assert(fsbuf[0] == 0x3F);
+//    if (fsbuf[0] != 0x3F) panic("fsbuf[0] err\n", PANIC_ERR_NUM);
+    assert(fsbuf[0] == 0x3F);
     /** 0011 1111 :
      *    || ||||
      *    || |||`--- bit 0 : reserved
@@ -373,9 +373,8 @@ PRIVATE void mkfs() {
 
     /* 创建文件cmd.tar */
     /* make sure it'll not be overwritten by the disk log */
-//    assert(INSTALL_START_SECT + INSTALL_NR_SECTS < sb.nr_sects - NR_SECTS_FOR_LOG);
-    if (INSTALL_START_SECT + INSTALL_NR_SECTS >= sb.nr_sects - NR_SECTS_FOR_LOG)
-        panic("mkfs err\n", PANIC_ERR_NUM);
+    assert(INSTALL_START_SECT + INSTALL_NR_SECTS < sb.nr_sects - NR_SECTS_FOR_LOG);
+//    if (INSTALL_START_SECT + INSTALL_NR_SECTS >= sb.nr_sects - NR_SECTS_FOR_LOG) panic("mkfs err\n", PANIC_ERR_NUM);
     int bit_offset = INSTALL_START_SECT - sb.nr_db_sect + 1; /* sect M <-> bit (M - sb.n_1stsect + 1) */
     int bit_off_in_sect = bit_offset % (SECTOR_SIZE * 8);
     int bit_left = INSTALL_NR_SECTS;
