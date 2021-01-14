@@ -43,7 +43,7 @@ PRIVATE int mm_waitpid(int pid, int options){
      *  - pid  < -1：这意味着进程等待一个进程组里的进程
      */
     for(proc = &mmProcs[0]; proc < &mmProcs[NR_PROCS]; proc++){
-        if(proc->ppid == mm_who){             /* 是调用者的子进程吗？ */
+        if(proc->ppid == proc_addr(mm_who)->pid){             /* 是调用者的子进程吗？ */
             if(pid > 0 && pid != proc->pid)continue;
             /* 只有 pid == -1 的情况才能到下面 */
             child_count++;                      /* 记录调用者的子进程数量 */

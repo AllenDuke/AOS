@@ -54,7 +54,7 @@ PUBLIC int mm_do_fork(void) {
     proc_in_use++;     /* 一个新的进程被使用了 */
     /* 设置子进程信息及其内存映像，子进程继承父进程的结构（MM中的） */
     *child = *parent;
-    child->ppid = mm_who;     /* 不要忘了父亲是谁 */
+    child->ppid = proc_addr(mm_who)->pid;     /* 不要忘了父亲是谁 */
     child->flags &= IN_USE;     /* 这个进程插槽已经被使用了，这很重要。 */
 
     /* 为子进程找到一个可用的进程号，并将其放入进程表中 */
@@ -83,10 +83,9 @@ PUBLIC int mm_do_fork(void) {
     child->map.base = child_base;
     child->exit_status = 0;     /* 退出状态置位 */
 
-    /* 现在告诉内核，一个新进程出现了，内核将会更新内核中的进程信息，比如栈帧信息 */
     do_fork(child_nr, mm_who, child->pid);
 
-    /* tell FS, see fs_fork() */
+    /* tell FS, see fs_do_fork() */
     Message msg2fs;
     msg2fs.type = FORK;
     msg2fs.LOGIC_I = child_nr;
@@ -97,7 +96,7 @@ PUBLIC int mm_do_fork(void) {
      * 它虽然继承自父进程，但它应该有自己的LDT。但是MM自己做不
      * 到，所以需我们需要通知内核来完成。
      */
-    new_mem_map(child_nr, mm_who, &child->map);
+    new_mem_map(child_nr, mm_who);
 
     /* 子进程的生日！我们给它发一条消息唤醒它。 */
     set_reply(child_nr, 0);
@@ -107,25 +106,22 @@ PUBLIC int mm_do_fork(void) {
 }
 
 /**
- *
+ * 内核将会更新内核中的进程信息，比如栈帧信息
  * @param child_nr 子进程logicIndex
- * @param pre_nr
- * @param pid
+ * @param pre_nr 父进程logicIndex
+ * @param pid 子进程pid
  * @return
  */
-PRIVATE int do_fork(int child_nr, int pre_nr, int pid) {
-    /* msg_ptr->PROC_NR1是新创建的进程，它的父进程在msg_ptr->PROC_NR2中，
-     * msg_ptr->PID是新进程的进程号。
-     */
+PRIVATE int do_fork(int child_nr, int pre_nr, pid_t pid) {
 
     register Process *child;
     reg_t old_ldt_sel;
     Process *parent;
 
-    child = proc_addr(child_nr);   /* 得到子进程 */
-    if (!is_empty_proc(child)) panic("子进程不是空进程\n", PANIC_ERR_NUM);   /* 子进程一定要是一个空进程 */
-    parent = proc_addr(pre_nr);  /* 父进程 */
-    if (!is_user_proc(parent)) panic("父进程不是用户进程\n", PANIC_ERR_NUM);   /* 父进程必须是一个用户进程 */
+    child = proc_addr(child_nr);    /* 子进程 */
+    assert(is_empty_proc(child));   /* 子进程一定要是一个空进程 */
+    parent = proc_addr(pre_nr);     /* 父进程 */
+    assert(is_user_proc(parent));   /* 父进程必须是一个用户进程 */
 
     /* 将父进程拷贝给子进程（所有） */
     old_ldt_sel = child->ldtSelector;  /* 防止LDT选择子被覆盖，我们备份它 */
