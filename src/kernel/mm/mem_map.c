@@ -33,7 +33,7 @@ PUBLIC int new_mem_map(int child_nr, int pre_nr, MemoryMap *map) {
                       (proc->map.size - 1) >> LIMIT_4K_SHIFT,
                       DA_32 | DA_LIMIT_4K | DA_DRW | USER_PRIVILEGE << 5
     );
-//    printf("%s(nr-%d) base: %d, size: %d | ldt_sel: (c-%d|p-%d)\n", proc->name, proc->nr,
+//    kprintf("%s(nr-%d) base: %d, size: %d | ldt_sel: (c-%d|p-%d)\n", proc->name, proc->nr,
 //            proc->map.base, proc->map.size, proc->ldt_sel, proc_addr(proc->nr - 1)->ldt_sel);
 
     old_flags = proc->flags;        /* 保存标志 */
@@ -46,14 +46,16 @@ PUBLIC int new_mem_map(int child_nr, int pre_nr, MemoryMap *map) {
     return OK;
 }
 
+/**
+ * 获取一个进程的MemoryMap信息
+ * @param proc_nr 进程号
+ * @param map 要存放的位置
+ * @return
+ */
 PUBLIC int get_mem_map(int proc_nr,MemoryMap *map){
-    /* 虽然这个系统级调用是提供给所有服务器的，但是一般只有MM需要，
-     * 我们报告一个进程的内存映像给调用者，它不难实现。
-     */
-
     register Process *proc;
 
-    if(!is_ok_proc_nr(proc_nr)) panic("进程index错误\n",PANIC_ERR_NUM);
+    if(!is_ok_proc_nr(proc_nr)) panic("proc nr err\n",proc_nr);
     proc = proc_addr(proc_nr);      /* 得到进程实例，里面有我们需要的内存映像 */
     map->base=proc->map.base;
     map->size=proc->map.size;

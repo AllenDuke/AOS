@@ -68,8 +68,8 @@ aos_syscall level0Fn;               /* 提权成功的函数指针放在这里 *
 
 /* MM */
 int proc_in_use;                /* 有多少进程被标记为正在使用 */
-struct mm_process_s *curr_mp;    /* 指向一个当前正在处理的进程 */
-int mm_who;         /* 调用进程的进程逻辑号 */
+struct mm_process_s *curr_mp;   /* 指向一个当前正在处理的进程 */
+int mm_who;                     /* 调用mm的进程的pid */
 
 /* FS */
 struct file_desc f_desc_table[NR_FILE_DESC];

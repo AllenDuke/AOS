@@ -22,7 +22,7 @@ PUBLIC int mm_do_fork(void) {
     bool_t pid_in_use;
     phys_addr child_base;
 
-    /* *
+    /**
      * 如果在FORK的时候，进程表已经满了，那么我们就没必要开始了，
      * 避免一些不必要的麻烦，因为如果失败了，恢复过程麻烦的你不敢
      * 想象，而且非常容易出错。
@@ -40,7 +40,6 @@ PUBLIC int mm_do_fork(void) {
     if (child_base == NO_MEM) return ENOMEM;     /* 空间分配失败... */
 
     phys_copy(parent->map.base, child_base, parent->map.size);
-
 
     /* 现在，我们必须找到一个空的进程插槽给子进程 */
     for (child = &mmProcs[0]; child < &mmProcs[NR_PROCS]; child++) {
@@ -60,7 +59,7 @@ PUBLIC int mm_do_fork(void) {
 
     /* 为子进程找到一个可用的进程号，并将其放入进程表中 */
     do {
-        pid_in_use = FALSE;     /* 每次寻找前嘉定pid是可用状态 */
+        pid_in_use = FALSE;
         /* 理论上可能发生以下的问题：
          * 在把一个进程号，例如17，赋值给了一个非常长寿的进程之后，可能会有将近很多很多
          * 的进程被它创建和撤销，我就认为可能有50000个吧，nextPid可能又再次回到回到17。
@@ -84,10 +83,14 @@ PUBLIC int mm_do_fork(void) {
     child->map.base = child_base;
     child->exit_status = 0;     /* 退出状态置位 */
 
-    /* 现在告诉内核，一个新进程出现了，内核将会更新内核中的进程信息 */
+    /* 现在告诉内核，一个新进程出现了，内核将会更新内核中的进程信息，比如栈帧信息 */
     do_fork(child_nr, mm_who, child->pid);
 
-    /* todo 好了，通知文件系统已经有一个新进程成功创建了! */
+    /* tell FS, see fs_fork() */
+    Message msg2fs;
+    msg2fs.type = FORK;
+    msg2fs.PID = child->pid;
+    send_rec(FS_TASK, &msg2fs);
 
     /**
      * 万事具备，就差最后一步，新进程还需要设置自己的内存映像，
@@ -123,7 +126,7 @@ PRIVATE int do_fork(int child_nr, int pre_nr, int pid) {
     *child = *parent;                   /* 拷贝进程结构体 */
     child->ldtSelector = old_ldt_sel;  /* 恢复LDT选择子 */
     /* 设置子进程一些独有的信息 */
-    child->slotIndex = child_nr;      /* 子进程要记住自己的索引号 */
+    child->logicIndex = child_nr;      /* 子进程要记住自己的索引号 */
     child->flags |= NO_MAP;             /* 禁止子进程运行，因为它刚刚出生 */
     child->flags &= ~(PENDING | SIG_PENDING | PROC_STOP);   /* 复位标志，它们不应该继承父进程的这些状态 */
     child->pid = pid;          /* 记住自己的进程号 */

@@ -13,9 +13,9 @@
 PUBLIC int wait(int pid) {
     Message msg;
     msg.type = WAIT;
+    msg.PID=pid;
 
     send_rec(MM_TASK, &msg);
-    msg.PID=pid;
 
     return (msg.PID == NO_TASK ? -1 : msg.PID);
 }

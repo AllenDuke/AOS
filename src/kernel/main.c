@@ -34,7 +34,7 @@ void aos_main(void) {
     for(p_proc = BEG_PROC_ADDR, logicNum = -NR_TASKS; p_proc < END_PROC_ADDR; p_proc++, logicNum++) {
         if(logicNum > 0)    /* 系统服务和用户进程 */
             strcpy(p_proc->name, "unused");
-        p_proc->slotIndex = logicNum+NR_TASKS;
+        p_proc->logicIndex = logicNum;
         p_proc->pid=logicNum;/* 系统服务的pid从-NR_TASKS到-1 */
         gp_procs[logic_nr_2_index(logicNum)] = p_proc;
         
