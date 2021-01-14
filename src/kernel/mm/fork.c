@@ -18,7 +18,7 @@ PUBLIC int mm_do_fork(void) {
     register MMProcess *parent;     /* 指向父进程，即调用者 */
     register MMProcess *child;      /* 指向fork出来的子进程 */
     MMProcess *search;
-    int child_nr;
+    int child_nr; /* 与procs逻辑索引同步 */
     bool_t pid_in_use;
     phys_addr child_base;
 
@@ -89,7 +89,7 @@ PUBLIC int mm_do_fork(void) {
     /* tell FS, see fs_fork() */
     Message msg2fs;
     msg2fs.type = FORK;
-    msg2fs.PID = child->pid;
+    msg2fs.LOGIC_I = child_nr;
     send_rec(FS_TASK, &msg2fs);
 
     /**
@@ -106,7 +106,13 @@ PUBLIC int mm_do_fork(void) {
     return child->pid;
 }
 
-
+/**
+ *
+ * @param child_nr 子进程logicIndex
+ * @param pre_nr
+ * @param pid
+ * @return
+ */
 PRIVATE int do_fork(int child_nr, int pre_nr, int pid) {
     /* msg_ptr->PROC_NR1是新创建的进程，它的父进程在msg_ptr->PROC_NR2中，
      * msg_ptr->PID是新进程的进程号。

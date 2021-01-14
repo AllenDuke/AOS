@@ -57,7 +57,7 @@ typedef struct process_s{
     Message *outBox;                /* 发件箱，当一个进程发送消息给另一个进程，邮局将会从这里获取要发送的消息，它也是一个物理地址 */
     Message *transfer;              /* 存放中转消息，物理地址 */
     /* 当一个进程执行接收操作，但没有发现有任何人想发消息过来时将会堵塞，然后将自己期望接收消息的进程逻辑编号保存在这 */
-    int getFrom;
+    int getFrom;                    /* 逻辑索引 */
     int sendTo;                     /* 同上，保存要发送消息给谁？ */
     struct process_s* p_nextWaiter; /* 指向下一个要发送消息给我的人，为了实现等待队列 */
 
@@ -99,8 +99,8 @@ typedef struct process_s{
 #define BEG_USER_PROC_ADDR  (&g_procs[NR_TASKS +NR_LAST_TASK])
 
 /* 下面的这些宏能帮助我们快速做一些进程判断等简单的工作 */
-#define NIL_PROC                ((Process *) 0)       /* 空进程指针 */
-#define logic_nr_2_index(n)     (NR_TASKS + n)
+#define NIL_PROC                ((Process *) 0)     /* 空进程指针 */
+#define logic_nr_2_index(n)     (NR_TASKS + n)      /* 逻辑索引转为物理索引 */
 #define is_idle_hardware(n)     ((n) == IDLE_TASK || (n) == HARDWARE)      /* 是空闲进程 或 硬件（特殊进程）？ */
 #define is_ok_proc_nr(n)        ((unsigned) ((n) + NR_TASKS) < NR_PROCS + NR_TASKS)   /* 进程索引号是否合法 */
 #define is_ok_src_dest(n)       (is_ok_proc_nr(n) || (n) == ANY)            /* 是个合法的发送或接收进程？ */

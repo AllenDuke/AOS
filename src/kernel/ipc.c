@@ -24,20 +24,19 @@ extern u8_t intMsgsSize;
 /**
  * 系统调用，所有的系统调用都会经过这里，从这里根据op来调用真正的例程
  * @param op 执行的操作：发送，接收，或发送并等待对方响应，以及设置收发件箱
- * @param srcOrDestOrMagAddr 消息来源 | 消息目的地 | 消息地址
+ * @param srcOrDestOrMagAddr 消息来源 | 消息目的地 | 消息地址，如果是前2者，那么它以pid的形式
  * @param msgPtr 消息指针 这里是虚拟地址
  * @return
  */
-PUBLIC int sys_call(int op, int srcOrDestOrMagAddr, Message *p_msg) {
+PUBLIC int sys_call(int op, pid_t srcOrDestOrMagAddr, Message *p_msg) {
     register Process *caller;
     Message *msgPhysPtr, *msgVirPtr;
     int rs;
 
     caller = gp_curProc;     /* 获取调用者 */
 
-//    printf("caller: %s\n", caller->name);
-//    printf("#sys_call->{caller: %d, op: 0x%x, src_dest: %d, msgPtr: 0x%p}\n",
-//           caller->logicNum , op, srcOrDestOrMagAddr, msgPtr);
+//    kprintf("#sys_call->{caller: %d, op: 0x%x, src_dest: %d, msgPtr: 0x%p}\n",
+//           caller->logicIndex , op, srcOrDestOrMagAddr, p_msg);
 
     /* 处理设置收发件箱 */
     if (op == IN_OUTBOX) {
@@ -49,11 +48,16 @@ PUBLIC int sys_call(int op, int srcOrDestOrMagAddr, Message *p_msg) {
         return OK;
     }
 
+    int logicIndex=srcOrDestOrMagAddr;
+    if(logicIndex!=ANY) logicIndex=get_logicI(srcOrDestOrMagAddr);
+
     /* 消息通信前做一些检查 */
 
-
     /* 检查并保证该消息指定的源进程目标地址合法，不合法直接返回错误代码 ERROR_BAD_SRC，即错误的源地址 */
-    if (!is_ok_src_dest(srcOrDestOrMagAddr)) return ERROR_BAD_SRC;
+    if (!is_ok_src_dest(logicIndex)) {
+        kprintf("invalid src addr, pid:%d logicIndex:%d \n",srcOrDestOrMagAddr,logicIndex);
+        return ERROR_BAD_SRC;
+    }
 
     /**
      * 继续检查，检查该调用是否从一个用户进程发出
@@ -70,7 +74,7 @@ PUBLIC int sys_call(int op, int srcOrDestOrMagAddr, Message *p_msg) {
     if (op & SEND) {
 
         /* 自己给自己发送消息，会发生死锁！ */
-        assert(caller->pid != srcOrDestOrMagAddr);
+        assert(caller->logicIndex != logicIndex);
 
         /* 获取调用者消息的物理地址，这一步很重要，因为我们现在处于内核空间，直接对进程虚拟地址操作是没有用的 */
         if (p_msg == NIL_MESSAGE)
@@ -81,10 +85,10 @@ PUBLIC int sys_call(int op, int srcOrDestOrMagAddr, Message *p_msg) {
 //        printf("p_msg: %d\n", p_msg);
 
         /* 设置消息源，即对方要知道是谁发来的这条消息，我们需要设置一下 */
-        msgPhysPtr->source = caller->pid;
+        msgPhysPtr->source = caller->logicIndex; // 在内核内部，使用logicIndex来通信
 
         /* 调用 aos_send，完成发送消息的实际处理 */
-        rs = aos_send(caller, srcOrDestOrMagAddr, msgPhysPtr);
+        rs = aos_send(caller, logicIndex, msgPhysPtr);
 
         /* 如果只是单纯的发送操作，无论成功与否，请直接返回操作代码 */
         if (op == SEND) return rs;
@@ -105,14 +109,14 @@ PUBLIC int sys_call(int op, int srcOrDestOrMagAddr, Message *p_msg) {
      * 处理接收消息操作，同样的，也包括SEND_REC里的REC操作
      * 直接调用接收消息的函数，并返回操作代码，例程结束
      */
-    return aos_receive(caller, srcOrDestOrMagAddr, msgPhysPtr);
+    return aos_receive(caller, logicIndex, msgPhysPtr);
 }
 
 
 /**
  * 处理发送消息调用 
- * @param caller 调用者，即谁想发送一条消息？
- * @param dest 目标，即准备发消息给谁？
+ * @param caller 调用者，即谁想发送一条消息
+ * @param dest 目标，即准备发消息给谁？ 逻辑索引
  * @param p_msg 调用者物理消息指针 
  * @return 
  */
@@ -156,7 +160,7 @@ PUBLIC int aos_send(Process *caller, int dest, Message *p_msg) {
      * 如果他正好在等待我或者是任何人，那么我们就可以给它发送消息，将消息拷贝给它。
      */
     if ((target->flags & (SENDING | RECEIVING)) == RECEIVING    /* RECEIVING | SENDING是为了保证对方不处于 SEND_REC 调用上 */
-        && (target->getFrom == caller->pid || target->getFrom == ANY)) {
+        && (target->getFrom == caller->logicIndex || target->getFrom == ANY)) {
         /* 拷贝消息 */
         msg_copy((phys_addr) p_msg, (phys_addr) target->transfer);
         /* 解除对方的堵塞状态 */
@@ -176,9 +180,10 @@ PUBLIC int aos_send(Process *caller, int dest, Message *p_msg) {
         caller->transfer = p_msg;
 
         /* 加入对方的等待队列 */
-        next = waiters[dest];       /* 得到对方的等待队列 */
+        int physIndex=logic_nr_2_index(dest); /* 得到物理索引 */
+        next = waiters[physIndex];       /* 得到对方的等待队列 */
         if (next == NIL_PROC)
-            waiters[dest] = caller;
+            waiters[physIndex] = caller;
         else {
             while (next->p_nextWaiter != NIL_PROC)
                 next = next->p_nextWaiter;
@@ -193,7 +198,7 @@ PUBLIC int aos_send(Process *caller, int dest, Message *p_msg) {
 /**
  * 处理接收消息调用
  * @param caller 调用者，即谁想接收一条消息？
- * @param src 目标，即准备从谁哪里获取一条消息？
+ * @param src 目标，即准备从谁哪里获取一条消息？ 逻辑索引
  * @param p_msg 调用者物理消息指针
  * @return
  */
@@ -206,25 +211,28 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
      * 定是受信任的。
      */
     register Process *sender, *prev;
+//    kprintf("caller:%s, src:%d \n",caller->name,src);
 
     if (intMsgsSize > 0) /* 优先处理中断信息 */
         for (int i = 0; i < intMsgsCapacity; ++i) {
-            if (intMsgs[i].to != caller->pid) continue;
+            if (intMsgs[i].to != caller->logicIndex) continue;
             caller->inBox->source = HARDWARE;
             caller->inBox->type = HARD_INT;
             caller->flags &= ~RECEIVING;
             caller->intBlocked = FALSE;
             intMsgsSize--;
+//            kprintf("%s handle a int msg\n",caller->name);
             return OK;
         }
 
     /* 检查有没有要发消息过来给我并符合我的要求的 */
     if (!(caller->flags & SENDING)) {          /* 首先，我自己不能处于发送消息的状态中 */
         /* 遍历等待队列，看有木有人给我发消息啊 */
-        for (sender = waiters[caller->pid];
+        int physIndex=logic_nr_2_index(caller->logicIndex);
+        for (sender = waiters[physIndex];
              sender != NIL_PROC; prev = sender, sender = sender->p_nextWaiter) {
             /* 当我对发送者无需求 或 对方就是我获取消息的期望，那么可以拿到对方的消息了 */
-            if (sender->pid == src || src == ANY) {
+            if (sender->logicIndex == src || src == ANY) {
                 /* 拷贝消息 */
                 msg_copy((phys_addr) sender->transfer, (phys_addr) p_msg);
 
@@ -233,13 +241,14 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
                  * 如果对方是队头：队头改为队列下一个人
                  * 对方处于队头后：对方出队，排在下一个的人顶替他原来的位置
                  */
-                if (sender == waiters[caller->pid])
-                    waiters[caller->pid] = sender->p_nextWaiter;
+                if (sender == waiters[physIndex])
+                    waiters[physIndex] = sender->p_nextWaiter;
                 else
                     prev->p_nextWaiter = sender->p_nextWaiter;
 
                 /* 取消对方的发送中状态，这个时候如果对方的堵塞位图已经是干净的，那么可以就绪他 */
                 if ((sender->flags &= ~SENDING) == CLEAN_MAP) ready(sender);
+//                kprintf("get waiter:%d \n",sender->logicIndex);
                 return OK;
             }
         }
@@ -249,7 +258,6 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
     caller->transfer = p_msg;
     if (caller->flags == CLEAN_MAP) unready(caller);
     caller->flags |= RECEIVING;
-
     return OK;
 }
 
@@ -261,7 +269,7 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
 PRIVATE i8_t spinLocks[NR_TASKS + NR_PROCS] = {0}; /* 最大值为1，即这是值为1的信号量，理论上[-1,1] */
 
 PUBLIC void aos_park() {
-    int i = logic_nr_2_index(gp_curProc->pid);
+    int i = logic_nr_2_index(gp_curProc->logicIndex);
     spinLocks[i]--;
     if (spinLocks[i] < 0) {
 //        gp_curProc->flags|=PARKING; /* 进入parking状态 */
@@ -269,16 +277,17 @@ PUBLIC void aos_park() {
     }
 }
 
-PUBLIC void aos_unpark(int pid) {
+PUBLIC void aos_unpark(pid_t pid) {
     /* if the caller is a user process, then the pid must be >=0 */
     if (gp_curProc->pid >= 0 && pid < 0) {/* 当前进程没有权限 */
         kprintf("cur:%s, pid:%d\n", gp_curProc->name, pid);
 
         panic("cur process can not able to unpark target process!", EACCES);
     }
-    int i = logic_nr_2_index(pid);
+    int logicIndex=get_logicI(pid);
+    int i = logic_nr_2_index(logicIndex);
     if (spinLocks[i] < 1) spinLocks[i]++;
-    Process *p_proc = proc_addr(pid);
+    Process *p_proc = proc_addr(logicIndex);
     if (spinLocks[i] == 0) {
 //        p_proc->flags&=(~PARKING); /* 解出parking状态 */
         ready(p_proc);

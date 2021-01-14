@@ -143,6 +143,7 @@ void ready(struct process_s *p_proc);
 void unready(struct process_s *p_proc);
 void interrupt(int task);
 void unhold(void);
+int get_logicI(pid_t pid);
 //======================================================================================================================
 
 

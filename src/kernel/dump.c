@@ -78,7 +78,7 @@ PUBLIC void dump_msg(const char *title, Message *m) {
             title,
             (int) m,
             packed ? "" : "\n        ",
-            g_procs[m->source].name,
+            proc_addr(m->source)->name,
             m->source,
             packed ? " " : "\n        ",
             m->type,

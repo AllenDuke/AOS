@@ -104,10 +104,9 @@ PRIVATE void exec_cmd(int cmdLen,char* cmdBuf) {
         }
         case 3: {
             Message msg;
-            msg.source = TTY_TASK;
             msg.type = GET_TIME;
             send_rec(CLOCK_TASK, &msg);
-            printf("current date is: %d\n\r", msg.CLOCK_TIME);
+            printf("current date is: %d\n", msg.CLOCK_TIME);
         }
         case 4: {
             printf("default cmd\n");

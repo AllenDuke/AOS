@@ -18,9 +18,9 @@ PRIVATE void mkfs();
 
 PRIVATE void read_super_block(int dev);
 
-PRIVATE int fs_fork();
+PRIVATE int fs_do_fork();
 
-PRIVATE int fs_exit();
+PRIVATE int fs_do_exit();
 
 PUBLIC void fs_task(void) {
 
@@ -52,10 +52,10 @@ PUBLIC void fs_task(void) {
                 src = fs_msg.PROC_NR;
                 break;
             case FORK:
-                fs_msg.RETVAL = fs_fork();
+                fs_msg.RETVAL = fs_do_fork();
                 break;
             case EXIT:
-                fs_msg.RETVAL = fs_exit();
+                fs_msg.RETVAL = fs_do_exit();
                 break;
             case LSEEK:
                 fs_msg.OFFSET = do_lseek();
@@ -476,9 +476,13 @@ PUBLIC void sync_inode(struct inode *p) {
     WR_SECT(p->i_dev, blk_nr);
 }
 
-PRIVATE int fs_fork(){
+/**
+ * 当fs接收到来自mm的fork时，执行fs_do_fork，更新文件描述符表
+ * @return
+ */
+PRIVATE int fs_do_fork(){
     int i;
-    Process * child = gp_procs[fs_msg.PID];
+    Process * child = proc_addr(fs_msg.LOGIC_I);
     for (i = 0; i < NR_FILES; i++) {
         if (child->filp[i]) {
             child->filp[i]->fd_cnt++;
@@ -489,9 +493,13 @@ PRIVATE int fs_fork(){
     return 0;
 }
 
-PRIVATE int fs_exit() {
+/**
+ * 当fs接收到来自mm的exit时，执行fs_do_exit，更新文件描述符表
+ * @return
+ */
+PRIVATE int fs_do_exit() {
     int i;
-    Process *p = gp_procs[fs_msg.PID];
+    Process *p = proc_addr(fs_msg.LOGIC_I);
     for (i = 0; i < NR_FILES; i++) {
         if (p->filp[i]) {
             /* release the inode */

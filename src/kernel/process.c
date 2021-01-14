@@ -321,3 +321,18 @@ PRIVATE void schedule(void){
     /* 汉特儿 */
     hunter();
 }
+
+/**
+ * 通过进程pid得到进程的逻辑索引
+ * @param pid 进程pid
+ * @return 进程的logicIndex或NO_TASK
+ */
+PUBLIC int get_logicI(pid_t pid){
+   if(pid<=0) return pid;
+   Process *p_proc;
+   for(int i=1;i<NR_PROCS;i++){
+       p_proc=proc_addr(i);
+       if(p_proc->pid==pid) return p_proc->logicIndex;
+   }
+    return NO_TASK;
+}

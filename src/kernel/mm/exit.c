@@ -9,7 +9,8 @@ extern MMProcess mmProcs[];
 extern Message mm_msg;
 
 PUBLIC int mm_do_exit(void){
-    /* 这个例程接收EXIT调用，但全部工作都是mm_exit()做的。
+    /**
+     * 这个例程接收EXIT调用，但全部工作都是mm_exit()做的。
      * 这样划分是因为POSIX要求应该实现信号，但我们还没有实
      * 现，当以后信号被支持以后，被信号终止运行的进程也需要
      * 做进程退出工作，但它们给出的参数不同，所以我可以先将
@@ -27,11 +28,15 @@ PUBLIC int mm_do_exit(void){
         panic("a NIL Proc try to exit, proc nr in code", PANIC_ERR_NUM);
     }
 
-    /* 好了，在这我们已经可以确定这个进程是一个正常调用exit()的进程了。
+    /**
+     * 好了，在这我们已经可以确定这个进程是一个正常调用exit()的进程了。
      * 我们现在报告领导（内核）和同事（FS、FLY）该进程退出了。
      * 报告参数：退出进程的进程索引号以及父亲的进程索引号
      */
-//    mm_tell_fs(EXIT, proc_nr, exit_proc->parent, 0);
+    Message msg2fs;
+    msg2fs.type = EXIT;
+    msg2fs.LOGIC_I = proc_nr;
+    send_rec(FS_TASK, &msg2fs);
 
     do_exit(proc_nr, exit_proc->ppid);
 

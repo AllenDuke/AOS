@@ -35,6 +35,8 @@ PUBLIC void tty_task() {
 
     select_console(0);
 
+    kprintf("{TTY}->running...\n");
+
     while (TRUE) {
 
         for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++) {
@@ -71,6 +73,7 @@ PUBLIC void tty_task() {
                 continue;
             default:
                 dump_msg("{TTY}->unknown ttyMsg: ", &ttyMsg);
+                assert(0);
                 break;
         }
     }

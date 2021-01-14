@@ -39,7 +39,7 @@ typedef struct {
  * 此数据结构来源自MINIX
  */
 typedef struct message_s {
-    int source;         /* 谁发送的消息 */
+    int source;         /* 谁发送的消息 逻辑索引 */
     int type;           /* 消息的类型，用于判断告诉对方意图 */
     union {             /* 消息域，一共可以是六种消息域类型之一 */
         mess_union1 m_u1;
@@ -114,6 +114,7 @@ typedef struct message_s {
 #define BUF             m2_p1
 #define	BUF_LEN		    m2_i3
 #define PID             m2_i2
+#define LOGIC_I         m2_i2
 #define NAME_LEN        m2_i2
 #define PATHNAME        m2_p1
 #define FD              m2_i1
@@ -174,7 +175,7 @@ enum msgtype {
 };
 
 typedef struct {
-    int to;
+    int to; /* 逻辑索引 */
     Message msg;
 }IntMsg;
 
