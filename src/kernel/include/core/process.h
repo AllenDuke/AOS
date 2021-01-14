@@ -122,6 +122,11 @@ typedef struct process_s{
 #define cproc_addr(n)     (&(g_procs + NR_TASKS)[(n)])                      /* 得到进程的地址 */
 #define proc_vir2phys(p, vir) ((phys_addr)(p)->map.base + (vir_addr)(vir))  /* 进程内的虚拟地址转物理地址 */
 
+/* 反推：通过一个段描述符，反向得到对应的物理地址，例如正文段的基地址。 */
+#define	reassembly(high, high_shift, mid, mid_shift, low)	\
+	(((high) << (high_shift)) |				\
+	 ((mid)  << (mid_shift)) |				\
+	 (low))
 
 /* 互斥锁，信号量为1 */
 typedef struct mutex_s{

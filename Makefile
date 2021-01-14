@@ -65,7 +65,8 @@ KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/prote
                   $(tk)/process.o $(tk)/ipc.o $(tk)/dump.o $(tk)/keyboard.o $(tk)/tty.o \
                   $(tk)/console.o $(tk)/idle.o $(tk)/alloc.o $(tk)/mm.o $(tk)/fork.o $(tk)/mem_map.o \
                   $(tk)/exit.o $(tk)/wait.o $(tk)/at_wini.o $(tk)/fs.o $(tk)/open.o $(tk)/fs_misc.o \
-                  $(tk)/read_write.o $(tk)/link.o $(tk)/fs_test.o $(tk)/tty_test.o $(tk)/exec.o
+                  $(tk)/read_write.o $(tk)/link.o $(tk)/fs_test.o $(tk)/tty_test.o $(tk)/exec.o \
+                  $(tk)/misc.o $(tk)/origin.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LIB		        = $(l)/aos_lib.a
@@ -203,6 +204,9 @@ $(tk)/ipc.o: $(sk)/ipc.c
 $(tk)/dump.o: $(sk)/dump.c
 	$(CC) $(CFlags) -o $@ $<
 
+$(tk)/misc.o: $(sk)/misc.c
+	$(CC) $(CFlags) -o $@ $<
+
 $(tk)/keyboard.o: $(sk)/tty/keyboard.c
 	$(CC) $(CFlags) -o $@ $<
 
@@ -253,6 +257,11 @@ $(tk)/read_write.o: $(sk)/fs/read_write.c
 
 $(tk)/link.o: $(sk)/fs/link.c
 	$(CC) $(CFlags) -o $@ $<
+
+
+$(tk)/origin.o: $(sk)/origin/origin.c
+	$(CC) $(CFlags) -o $@ $<
+
 
 $(tk)/fs_test.o: $(sk)/test/fs_test.c
 	$(CC) $(CFlags) -o $@ $<

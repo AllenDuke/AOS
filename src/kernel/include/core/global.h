@@ -63,6 +63,9 @@ int nrCurConsole;                   /* 表示当前的控制台 */
 
 /* 其他 */
 BootParam *gp_bootParam;            /* 引导参数指针 */
+phys_addr kernel_base; /* 内核所在基地址 */
+phys_addr kernel_limit;/* 内核界限 */
+
 aos_syscall level0Fn;               /* 提权成功的函数指针放在这里 */
 //int g_unparkPid;
 

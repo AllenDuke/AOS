@@ -32,7 +32,7 @@ PUBLIC void init_c(void) {
     /* 魔数正常，让我们的引导参数指针指向它 */
     gp_bootParam = (BootParam *) (BOOT_PARAM_ADDR + 4);
 
-    kprintf("init_c done\n");
+    kprintf("init_c done, kernel file addr:%d \n",gp_bootParam->kernelFileAddr);
 }
 
 

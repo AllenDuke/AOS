@@ -24,7 +24,11 @@ void tty_test() {
         cmdLen = r;
         cmdBuf[r] = 0;
 
-        exec_cmd(cmdLen,cmdBuf);
+        int childPid=fork();
+        if(!childPid){
+            kprintf("child proc exec cmd\n");
+            exec_cmd(cmdLen,cmdBuf);
+        }
     }
 
 

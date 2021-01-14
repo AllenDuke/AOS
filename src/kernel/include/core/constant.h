@@ -259,7 +259,6 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
  *
  * 注意：请确保PROC_BASE的值高于任何缓冲区，例如文件系统缓冲区，
  * 内存管理器缓冲区等等。
- * 现在它们缓冲区的长度为：0xB00000(16MB)
  */
 #define FREE_BASE                 0x1000000            /* 可以安全使用的内存空间物理地址：16M */
 #define PROC_BASE_PAGE            (FREE_BASE >> PAGE_SHIFT)
@@ -349,6 +348,9 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 /* 所有系统进程的栈空间总大小 */
 #define TOTAL_TASK_STACK    (HARDWARE_STACK+IDLE_TASK_STACK+CLOCK_TASK_STACK+TTY_TASK_STACK+MM_TASK_STACK \
                             +HD_TASK_STACK+FS_TASK_STACK+TEST_TASK_STACK)
+
+#define ORIGIN_TASK_STACK_BASE   15*1024*1024
+#define ORIGIN_TASK_STACK   NORMAL_STACK*512
 //======================================================================================================================
 
 

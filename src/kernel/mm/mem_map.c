@@ -13,12 +13,11 @@
 PUBLIC int new_mem_map(int child_nr, int pre_nr) {
 
     register Process *proc=proc_addr(child_nr);
-    MemoryMap *map=&(proc->map);
     int old_flags;          /* 修改前标记的值 */
 
     if (!is_ok_proc_nr(child_nr)) return (ERROR_BAD_PROC);    /* 啊哈，这个进程索引号不正确 */
 
-    get_mem_map(pre_nr,map); /* 复制父进程的MemoryMap */
+    get_mem_map(pre_nr,&(proc->map)); /* 复制父进程的MemoryMap */
 
     /**
      * 现在根据新的内存映像设置进程的LDT信息

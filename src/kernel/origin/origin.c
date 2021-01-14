@@ -7,7 +7,7 @@
 
 PRIVATE void exec_cmd(int cmdLen,char* cmdBuf);
 
-void origin() {
+void origin_task() {
     int fd_stdin = open("/dev_tty0", O_RDWR);
     assert(fd_stdin == 0);
     int fd_stdout = open("/dev_tty0", O_RDWR);

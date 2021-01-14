@@ -7,17 +7,19 @@
 /* 系统进程表，包含系统任务以及系统服务 */
 SysProc sysProcs[] = {
 #ifdef ENABLE_TEST
-//        { fs_test, TEST_TASK_STACK, "TEST" },
-        { tty_test, TEST_TASK_STACK, "TEST" },
+        //        { fs_test, TEST_TASK_STACK, "TEST" },
+                { tty_test, TEST_TASK_STACK, "TEST" },
 #endif
-        { tty_task, TTY_TASK_STACK, "TTY" },
-        { at_winchester_task,HD_TASK_STACK,"HD"},// todo 交换hd和clock的位置会导致tty堆栈保护字被破坏，为什么？
-        { fs_task, FS_TASK_STACK, "FS" },
-        { clock_task, CLOCK_TASK_STACK, "CLOCK" },
-        { mm_task,MM_TASK_STACK,"MM"},
-        { idle_task, IDLE_TASK_STACK, "IDLE" },
-        { 0, HARDWARE_STACK, "HARDWARE" },/* 虚拟硬件任务，只是占个位置 - 用作判断硬件中断 */
+        {tty_task, TTY_TASK_STACK, "TTY"},
+        {at_winchester_task, HD_TASK_STACK, "HD"},// todo 交换hd和clock的位置会导致tty堆栈保护字被破坏，为什么？
+        {fs_task, FS_TASK_STACK, "FS"},
+        {clock_task, CLOCK_TASK_STACK, "CLOCK"},
+        {mm_task, MM_TASK_STACK, "MM"},
+        {idle_task, IDLE_TASK_STACK, "IDLE"},
+        {0, HARDWARE_STACK, "HARDWARE"},/* 虚拟硬件任务，只是占个位置 - 用作判断硬件中断 */
 };
+
+PRIVATE void init_origin();
 
 void aos_main(void) {
 
@@ -25,19 +27,28 @@ void aos_main(void) {
 
 //    int i=1/0; /* 除法错误正常 */
 
+    /* 初始化进程表之前首先需要获取内核的映像信息 */
+    if (get_kernel_map(&kernel_base, &kernel_limit) != OK) {
+        /* 如果获取内核映像错误，那么用户进程就不能启动起来，打印错误并死机（死循环，
+         * 这里键盘驱动还没有启动，不能使用painc进行错误宕机）
+         */
+        kprintf("get kernel map failed!!!\n");
+        assert(0);
+    }
+
     /**
      * 进程表的所有表项都被标志为空闲;
      * 对用于加快进程表访问的 p_proc_addr 数组进行初始化。
      */
     register Process *p_proc;
     register int logicNum;
-    for(p_proc = BEG_PROC_ADDR, logicNum = -NR_TASKS; p_proc < END_PROC_ADDR; p_proc++, logicNum++) {
-        if(logicNum > 0)    /* 系统服务和用户进程 */
+    for (p_proc = BEG_PROC_ADDR, logicNum = -NR_TASKS; p_proc < END_PROC_ADDR; p_proc++, logicNum++) {
+        if (logicNum > 0)    /* 系统服务和用户进程 */
             strcpy(p_proc->name, "unused");
         p_proc->logicIndex = logicNum;
-        p_proc->pid=logicNum;/* 系统服务的pid从-NR_TASKS到-1 */
+        p_proc->pid = logicNum;/* 系统服务的pid从-NR_TASKS到-1 */
         gp_procs[logic_nr_2_index(logicNum)] = p_proc;
-        
+
     }
 
     /**
@@ -46,9 +57,9 @@ void aos_main(void) {
      */
     SysProc *p_sysProc;
     reg_t sysProcStackBase = (reg_t) sysProcStack;
-    u8_t  privilege;        /* CPU 权限 */
+    u8_t privilege;        /* CPU 权限 */
     u8_t rpl;               /* 段访问权限 */
-    for(logicNum = -NR_TASKS; logicNum <= NR_LAST_TASK; logicNum++) {   /* 遍历整个系统任务 */
+    for (logicNum = -NR_TASKS; logicNum <= NR_LAST_TASK; logicNum++) {   /* 遍历整个系统任务 */
         p_proc = proc_addr(logicNum);                                 /* 拿到系统任务对应应该放在的进程指针 */
         p_sysProc = &sysProcs[logic_nr_2_index(logicNum)];     /* 系统进程项 */
         strcpy(p_proc->name, p_sysProc->name);                         /* 拷贝名称 */
@@ -99,12 +110,15 @@ void aos_main(void) {
         p_proc->flags = CLEAN_MAP;
 
         /* 如果该进程不是待机任务 或 虚拟硬件，就绪它 */
-        if(!is_idle_hardware(logicNum)) ready(p_proc);
+        if (!is_idle_hardware(logicNum)) ready(p_proc);
     }
 
-    /* 设置消费进程，它需要一个初值。因为系统闲置刚刚启动，所以此时闲置进程是一个最合适的选择。
- * 随后在调用下一个函数 lock_hunter 进行第一次进程狩猎时可能会选择其他进程。
- */
+    init_origin();
+
+    /**
+     * 设置消费进程，它需要一个初值。因为系统闲置刚刚启动，所以此时闲置进程是一个最合适的选择。
+     * 随后在调用下一个函数 lock_hunter 进行第一次进程狩猎时可能会选择其他进程。
+     */
     gp_billProc = proc_addr(IDLE_TASK);
     proc_addr(IDLE_TASK)->priority = PROC_PRI_IDLE;
     lock_hunter();      /* 让我们看看，有什么进程那么幸运的被抓出来第一个执行 */
@@ -118,4 +132,73 @@ void aos_main(void) {
      * 起时都要执行 restart,无论挂起原因是等待输入还是在轮到其他进程运行时将控制权转交给它们。
      */
     restart();
+}
+
+PRIVATE void init_origin() {
+    Process *origin = proc_addr(ORIGIN_PROC_NR);
+    init_segment_desc(&origin->ldt[CS_LDT_INDEX],
+                      0,  /* 入口点之前的字节虽然对于起源进程没有用（浪费掉了），但是没关系，这样足够简单 */
+                      (kernel_base + kernel_limit) >> LIMIT_4K_SHIFT, /* limit是大小-1 */
+                      DA_32 | DA_LIMIT_4K | DA_C | USER_PRIVILEGE << 5
+    );
+    init_segment_desc(&origin->ldt[DS_LDT_INDEX],
+                      0,  /* 入口点之前的字节虽然对于起源进程没有用（浪费掉了），但是没关系，这样足够简单 */
+                      (kernel_base + kernel_limit) >> LIMIT_4K_SHIFT,
+                      DA_32 | DA_LIMIT_4K | DA_DRW | USER_PRIVILEGE << 5
+    );
+
+    SegDescriptor *sdp = &origin->ldt[CS_LDT_INDEX];
+    int ldt_text_limit, ldt_data_limit, ldt_data_base, ldt_data_size;
+    /* 代码段基址 */
+    origin->map.base = reassembly(sdp->baseHigh, 24,
+                                  sdp->baseMiddle, 16,
+                                  sdp->baseLow);
+    /* 代码段界限，单位以段粒度计算，要么字节要么4KB */
+    ldt_text_limit = reassembly(0, 0,
+                                (sdp->granularity & 0xF), 16,
+                                sdp->limitLow);
+    /* 代码段大小 */
+    origin->map.size = ((ldt_text_limit + 1) *
+                        ((sdp->granularity & (DA_LIMIT_4K >> 8)) ? 4096 : 1));
+    /* 然后是数据段，堆栈段共用这一块区域。 */
+    sdp = &origin->ldt[DS_LDT_INDEX];
+    /* 数据段&堆栈段基址 */
+    ldt_data_base = reassembly(sdp->baseHigh, 24,
+                               sdp->baseMiddle, 16,
+                               sdp->baseLow);
+    /* 数据段&堆栈段界限 */
+    ldt_data_limit = reassembly((sdp->granularity & 0xF), 16,
+                                0, 0,
+                                sdp->limitLow);
+    /* 数据段&堆栈段大小 */
+    ldt_data_size = ((ldt_data_limit + 1) *
+                     ((sdp->granularity & (DA_LIMIT_4K >> 8)) ? 4096 : 1));
+
+    /**
+     * 我们并不加以细分正文、数据以及堆栈段，所以TEXT和DATA段的内存映像应该是相等的，
+     * 如果不一致，那么系统就不必要继续向下启动了，它有可能为以后带来隐患。
+     */
+    if ((origin->map.base != ldt_data_base) ||
+        (ldt_text_limit != ldt_data_limit) ||
+        (origin->map.size != ldt_data_size)) {
+        kprintf("TEXT segment not equals DATA & STACK segment!!!\n");
+        assert(0);
+    }
+
+//    reg_t procStackBase=ORIGIN_TASK_STACK_BASE;
+//    origin->stackGuardWord = (reg_t *) procStackBase;
+//    *origin->stackGuardWord = SYS_SERVER_STACK_GUARD;
+
+    origin->regs.cs = ((CS_LDT_INDEX * DESCRIPTOR_SIZE) | SA_TIL | USER_PRIVILEGE); /* cs应=0 设置TI=1，表示访问的是LDT */
+    origin->regs.ds = ((DS_LDT_INDEX * DESCRIPTOR_SIZE) | SA_TIL | USER_PRIVILEGE); /* ds应=8 */
+    origin->regs.es = origin->regs.fs = origin->regs.ss = origin->regs.ds;  /* C 语言不加以区分这几个段寄存器 */
+    origin->regs.gs = ((KERNEL_GS_SELECTOR | USER_PRIVILEGE) & SA_RPL_MASK);     /* gs 指向显存 */
+    origin->regs.eip = (reg_t) origin_task;                        /* eip 指向要执行的代码首地址 */
+    origin->regs.esp = ORIGIN_TASK_STACK_BASE + ORIGIN_TASK_STACK;                           /* 设置栈顶 */
+    origin->regs.eflags = is_task_proc(origin) ? INIT_TASK_PSW : INIT_PSW; /* 设置if位 */
+
+    /* 进程刚刚初始化，让它处于可运行状态，所以标志位上没有1 */
+    origin->flags = CLEAN_MAP;
+
+    ready(origin);
 }
