@@ -28,12 +28,14 @@ PUBLIC void mm_task(void) {
     while (TRUE) {
         rec(ANY);
         int src = mm_msg.source;
-//        assert(src>=0); /* 系统任务没有调用mm相关的东西 */
+        assert(src>=0); /* 系统任务没有调用mm相关的东西 */
         curr_mp=&mmProcs[src];
         mm_who=src;
         int reply = 1;
 
         int msgtype = mm_msg.type;
+
+        kprintf("{MM}->get msg from:%d, type:%d  \n",src,msgtype);
 
         switch (msgtype) {
             case FORK:
@@ -59,6 +61,7 @@ PUBLIC void mm_task(void) {
         if (reply) {
             mm_msg.type = SYSCALL_RET;
             send(src, &mm_msg);
+            kprintf("{MM}->service done\n");
         }
 
     }

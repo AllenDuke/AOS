@@ -3,6 +3,8 @@
 //
 #include "core/kernel.h"
 
+extern MMProcess mmProcs[];
+
 /**
  *
  * @param child_nr 子进程逻辑索引号
@@ -17,7 +19,9 @@ PUBLIC int new_mem_map(int child_nr, int pre_nr) {
 
     if (!is_ok_proc_nr(child_nr)) return (ERROR_BAD_PROC);    /* 啊哈，这个进程索引号不正确 */
 
-    get_mem_map(pre_nr,&(proc->map)); /* 复制父进程的MemoryMap */
+//    get_mem_map(pre_nr,&(proc->map)); /* 复制父进程的MemoryMap */
+    proc->map.base=mmProcs[child_nr].map.base;
+    proc->map.size=mmProcs[child_nr].map.size;
 
     /**
      * 现在根据新的内存映像设置进程的LDT信息
@@ -33,8 +37,6 @@ PUBLIC int new_mem_map(int child_nr, int pre_nr) {
                       (proc->map.size - 1) >> LIMIT_4K_SHIFT,
                       DA_32 | DA_LIMIT_4K | DA_DRW | USER_PRIVILEGE << 5
     );
-//    kprintf("%s(nr-%d) base: %d, size: %d | ldt_sel: (c-%d|p-%d)\n", proc->name, proc->nr,
-//            proc->map.base, proc->map.size, proc->ldt_sel, proc_addr(proc->nr - 1)->ldt_sel);
 
     old_flags = proc->flags;        /* 保存标志 */
     proc->flags &= ~NO_MAP;         /* 解开封印！将NO_MAP复位，等同于YES_MAP！！！ */
@@ -43,7 +45,10 @@ PUBLIC int new_mem_map(int child_nr, int pre_nr) {
      * 最后一步：确定旧的flags位上是否还存在除了NO_MAP以外限制进程运行的堵塞位，
      * 如果没有了，那么就可以将这个新生儿加入就绪队列了！
      */
-    if (old_flags != 0 && proc->flags == 0) lock_ready(proc);
+    if (old_flags != 0 && proc->flags == 0) {
+        lock_ready(proc);
+    }
+//    else kprintf("old_flag:%d \n",old_flags);
 
     return OK;
 }

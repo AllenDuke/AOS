@@ -2,6 +2,7 @@
 // Created by 杜科 on 2020/12/25.
 //
 
+#include <stdio.h>
 #include "core/kernel.h"
 
 PRIVATE pid_t nextPid = ORIGIN_PID + 1;
@@ -38,6 +39,7 @@ PUBLIC int mm_do_fork(void) {
      */
     child_base = alloc(parent->map.size >> PAGE_SHIFT) << PAGE_SHIFT;
     if (child_base == NO_MEM) return ENOMEM;     /* 空间分配失败... */
+    kprintf("childBase:%d, size:%d  \n", child_base, parent->map.size);
 
     phys_copy(parent->map.base, child_base, parent->map.size);
 
@@ -51,6 +53,7 @@ PUBLIC int mm_do_fork(void) {
 
     /* 得到子进程索引号 */
     child_nr = child - &mmProcs[0];  /* 得到子进程的进程索引号 */
+    kprintf("child logic index:%d \n", child_nr);
     proc_in_use++;     /* 一个新的进程被使用了 */
     /* 设置子进程信息及其内存映像，子进程继承父进程的结构（MM中的） */
     *child = *parent;
@@ -81,6 +84,7 @@ PUBLIC int mm_do_fork(void) {
 
     /* 更新子进程的内存映像，子进程的正文段，数据段和堆栈段基址必须引用新分配的 */
     child->map.base = child_base;
+    child->map.size = parent->map.size;
     child->exit_status = 0;     /* 退出状态置位 */
 
     do_fork(child_nr, mm_who, child->pid);
@@ -129,15 +133,17 @@ PRIVATE int do_fork(int child_nr, int pre_nr, pid_t pid) {
     child->ldtSelector = old_ldt_sel;  /* 恢复LDT选择子 */
     /* 设置子进程一些独有的信息 */
     child->logicIndex = child_nr;      /* 子进程要记住自己的索引号 */
+//    child->flags &= ~(PENDING | SIG_PENDING | PROC_STOP);   /* 复位标志，它们不应该继承父进程的这些状态 */
+    child->flags = 0; /* RECEIVING 也不应该继承，新的子进程应该是干净的 */
     child->flags |= NO_MAP;             /* 禁止子进程运行，因为它刚刚出生 */
-    child->flags &= ~(PENDING | SIG_PENDING | PROC_STOP);   /* 复位标志，它们不应该继承父进程的这些状态 */
     child->pid = pid;          /* 记住自己的进程号 */
     child->regs.eax = 0;                /* 子进程看到ax是0.就知道自己是fork出来的了。 */
-    kprintf(child->name, "%s_fk_%d", parent->name, child->pid);  /* 还是给它起个默认名字吧：父名_fk_子号 */
+    sprintf(child->name, "%s_fk_%d", parent->name, child->pid);  /* 还是给它起个默认名字吧：父名_fk_子号 */
 
     /* 清零子进程的时间记账信息 */
     child->userTime = child->sysTime = child->childUserTime = child->childSysTime = 0;
 
+    kprintf("{MM}->child proc name:%s \n", child->name);
     return OK;  /* OK了 */
 }
 

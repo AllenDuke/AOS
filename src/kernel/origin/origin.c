@@ -5,7 +5,7 @@
 #include "core/kernel.h"
 #include "stdio.h"
 
-PRIVATE void exec_cmd(int cmdLen,char* cmdBuf);
+PRIVATE void exec_cmd(int cmdLen, char *cmdBuf);
 
 void origin_task() {
     int fd_stdin = open("/dev_tty0", O_RDWR);
@@ -24,7 +24,12 @@ void origin_task() {
         cmdLen = r;
         cmdBuf[r] = 0;
 
-        exec_cmd(cmdLen,cmdBuf);
+        int childPid = fork();
+        if (childPid==0) {
+            exec_cmd(cmdLen, cmdBuf);
+        }else{
+            printf("child pid:%d \n",childPid);
+        }
     }
 
 
@@ -45,7 +50,7 @@ void origin_task() {
 
 }
 
-PRIVATE void exec_cmd(int cmdLen,char* cmdBuf) {
+PRIVATE void exec_cmd(int cmdLen, char *cmdBuf) {
     if (cmdLen <= 0) return;
     int hash = 0;
 

@@ -24,11 +24,8 @@ void tty_test() {
         cmdLen = r;
         cmdBuf[r] = 0;
 
-//        int childPid=fork();
-//        if(!childPid){
-//            kprintf("child proc exec cmd\n");
-            exec_cmd(cmdLen,cmdBuf);
-//        }
+        exec_cmd(cmdLen,cmdBuf);
+
     }
 
 
@@ -87,7 +84,7 @@ PRIVATE void exec_cmd(int cmdLen,char* cmdBuf) {
     char *pre = cmd_map[index];
     for (int i = 0; i < cmdLen; i++) {
         if (cmdBuf[i] != *pre || *pre == '\0') {
-            kprintf("no such cmd:%s, hash:%d, index:%d\n", cmdBuf, hash, index);
+            printf("no such cmd:%s, hash:%d, index:%d\n", cmdBuf, hash, index);
             return;
         }
         pre++;

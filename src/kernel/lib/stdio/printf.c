@@ -56,3 +56,15 @@ PUBLIC int printf(const char *fmt, ...) {
 
     return len;
 }
+
+/* 只是简单的格式化字符串，但不进行输出 */
+int sprintf(char *buf, const char *fmt, ...){
+    va_list ap;
+
+    va_start(ap, fmt);
+
+    int rs = vsprintf(buf, fmt, ap);
+
+    va_end(ap);
+    return rs;
+}

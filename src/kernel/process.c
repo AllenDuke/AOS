@@ -248,6 +248,7 @@ PUBLIC void lock_hunter(void){
 
 
 PUBLIC void lock_ready(Process* proc){
+    kprintf("a new proc, name:%s  \n",proc->name);
     switching = TRUE;
     ready(proc);
     switching = FALSE;
@@ -273,7 +274,7 @@ PRIVATE void hunter(void){
     register Process* prey;      /* 准备运行的进程 */
     if((prey = gp_readyHeads[TASK_QUEUE]) != NIL_PROC) {
         gp_curProc = prey;
-//        kprintf("%s hunter\n", gp_curProc->name);
+        kprintf("%s hunter\n", gp_curProc->name);
         return;
     }
     if((prey = gp_readyHeads[SERVER_QUEUE]) != NIL_PROC) {
