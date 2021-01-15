@@ -11,11 +11,14 @@ PUBLIC int get_kernel_map(phys_addr *base, phys_addr *limit){
     /* 得到内核文件的elf32文件头 */
     Elf32_Ehdr *elf_header = (Elf32_Ehdr*)(gp_bootParam->kernelFileAddr);
 
-    /* 内核文件必须为ELF32格式 */
-    if(memcmp(elf_header->e_ident, ELFMAG, SELFMAG) != 0){
+    if(!(elf_header->e_ident[0]==127&&elf_header->e_ident[1]==69&&
+            elf_header->e_ident[2]==76&&elf_header->e_ident[3]==70))
         panic("kernel file type err, it must be elf32\n",PANIC_ERR_NUM);
-        return ERROR_BAD_ELF;
-    }
+
+    /* 内核文件必须为ELF32格式 */
+//    if(memcmp(elf_header->e_ident, ELFMAG, SELFMAG) != 0){
+//        return ERROR_BAD_ELF;
+//    }
 
     *base = ~0;
     phys_addr t = 0;

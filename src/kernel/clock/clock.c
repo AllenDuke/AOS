@@ -59,7 +59,7 @@ PUBLIC void clock_task(void) {
     io_box(&msg);
 
 //    milli_delay(sec2ms(1));     /* todo 这个函数时不阻塞，不放弃cpu时间片的 */
-    kprintf("#{CLOCK}-> Working...\n");
+    kprintf("{CLOCK}-> clock_task is working...\n");
     while (TRUE) {
         /* 等待外界消息 */
         rec(ANY);
@@ -86,7 +86,8 @@ PUBLIC void clock_task(void) {
                 do_set_time();
                 break;
             default:
-                kprintf("a bad clock request from pid:%d, type:%d\n",msg.source,msg.type);
+//                kprintf("a bad clock request from pid:%d, type:%d\n",msg.source,msg.type);
+                dump_msg("{CLOCK}->get a bad clock request",&msg);
 //                panic("#{CLOCK}-> Clock task got bad message request.\n", msg.source);
         }
 
@@ -194,7 +195,6 @@ PRIVATE void clock_init(void) {
      * 设置 8253定时器芯片 的模式和计数器Counter 0以产生每秒 100 次的
      * 时钟滴答中断，即每 10ms 产生一次中断。
      */
-    kprintf("#{clock_init}->called\n");
 
     /* 1 先写入我们使用的模式到 0x43 端口，即模式控制寄存器中 */
     out_byte(TIMER_MODE, RATE_GENERATOR);
@@ -209,9 +209,9 @@ PRIVATE void clock_init(void) {
     RTCTime_t now;
     get_rtc_time(&now);
     bootTime = mktime(&now);
-    kprintf("#{CLOCK}-> now is %d-%d-%d %d:%d:%d\n",
+    kprintf("{CLOCK}-> now is %d-%d-%d %d:%d:%d\n",
            now.year, now.month, now.day, now.hour, now.minute, now.second);
-    kprintf("#{CLOCK}-> boot startup time is %ld\n", bootTime);
+    kprintf("{CLOCK}-> boot startup time is %ld\n", bootTime);
 }
 
 /* 获取时钟运行时间(tick) */

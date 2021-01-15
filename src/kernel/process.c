@@ -48,7 +48,7 @@ PUBLIC void ready(register Process* p_proc){
         p_proc->p_nextReady = NIL_PROC;
         return;
     }
-    /* *
+    /**
      * 用户进程的处理稍微有所不同
      * 我们将用户进程添加到队列的最前面。（对于受I/O约束的进程来说更公平一些。）
      */

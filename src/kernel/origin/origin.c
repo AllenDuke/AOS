@@ -13,7 +13,7 @@ void origin_task() {
     int fd_stdout = open("/dev_tty0", O_RDWR);
     assert(fd_stdout == 1);
 
-    printf("origin() is running ...\n");
+    printf("{ORIGIN}->origin_task is working...\n");
 
     char cmdBuf[128];
     u32_t cmdLen = 0;
@@ -83,7 +83,7 @@ PRIVATE void exec_cmd(int cmdLen,char* cmdBuf) {
     char *pre = cmd_map[index];
     for (int i = 0; i < cmdLen; i++) {
         if (cmdBuf[i] != *pre || *pre == '\0') {
-            kprintf("no such cmd:%s, hash:%d, index:%d\n", cmdBuf, hash, index);
+            printf("no such cmd:%s, hash:%d, index:%d\n", cmdBuf, hash, index);
             return;
         }
         pre++;

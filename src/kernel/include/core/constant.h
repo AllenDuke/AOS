@@ -349,7 +349,6 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define TOTAL_TASK_STACK    (HARDWARE_STACK+IDLE_TASK_STACK+CLOCK_TASK_STACK+TTY_TASK_STACK+MM_TASK_STACK \
                             +HD_TASK_STACK+FS_TASK_STACK+TEST_TASK_STACK)
 
-#define ORIGIN_TASK_STACK_BASE   15*1024*1024
 #define ORIGIN_TASK_STACK   NORMAL_STACK*512
 //======================================================================================================================
 

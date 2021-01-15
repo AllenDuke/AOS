@@ -24,11 +24,11 @@ PUBLIC void mm_task(void) {
 //    mem_dump();
 //    free(base,15);
 //    mem_dump();
-    in_outbox(&mm_msg, &mm_msg);
+    kprintf("{MM}->mm_task is working...\n");
     while (TRUE) {
         rec(ANY);
         int src = mm_msg.source;
-        assert(src>=0); /* 系统任务没有调用mm相关的东西 */
+//        assert(src>=0); /* 系统任务没有调用mm相关的东西 */
         curr_mp=&mmProcs[src];
         mm_who=src;
         int reply = 1;
@@ -93,8 +93,9 @@ PRIVATE void mm_init() {
     proc_in_use = ORIGIN_PROC_NR + 1;    /* 有多少进程正在使用中？ */
 
     /* 打印内存信息：内存总量、核心内存的使用和空闲内存情况 */
-    kprintf("total memory size = %dKB, available = %dKB freePages = %d.\n", totalPages << 2, freePages << 2, freePages);
+    kprintf("{MM}->total memory size = %dKB, available = %dKB freePages = %d.\n", totalPages << 2, freePages << 2, freePages);
 
+    in_outbox(&mm_msg, &mm_msg);
 }
 
 /**

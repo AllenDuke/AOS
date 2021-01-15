@@ -13,7 +13,7 @@ void tty_test() {
     int fd_stdout = open("/dev_tty0", O_RDWR);
     assert(fd_stdout == 1);
 
-    printf("origin() is running ...\n");
+    printf("{ORIGIN}->origin_task is working...\n");
 
     char cmdBuf[128];
     u32_t cmdLen = 0;
@@ -24,11 +24,11 @@ void tty_test() {
         cmdLen = r;
         cmdBuf[r] = 0;
 
-        int childPid=fork();
-        if(!childPid){
-            kprintf("child proc exec cmd\n");
+//        int childPid=fork();
+//        if(!childPid){
+//            kprintf("child proc exec cmd\n");
             exec_cmd(cmdLen,cmdBuf);
-        }
+//        }
     }
 
 

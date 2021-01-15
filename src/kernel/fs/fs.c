@@ -25,7 +25,7 @@ PRIVATE int fs_do_exit();
 PUBLIC void fs_task(void) {
 
     fs_init();
-    kprintf("fs_task working...\n");
+    kprintf("{FS}->fs_task is working...\n");
 
     while (TRUE) {
         rec(ANY);
@@ -114,7 +114,7 @@ PRIVATE void fs_init() {
     sb = (struct super_block *) fsbuf;
     if (sb->magic != MAGIC_V1)
     { /* 魔数不对，开始格式化 */
-        kprintf("{FS} mkfs\n");
+        kprintf("{FS}->mkfs\n");
         mkfs(); /* make FS */
     }
 

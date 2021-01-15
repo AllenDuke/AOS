@@ -3,10 +3,10 @@
 //
 /**
  * 该文件是内核开始C语言开发后的第一个被执行的C函数，所以它包含一个
- * cstart函数，它完成内核的一些准备工作，为跳入内核主函数做准备。
+ * init_c，它完成内核的一些准备工作，为跳入内核主函数做准备。
  *
  * 该文件的入口点是：
- *  - cstart:      进入内核主函数前做一些准备工作
+ *  - init_c:      进入内核主函数前做一些准备工作
  */
 
 #include "include/core/kernel.h"
@@ -32,7 +32,7 @@ PUBLIC void init_c(void) {
     /* 魔数正常，让我们的引导参数指针指向它 */
     gp_bootParam = (BootParam *) (BOOT_PARAM_ADDR + 4);
 
-    kprintf("init_c done, kernel file addr:%d \n",gp_bootParam->kernelFileAddr);
+    kprintf("init_c done\n");
 }
 
 

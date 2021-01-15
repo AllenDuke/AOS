@@ -62,7 +62,7 @@ PUBLIC void at_winchester_task(void) {
 
     init_params();
     kprintf("{HD}-> Drives count: %d\n", nr_drives);
-    kprintf("{HD}-> Hard Disk Driver Working...\n");
+    kprintf("{HD}-> hd_task is working...\n");
     /* 驱动程序开始工作了 */
     while (TRUE) {
         /* 等待外界的消息 */
@@ -74,7 +74,7 @@ PUBLIC void at_winchester_task(void) {
 
         /* 检查请求者是否合法：只能是文件系统或者其他的系统任务 */
         if (caller != FS_TASK && caller >= 0) {
-            kprintf("%s: got message form %d\n", wini_name(), caller);
+            kprintf("{HD}->%s: got message form %d\n", wini_name(), caller);
             continue;   /* 重新等待工作 */
         }
 
@@ -177,7 +177,6 @@ PRIVATE int wini_do_open(int device) {
         partition(drive * (NR_PART_PER_DRIVE + 1), P_PRIMARY);
         kprintf("{HD}-> Reading partition information succeeded :)\n");
     }
-    kprintf("<HD>-> open succeeded :)\n");
     return OK;
 }
 
@@ -196,7 +195,6 @@ PRIVATE int wini_identify(int drive) {
     cmd.command = ATA_IDENTIFY;
     cmd_out(&cmd);
     wini_interrupt_wait();  /* 现在等待硬盘响应一个中断 */
-    kprintf("ready to get disk info\n");
     port_read(REG_DATA, hdbuf, SECTOR_SIZE);
 
     /* 打印通过ATA_IDENTIFY命令检索的hdinfo */
@@ -239,14 +237,14 @@ PRIVATE void wini_print_identify_info(u16_t *hdinfo) {
             s[i * 2] = *p++;
         }
         s[i * 2] = 0;
-        kprintf("{HD}-> %s: %s\n", iinfo[k].desc, s);
+//        kprintf("{HD}-> %s: %s\n", iinfo[k].desc, s);
     }
 
     int capabilities = hdinfo[49];
-    kprintf("{HD}-> LBA supported: %s\n", (capabilities & 0x0200) ? "Yes" : "No");
+//    kprintf("{HD}-> LBA supported: %s\n", (capabilities & 0x0200) ? "Yes" : "No");
 
     int cmd_set_supported = hdinfo[83];
-    kprintf("{HD}-> LBA48 supported: %s\n", (cmd_set_supported & 0x0400) ? "Yes" : "No");
+//    kprintf("{HD}-> LBA48 supported: %s\n", (cmd_set_supported & 0x0400) ? "Yes" : "No");
 
     int sectors = ((int) hdinfo[61] << 16) + hdinfo[60];
     kprintf("{HD}-> HD size: %dMB\n", sectors * 512 / 1000000);
@@ -278,7 +276,7 @@ PRIVATE void partition(int device, int style) {
             int dev_nr = i + 1;          /* 主分区包括扩展分区 分区号1~4 */
             hdi->primary[dev_nr].base = part_tab[i].lowsec;
             hdi->primary[dev_nr].size = part_tab[i].size;
-            kprintf("primary: %d-{%d | %d}\n", dev_nr, hdi->primary[dev_nr].base, hdi->primary[dev_nr].size);
+//            kprintf("primary: %d-{%d | %d}\n", dev_nr, hdi->primary[dev_nr].base, hdi->primary[dev_nr].size);
 
             if (part_tab[i].sysind != EXT_PART &&
                 (largestPrimDeviceNR == 0 || hdi->primary[dev_nr].size > hdi->primary[largestPrimDeviceNR].size))
@@ -305,7 +303,7 @@ PRIVATE void partition(int device, int style) {
             hdi->logical[dev_nr].size = part_tab[0].size;
 
             s = ext_start_sect + part_tab[1].lowsec;
-            kprintf("logical: %d-{%d | %d}\n", dev_nr, hdi->logical[dev_nr].base, hdi->logical[dev_nr].size);
+//            kprintf("logical: %d-{%d | %d}\n", dev_nr, hdi->logical[dev_nr].base, hdi->logical[dev_nr].size);
 
             if (largestLogicDeviceNR == 0 || hdi->logical[dev_nr].size > hdi->logical[largestLogicDeviceNR].size)
                 largestLogicDeviceNR = dev_nr;
@@ -314,7 +312,7 @@ PRIVATE void partition(int device, int style) {
             if (part_tab[1].sysind == NO_PART) break;
         }
     } else {
-        panic("hd panic\n", PANIC_ERR_NUM);
+        assert(0);
     }
 
 }
@@ -453,7 +451,7 @@ PRIVATE int wini_do_readwrite(Message *p_msg) {
         }
         return p_msg->COUNT - left;   /* 成功返回读写的字节总量 */
     }
-    kprintf("hd io error\n");
+    kprintf("{HD}->io error!!!\n");
     return EIO;
 }
 
@@ -580,7 +578,7 @@ PRIVATE int cmd_out(Command *cmd) {
      * 等待如果超时，系统无法继续。
      */
     if (!wini_wait_for(STATUS_BSY, 0)) {
-        panic("%s: controller no response\n", PANIC_ERR_NUM);
+        panic("{HD}->%s: controller no response\n", PANIC_ERR_NUM);
         return -1;
     }
 

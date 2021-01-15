@@ -57,6 +57,8 @@ u8_t kernelReenter;                 /* 记录内核中断重入次数 */
 /* 所有系统进程堆栈的堆栈空间。 （声明为（char *）使其对齐。） */
 char *sysProcStack[TOTAL_TASK_STACK / sizeof(char *)];
 
+char *originStack[ORIGIN_TASK_STACK/sizeof(char *)];
+
 TTY ttys[NR_CONSOLES];
 CONSOLE consoles[NR_CONSOLES];
 int nrCurConsole;                   /* 表示当前的控制台 */

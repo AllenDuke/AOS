@@ -34,6 +34,8 @@ void aos_main(void) {
          */
         kprintf("get kernel map failed!!!\n");
         assert(0);
+    }else{
+        kprintf("kernel file begin:%d, end:%d.\n",kernel_base,kernel_base+kernel_limit);
     }
 
     /**
@@ -113,8 +115,9 @@ void aos_main(void) {
         if (!is_idle_hardware(logicNum)) ready(p_proc);
     }
 
+#ifndef ENABLE_TEST
     init_origin();
-
+#endif
     /**
      * 设置消费进程，它需要一个初值。因为系统闲置刚刚启动，所以此时闲置进程是一个最合适的选择。
      * 随后在调用下一个函数 lock_hunter 进行第一次进程狩猎时可能会选择其他进程。
@@ -194,11 +197,16 @@ PRIVATE void init_origin() {
     origin->regs.es = origin->regs.fs = origin->regs.ss = origin->regs.ds;  /* C 语言不加以区分这几个段寄存器 */
     origin->regs.gs = ((KERNEL_GS_SELECTOR | USER_PRIVILEGE) & SA_RPL_MASK);     /* gs 指向显存 */
     origin->regs.eip = (reg_t) origin_task;                        /* eip 指向要执行的代码首地址 */
-    origin->regs.esp = ORIGIN_TASK_STACK_BASE + ORIGIN_TASK_STACK;                           /* 设置栈顶 */
+    origin->regs.esp = (reg_t)originStack + ORIGIN_TASK_STACK;                           /* 设置栈顶 */
     origin->regs.eflags = is_task_proc(origin) ? INIT_TASK_PSW : INIT_PSW; /* 设置if位 */
 
     /* 进程刚刚初始化，让它处于可运行状态，所以标志位上没有1 */
     origin->flags = CLEAN_MAP;
+
+    origin->priority=PROC_PRI_USER;
+    origin->logicIndex=ORIGIN_PROC_NR;
+    origin->pid=ORIGIN_PID;
+    strcpy(origin->name, "origin");
 
     ready(origin);
 }

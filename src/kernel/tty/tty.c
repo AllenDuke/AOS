@@ -35,7 +35,7 @@ PUBLIC void tty_task() {
 
     select_console(0);
 
-    kprintf("{TTY}->running...\n");
+    kprintf("{TTY}->tty_task is working...\n");
 
     while (TRUE) {
 
