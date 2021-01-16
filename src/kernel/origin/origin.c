@@ -24,11 +24,11 @@ void origin_task() {
         cmdLen = r;
         cmdBuf[r] = 0;
 
-        int childPid = fork();
-        if (childPid==0) {
+        int pid = fork();
+        if (pid==0) {
             exec_cmd(cmdLen, cmdBuf);
         }else{
-            printf("child pid:%d \n",childPid);
+            printf("child pid:%d \n",pid);
         }
     }
 
@@ -111,7 +111,8 @@ PRIVATE void exec_cmd(int cmdLen, char *cmdBuf) {
             Message msg;
             msg.type = GET_TIME;
             send_rec(CLOCK_TASK, &msg);
-            printf("current date is: %d\n\r", msg.CLOCK_TIME);
+            printf("current date is: %d\n", msg.CLOCK_TIME);
+            break;
         }
         case 4: {
             printf("default cmd\n");

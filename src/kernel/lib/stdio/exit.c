@@ -10,6 +10,5 @@ PUBLIC void exit(int status) {
     msg.STATUS = status;
 
     send_rec(MM_TASK, &msg);
-    assert(msg.type == SYSCALL_RET);
-//    if (msg.type != SYSCALL_RET) panic("exit get wrong msg type\n", msg.type);
+//    assert(msg.type == SYSCALL_RET);
 }

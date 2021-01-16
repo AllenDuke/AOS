@@ -16,8 +16,8 @@ PUBLIC int fork() { // todo 增加优先级参数
     msg.type = FORK;
 
     send_rec(MM_TASK, &msg);
-    assert(msg.type == SYSCALL_RET);
-    assert(msg.RETVAL == 0);
+//    assert(msg.type == SYSCALL_RET); /* assert位于ring0，不能使用 */
+//    assert(msg.RETVAL == 0);
 
     return msg.PID;
 }

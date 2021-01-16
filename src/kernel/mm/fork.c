@@ -39,7 +39,7 @@ PUBLIC int mm_do_fork(void) {
      */
     child_base = alloc(parent->map.size >> PAGE_SHIFT) << PAGE_SHIFT;
     if (child_base == NO_MEM) return ENOMEM;     /* 空间分配失败... */
-    kprintf("childBase:%d, size:%d  \n", child_base, parent->map.size);
+//    kprintf("{MM}->childBase:%d, size:%d  \n", child_base, parent->map.size);
 
     phys_copy(parent->map.base, child_base, parent->map.size);
 
@@ -53,7 +53,7 @@ PUBLIC int mm_do_fork(void) {
 
     /* 得到子进程索引号 */
     child_nr = child - &mmProcs[0];  /* 得到子进程的进程索引号 */
-    kprintf("child logic index:%d \n", child_nr);
+//    kprintf("{MM}->child logic index:%d \n", child_nr);
     proc_in_use++;     /* 一个新的进程被使用了 */
     /* 设置子进程信息及其内存映像，子进程继承父进程的结构（MM中的） */
     *child = *parent;
@@ -143,7 +143,7 @@ PRIVATE int do_fork(int child_nr, int pre_nr, pid_t pid) {
     /* 清零子进程的时间记账信息 */
     child->userTime = child->sysTime = child->childUserTime = child->childSysTime = 0;
 
-    kprintf("{MM}->child proc name:%s \n", child->name);
+//    kprintf("{MM}->child proc name:%s \n", child->name);
     return OK;  /* OK了 */
 }
 

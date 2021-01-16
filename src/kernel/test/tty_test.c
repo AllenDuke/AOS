@@ -108,6 +108,7 @@ PRIVATE void exec_cmd(int cmdLen,char* cmdBuf) {
             msg.type = GET_TIME;
             send_rec(CLOCK_TASK, &msg);
             printf("current date is: %d\n", msg.CLOCK_TIME);
+            break;
         }
         case 4: {
             printf("default cmd\n");

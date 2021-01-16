@@ -35,11 +35,11 @@ PUBLIC void mm_task(void) {
 
         int msgtype = mm_msg.type;
 
-        kprintf("{MM}->get msg from:%d, type:%d  \n",src,msgtype);
+//        kprintf("{MM}->get msg from:%d, type:%d  \n",src,msgtype);
 
         switch (msgtype) {
             case FORK:
-                mm_msg.RETVAL = mm_do_fork();
+                mm_msg.PID = mm_do_fork();
                 break;
             case EXIT:
                 mm_do_exit();
@@ -61,7 +61,7 @@ PUBLIC void mm_task(void) {
         if (reply) {
             mm_msg.type = SYSCALL_RET;
             send(src, &mm_msg);
-            kprintf("{MM}->service done\n");
+//            kprintf("{MM}->service done\n");
         }
 
     }
