@@ -43,7 +43,7 @@ PUBLIC void mm_task(void) {
                 break;
             case EXIT:
                 mm_do_exit();
-                reply = 0; /* 进程已经退出，不用回复原进程，todo 考虑回复其父 */
+                reply = 0;      /* 进程已经退出，不用回复原进程，考虑回复其父 */
                 break;
             case EXEC:
                 mm_msg.RETVAL = mm_do_exec();

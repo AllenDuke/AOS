@@ -41,7 +41,15 @@ PUBLIC int mm_do_fork(void) {
     if (child_base == NO_MEM) return ENOMEM;     /* 空间分配失败... */
 //    kprintf("{MM}->childBase:%d, size:%d  \n", child_base, parent->map.size);
 
-    phys_copy(parent->map.base, child_base, parent->map.size);
+    /**
+     * 如果要进行FORK操作的是起源进程，那么复制可以从内核的基地址（挂载点）开始，
+     * 这样可以节约时间，因为内核挂载点前面的数据对于起源进程是没有用的。
+     */
+    if(parent->pid==ORIGIN_PID){
+        phys_copy(kernel_base, child_base+kernel_base, parent->map.size-(kernel_limit+1));
+    } else{
+        phys_copy(parent->map.base, child_base, parent->map.size);
+    }
 
     /* 现在，我们必须找到一个空的进程插槽给子进程 */
     for (child = &mmProcs[0]; child < &mmProcs[NR_PROCS]; child++) {

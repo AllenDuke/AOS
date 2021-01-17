@@ -140,12 +140,16 @@ void aos_main(void) {
 PRIVATE void init_origin() {
     Process *origin = proc_addr(ORIGIN_PROC_NR);
     init_segment_desc(&origin->ldt[CS_LDT_INDEX],
-                      0,  /* 入口点之前的字节虽然对于起源进程没有用（浪费掉了），但是没关系，这样足够简单 */
+                      /**
+                       * base最好为0，虽然会有一点浪费，但如果使用kernel_base，而内核挂载点高于0x475L，
+                       * 那么在初始化hd时（要读取内存0x475L处的BIOS信息），那么会触发GP异常。
+                       */
+                      0,
                       (kernel_base + kernel_limit) >> LIMIT_4K_SHIFT, /* limit是大小-1 */
                       DA_32 | DA_LIMIT_4K | DA_C | USER_PRIVILEGE << 5
     );
     init_segment_desc(&origin->ldt[DS_LDT_INDEX],
-                      0,  /* 入口点之前的字节虽然对于起源进程没有用（浪费掉了），但是没关系，这样足够简单 */
+                      0,
                       (kernel_base + kernel_limit) >> LIMIT_4K_SHIFT,
                       DA_32 | DA_LIMIT_4K | DA_DRW | USER_PRIVILEGE << 5
     );
