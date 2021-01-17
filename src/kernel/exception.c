@@ -40,7 +40,7 @@ PUBLIC void exception_handler(int int_vector, int error_no){
 
     /* 非屏蔽中断，我们不予理睬 */
     if(int_vector == 2){
-        kprintf("忽略非屏蔽中断！\n");
+        kprintf("ignore nmi!\n");
         return;
     }
 

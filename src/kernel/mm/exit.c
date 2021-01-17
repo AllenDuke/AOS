@@ -5,10 +5,25 @@
 
 PRIVATE int do_exit();
 
+PRIVATE void check_pre_wakeup(int preLogicIndex);
+
 extern MMProcess mmProcs[];
 extern Message mm_msg;
 
-PUBLIC int mm_do_exit(void){
+/**
+ * 在unix系统中，一个进程结束了，但是其父进程没有等待(调用wait/waitpid)它，
+ * 那么它将变成一个僵尸进程（虽然占用的内存已经释放，但仍在进程表中占用一个位置）。
+ *
+ * 实际上，在进程exit后，我们也可以做到释放在进程表中的位置的，但是我们位于与unix保持同步，
+ * 然后采用unix这种机制。
+ *
+ * 当子进程执行完后，调用exit退出，会发生以下这这些情况：
+ * 1. 父进程还没有调用wait或者waitpid，那么子进程成为僵尸进程。
+ * 2. 父进程已经调用了wait或者waitpid，那么进行完整的清理工作，考虑唤醒父进程。
+ * @return
+ */
+PUBLIC int mm_do_exit(void) {
+//    kprintf("{MM}->%d want to exit.\n",mm_who);
     /**
      * 这个例程接收EXIT调用，但全部工作都是mm_exit()做的。
      * 这样划分是因为POSIX要求应该实现信号，但我们还没有实
@@ -17,28 +32,30 @@ PUBLIC int mm_do_exit(void){
      * 其摆在这里为以后信号的实现提供便利。
      */
 
-    MMProcess *exit_proc=curr_mp;
-    int exit_status=mm_msg.STATUS;
-    MMProcess *wait_parent; /* 可能在等待退出进程完成退出的父进程 */
-    register int proc_nr;   /* 退出进程的进程索引号 */
+    MMProcess *exit_proc = curr_mp;
+    int exit_status = mm_msg.STATUS;
+    MMProcess *wait_parent;             /* 可能在等待退出进程完成退出的父进程 */
+    register int proc_nr;               /* 退出进程的进程索引号 */
 
     /* 检查一些问题 */
     proc_nr = exit_proc - &mmProcs[0];
-    if(exit_proc == NIL_MMPROC) { /* 空进程，大问题，空进程如何调用的exit()？ */
-        panic("a NIL Proc try to exit, proc nr in code", PANIC_ERR_NUM);
+    if (exit_proc == NIL_MMPROC) {       /* 空进程，大问题，空进程如何调用的exit()？ */
+        panic("a NIL Proc try to exit, proc nr in code", proc_nr);
     }
 
-    /**
-     * 好了，在这我们已经可以确定这个进程是一个正常调用exit()的进程了。
-     * 我们现在报告领导（内核）和同事（FS、FLY）该进程退出了。
-     * 报告参数：退出进程的进程索引号以及父亲的进程索引号
-     */
+    int preLogicIndex = get_logicI(exit_proc->ppid);
+    if (!is_ok_src_dest(preLogicIndex)) {
+        kprintf("{MM}->get a invalid pre addr logicIndex:%d.\n",preLogicIndex);
+        assert(0);
+    }
+
+    do_exit(proc_nr, preLogicIndex);
+
+    /* 通知fs，不使用mm_msg是因为mm_msg后续还要用 */
     Message msg2fs;
     msg2fs.type = EXIT;
     msg2fs.LOGIC_I = proc_nr;
     send_rec(FS_TASK, &msg2fs);
-
-    do_exit(proc_nr, exit_proc->ppid);
 
     /* 释放退出进程所占的内存 */
     free(exit_proc->map.base >> PAGE_SHIFT, exit_proc->map.size >> PAGE_SHIFT);
@@ -46,57 +63,59 @@ PUBLIC int mm_do_exit(void){
     /* 设置退出状态 */
     exit_proc->exit_status = exit_status;
 
-    /* 检查父进程是否在等待子进程退出，如果在等待，请解除父进程的
+    /**
+     * 检查父进程是否在等待子进程退出，如果在等待，考虑解除父进程的
      * 等待状态，使父进程能继续运行。
      */
-    wait_parent = &mmProcs[exit_proc->ppid];
-    if(wait_parent->flags & WAITING){       /* 父进程在等待退出进程 */
-        /* 退出清理工作，告诉父进程一个子进程已经退出并且进程插槽已经被释放。 */
-        exit_cleanup(exit_proc, wait_parent);
-    } else {                                /* 父进程并不等待 */
-        exit_proc->flags = IN_USE | ZOMBIE; /* 僵尸进程 */
+    wait_parent = &mmProcs[preLogicIndex];
+    if (wait_parent->flags & WAITING) {         /* 父进程在等待退出进程 */
+        exit_cleanup(exit_proc);                /* 父亲已进入等待状态，子进程错过了收尸时间，自觉进行自我清理 */
+        wait_parent->aliveChildCount--;         /* 更新父进程存活的子进程数量 */
+        check_pre_wakeup(preLogicIndex);        /* 如果可以，就唤醒父亲 */
+    } else {                                    /* 父进程并不等待 */
+        exit_proc->flags = IN_USE | ZOMBIE;     /* 成为僵尸进程，等着被收尸 */
     }
 
-    /* 寻找进程表，如果退出进程还存在子进程，那么设置这些子进程的父亲为源进程，随后
-     * 完成这些进程的退出工作。
+    /**
+     * 寻找mm进程表，如果退出进程还存在子进程，那么设置这些子进程的父亲为起源进程，
+     * 如果发现某个子进程已经exit，那么完成这些进程的退出工作。
      */
-    for(exit_proc = &mmProcs[0]; exit_proc < &mmProcs[NR_PROCS]; exit_proc++){
-        if(exit_proc->ppid == proc_nr){   /* 找到了！ */
-            exit_proc->ppid = ORIGIN_PROC_NR;
-            wait_parent = &mmProcs[ORIGIN_PROC_NR];
+    MMProcess *origin=&mmProcs[ORIGIN_PROC_NR];
+    for (exit_proc = &mmProcs[1]; exit_proc < &mmProcs[NR_PROCS]; exit_proc++) {
+        if (exit_proc->ppid == wait_parent->pid) {          /* 空闲的进程的ppid为NO_TASK */
+            exit_proc->ppid = ORIGIN_PID;
+            origin->aliveChildCount++;                      /* origin白捡一儿子 */
 
-            if(wait_parent->flags & WAITING){ /* 源进程正在等待子进程 */
-                /* 如果某个子进程进入了僵死状态，做退出清理工作。 */
-                if(exit_proc->flags & ZOMBIE) exit_cleanup(exit_proc, wait_parent);
+            if (origin->flags & WAITING) {                  /* origin正在等待子进程 */
+                /* 刚得一儿子，却发现已经死了，含泪收尸。 */
+                if (exit_proc->flags & ZOMBIE) {
+                    exit_cleanup(exit_proc);
+                    origin->aliveChildCount--;              /* 更新父进程存活的子进程数量 */
+                    check_pre_wakeup(ORIGIN_PROC_NR);       /* 如果可以，就唤醒父亲 */
+                }
             }
         }
     }
 
-    return ERROR_NO_MESSAGE;    /* 死人不能再讲话 */
+//    kprintf("{MM}->do exit done\n");
+    return ERROR_NO_MESSAGE;
 }
 
 /**
- *
- * @param exit_proc 退出进程
- * @param exit_status 退出状态
+ * 清理procs部分
+ * @param proc_nr 子进程逻辑索引
+ * @param pre_proc_nr 父进程逻辑索引
+ * @return
  */
-PRIVATE int do_exit(int proc_nr,int pre_proc_nr){
-    /* 处理系统调用sys_exit()。
-     * 一个进程可以使用一个EXIT调用向内存管理器发送一条
-     * 消息来退出一个进程（自己）。内存管理器通过SYS_EXIT通知内核，
-     * 最后这项工作由本例程处理。
-     * 有一点我需要提前说明：别看平时自己编写的程序退出那么简单，但其
-     * 实这个函数可比你想象的要复杂的多。
-     */
+PRIVATE int do_exit(int proc_nr, int pre_proc_nr) {
 
     register Process *parent, *child;   /* 父子，子进程是要退出的 */
-    Process *np, *xp, *search;           /* 用于一会进程队列的遍历 */
 
     /* 得到子进程（退出）的实例 */
     child = proc_addr(proc_nr);
-    if(!is_user_proc(child)) panic("退出进程不是用户进程\n",PANIC_ERR_NUM);    /* 退出进程必须是用户进程 */
+    if (!is_user_proc(child)) panic("the proc want to exit is not a user proc\n", proc_nr);
     parent = proc_addr(pre_proc_nr);
-    if(!is_user_proc(parent)) panic("退出进程的父进程不是用户进程\n",PANIC_ERR_NUM);   /* 父进程也必须是 */
+    if (!is_user_proc(parent)) panic("the proc want to exit which father is not a user proc\n", pre_proc_nr);
 
     /* 将退出进的时间记账信息算在父亲头上 */
     interrupt_lock();
@@ -107,17 +126,18 @@ PRIVATE int do_exit(int proc_nr,int pre_proc_nr){
     /* 关闭退出进程的闹钟 */
     child->alarm = 0;
     /* 如果退出进程处于运行态，堵塞它 */
-    if(child->flags == 0) lock_unready(child);
+    if (child->flags == 0) lock_unready(child);
 
     /* 挂掉的进程将不再有名称 */
-    strcpy(child->name, "{none}");
+    strcpy(child->name, "none");
 
-    /* 如果被终止的进程恰巧在队列中试图发送一条消息（即，它可能不是正常手段
+    /**
+     * 如果被终止的进程恰巧在队列中试图发送一条消息（即，它可能不是正常手段
      * 退出的，例如被一个信号终止，虽然信号我们还没实现，但这是肯定可能发送
      * 的；又或者内部出了一些奇怪的问题），那么我们必须很小心的从消息队列中
      * 删除它，不能影响整个系统的运行。
      */
-    if(child->flags & SENDING){
+    if (child->flags & SENDING) {
         /* 检查所有进程，看下退出进程是否有在某个消息发送链上 */
         rm_proc_from_waiters(child);
     }
@@ -131,30 +151,35 @@ PRIVATE int do_exit(int proc_nr,int pre_proc_nr){
 
 /**
  *
- * @param exit_proc 退出的进程
- * @param wait_parent 上面那个的老爸
+ * @param exit_proc 退出进程
+ * @param wait_parent 退出进程的父进程
+ * @return 退出进程的退出状态
  */
-PUBLIC void exit_cleanup(register MMProcess *exit_proc,MMProcess *wait_parent){
-    /* 完成进程的退出，做一些清理等善后的工作
+PUBLIC void exit_cleanup(register MMProcess *exit_proc) {
+    /**
+     * 完成进程的退出，做一些清理等善后的工作
      * 当一个进程已经结束运行并且它的父进程在等待它的时候，不管这
      * 些事件发生的次序如何，本例程都将被调用执行完成最后的操作。
      * 这些操作包括：
-     *  - 解除父进程的等待状态
-     *  - 发送一条消息给父进程使其重新运行
      *  - 释放退出进程的进程槽位
      *  - 归还
      */
-    int exit_status;
-
-    /* 父进程解除等待状态 */
-    wait_parent->flags &= ~WAITING;
-
-    /* 唤醒父进程 */
-    exit_status = exit_proc->exit_status;
-    wait_parent->reply_rs2 = exit_status;
-    set_reply(exit_proc->ppid, exit_proc->pid);
 
     /* 释放进程槽位，减少计数 */
-    exit_proc->flags = 0;
+    exit_proc->flags = 0;           /* 重置状态 */
+    exit_proc->ppid=NO_TASK;        /* 重置父亲为NO_TASK */
     proc_in_use--;
+}
+
+PRIVATE void check_pre_wakeup(int preLogicIndex) {
+    MMProcess *wait_parent = &mmProcs[preLogicIndex];
+//    kprintf("mm check pre:%d, child alive:%d.\n",preLogicIndex,wait_parent->aliveChildCount);
+    if (wait_parent->aliveChildCount > 0) return;
+    if (wait_parent->aliveChildCount == 0) {
+        wait_parent->flags &= ~WAITING;                         /* 父进程解除等待状态 */
+        mm_msg.type = SYSCALL_RET;
+        send(wait_parent->pid, &mm_msg);                        /* 发送信息给退出进程的父进程 */
+    }
+
+    assert(wait_parent->aliveChildCount >= 0);                  /* 理论上不会来到负数 */
 }

@@ -97,12 +97,6 @@ typedef struct message_s {
 #define m6_l1   m_u.m_u6.m6l1
 #define m6_f1   m_u.m_u6.m6f1
 
-/* 以下名称是应答消息中变量的同义词。 */
-#define reply_rs1       reply.type      /* 回复结果1 */
-#define reply_rs2        reply.m2_i1     /* 回复结果2 */
-#define reply_ptr        reply.m2_p1     /* 回复指针 */
-#define reply_mask        reply.m2_l1     /* 回复掩码 */
-
 /* 块设备和字符设备任务消息中使用的消息字段名称。 */
 #define DEVICE          m2_i1    /* 主-次设备号，一个设备对应一个分区 */
 #define PROC_NR         m2_i2    /* 哪个进程需要I/O服务？ */
@@ -122,6 +116,7 @@ typedef struct message_s {
 #define WHENCE          m2_i3
 #define	RETVAL		    m2_i1
 #define	STATUS		    m2_i1
+#define STATUS_NEED     0x1234
 
 /* 任务回复消息中使用的消息字段名称。 */
 #define REPLY_PROC_NR   m2_i1       /* 代表I/O完成的进程索引号 */

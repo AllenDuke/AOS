@@ -87,13 +87,13 @@ PUBLIC void clock_task(void) {
                 break;
             default:
 //                kprintf("a bad clock request from pid:%d, type:%d\n",msg.source,msg.type);
-                dump_msg("{CLOCK}->get a bad clock request",&msg);
+                dump_msg("{CLOCK}->get a bad clock request.",&msg);
 //                panic("#{CLOCK}-> Clock task got bad message request.\n", msg.source);
         }
 
         /* 根据处理结果，发送回复消息 */
         msg.type = OK;          /* 时钟驱动无可能失败的服务 */
-        sen(msg.source);    /* 回复 */
+        sen(proc_addr(msg.source)->pid);    /* 回复 */
     }
 }
 

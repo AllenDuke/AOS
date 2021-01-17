@@ -157,7 +157,7 @@ PRIVATE void change_down(int i, bool_t val) {
  * @param i
  */
 PRIVATE void false_up(int i) {
-    if(i<0) panic("数组下标错误\n",PANIC_ERR_NUM);
+    if(i<0) panic("array index err.\n",i);
     nodes[i].available=FALSE;
     if(i==0) return;
     false_up((i-1)>>1);
@@ -190,8 +190,8 @@ PRIVATE int find(phys_page begin,phys_page size){
         else i=2*i+1; /* cur位于node的左子树 */
     }
     if(i>=NR_TREE_NODE){
-        kprintf("找不到节点 base:%d,len:%d\n",begin,size);
-        panic("申请或释放内存时发生异常\n",PANIC_ERR_NUM);
+        kprintf("cloud not find node base:%d,len:%d\n",begin,size);
+        panic("something wrong while alloc or free memory.\n",i);
     }
     return i;
 }

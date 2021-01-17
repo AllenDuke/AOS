@@ -4,10 +4,8 @@
  * 不能及时给出响应，那么进程都会进入到堵塞状态，直至等到对方有合适
  * 的机会完成会合才会解除堵塞。
  *
- * 本文件是实现微内核的核心，应当仔细研究。同时，微内核一直以来被诟病的性能问题。
- * 大部分性能消耗都来自于消息通信，因为发送消息需要在内存中拷贝消息，而这项
- * 工作需要消耗很多的系统资源，所以如果想优化 aos 内核，第一步就是解决消息
- * 的资源消耗问题。
+ * 大部分性能消耗都来自于消息通信，存在大量的拷贝。
+
  */
 #include "core/kernel.h"
 
@@ -35,9 +33,6 @@ PUBLIC int sys_call(int op, pid_t srcOrDestOrMagAddr, Message *p_msg) {
 
     caller = gp_curProc;     /* 获取调用者 */
 
-//    kprintf("#sys_call->{caller: %d, op: 0x%x, src_dest: %d, msgPtr: 0x%p}\n",
-//           caller->logicIndex , op, srcOrDestOrMagAddr, p_msg);
-
     /* 处理设置收发件箱 */
     if (op == IN_OUTBOX) {
         msgVirPtr = (Message *) srcOrDestOrMagAddr;
@@ -55,7 +50,7 @@ PUBLIC int sys_call(int op, pid_t srcOrDestOrMagAddr, Message *p_msg) {
 
     /* 检查并保证该消息指定的源进程目标地址合法，不合法直接返回错误代码 ERROR_BAD_SRC，即错误的源地址 */
     if (!is_ok_src_dest(logicIndex)) {
-        kprintf("invalid src addr, pid:%d logicIndex:%d \n",srcOrDestOrMagAddr,logicIndex);
+        kprintf("caller:%d, invalid src addr, pid:%d logicIndex:%d \n",caller->logicIndex,srcOrDestOrMagAddr,logicIndex);
         return ERROR_BAD_SRC;
     }
 

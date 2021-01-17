@@ -59,6 +59,7 @@ PUBLIC int mm_do_fork(void) {
     *child = *parent;
     child->ppid = proc_addr(mm_who)->pid;     /* 不要忘了父亲是谁 */
     child->flags &= IN_USE;     /* 这个进程插槽已经被使用了，这很重要。 */
+    child->aliveChildCount=0;    /* 子进程还没有子 */
 
     /* 为子进程找到一个可用的进程号，并将其放入进程表中 */
     do {
@@ -102,11 +103,11 @@ PUBLIC int mm_do_fork(void) {
      */
     new_mem_map(child_nr, mm_who);
 
-    /* 子进程的生日！我们给它发一条消息唤醒它。 */
-    set_reply(child_nr, 0);
+    parent->aliveChildCount++;  /* 父进程多了一个儿子 */
 
-    /* 返回子进程的进程号 */
-    return child->pid;
+//    kprintf("{MM}->fork logicIndex:%d, pid:%d.\n",child_nr,child->pid);
+
+    return child->pid;          /* 返回子进程的进程号 */
 }
 
 /**

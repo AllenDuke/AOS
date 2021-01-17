@@ -9,57 +9,85 @@ extern MMProcess mmProcs[];
 extern Message mm_msg;
 
 PUBLIC int mm_do_wait(void){
-    /* 如果进程执行了wait()，那么进程A将会被堵塞等待直到一个子进程完成运行（或被终止）。
+    /**
+     * 如果进程执行了wait()，那么进程A将会被堵塞等待直到所有子进程完成运行（或被终止）。
      * WAIT会完成以下操作：
      *  1 - 遍历进程表，寻找进程A的子进程B，如果找到有僵尸进程。
      *      - 清理掉子进程并回复A使其恢复运行。
      *      - 释放该子进程的进程表条目。
-     *  2 - 如果没有找到任何子进程是僵尸
+     *  2 - 如果没有找到任何子进程是僵尸。
      *      - 进程A进入等待，设置标志位WAITING位。
-     *  3 - 如果进程A没有任何子进程
+     *  3 - 如果进程A没有任何子进程。
      *      - 回复一个错误给进程A（没有子进程你瞎调用干啥）。
      * 当然了，上面这些事情将会在mm_waitpid里实现。
      */
 
-    /* pid：-1，代表等待所有子进程
+    /**
+     * pid：-1，代表等待所有子进程
      * options：0，这个参数wait并没有，所以无所谓，随便给就好，你给个666也行。
      */
     return mm_waitpid(mm_msg.PID, 0);
 }
 
-PRIVATE int mm_waitpid(int pid, int options){
-    /* 本例程实现waitpid的功能，将其拿出来是因为wait和waitpid本质上没有什么
-     * 区别，可以这么说，wait只是waitpid的一个子集，放在这，可以服用这些可以
-     * 重复的代码。
-     */
-
+/**
+ * 当父进程调用wait或者waitpid时，有以下这些情况：
+ * 1. 子进程还没有exit，那么mm将不回复父进程，父进程将阻塞，直至子进程exit。
+ * 2. 子进程已经exit，现时已成为僵尸进程，那么父进程可以为子收尸了。
+ * @param pid 子进程pid
+ * @param options
+ * @return
+ */
+PRIVATE int mm_waitpid(pid_t pid, int options){
     register MMProcess *proc;
-    int child_count = 0;        /* 记录子进程数量和 */
+    register MMProcess *pre=&mmProcs[mm_who];
 
-    /* 遍历所有进程
+    /**
+     * 遍历所有进程
      * 这里需要注意一下，通过pid参数我们可以判断出进程具体要等什么：
-     *  - pid  >  0：这意味着进程正在等待一个特定进程，pid是这个进程的进程号
-     *  - pid == -1：这意味着进程等待自己的任何一个子进程
-     *  - pid  < -1：这意味着进程等待一个进程组里的进程
+     * 1. pid  >  0：这意味着进程正在等待一个特定子进程，pid是这个进程的进程号
+     * 2. pid == -1：这意味着进程等待自己的所有子进程
      */
-    for(proc = &mmProcs[0]; proc < &mmProcs[NR_PROCS]; proc++){
-        if(proc->ppid == proc_addr(mm_who)->pid){             /* 是调用者的子进程吗？ */
-            if(pid > 0 && pid != proc->pid)continue;
-            /* 只有 pid == -1 的情况才能到下面 */
-            child_count++;                      /* 记录调用者的子进程数量 */
-            if(proc->flags & ZOMBIE){           /* 找到了一个僵尸进程 */
-                exit_cleanup(proc, curr_mp);    /* 清理掉这个僵尸进程并答复调用者 */
-                return ERROR_NO_MESSAGE;        /* 已经设置了回复，所以不需要回复了 */
+    if (pid>0) {
+        bool_t found=FALSE;
+        for (proc = &mmProcs[0]; proc < &mmProcs[NR_PROCS]; proc++) {
+            if (proc->pid == pid) {                     /* 找到特定的子进程 */
+                if (proc->ppid != pre->pid) {           /* 两者不是父子关系 */
+                    mm_msg.PID = NO_TASK;
+                    return OK;                          /* 回复父进程，没有这个子进程 */
+                }
+                if (proc->flags & ZOMBIE) {             /* 子进程已经exit，成为一个僵尸进程 */
+                    exit_cleanup(proc);                 /* 清理掉这个僵尸进程并答复调用者 */
+                    pre->aliveChildCount--;             /* 更新存活子进程数量 */
+                    return OK;                          /* 回复父进程，清理成功 */
+                }
+                found=TRUE;                             /* 子进程还存活 */
+                break;
+            }
+        }
+        if (!found){                                    /* 回复父进程，没有这个子进程 */
+            mm_msg.PID = NO_TASK;
+            return OK;
+        }
+        /* 接着往下处理这个存活的子进程 */
+    }else{                                              /* if (pid==-1) */
+        for(proc = &mmProcs[0]; proc < &mmProcs[NR_PROCS]; proc++){
+            if(proc->ppid == proc_addr(mm_who)->pid){   /* 找到一个子进程 */
+                if(proc->flags & ZOMBIE){               /* 子进程已exit，成为僵尸 */
+                    exit_cleanup(proc);                 /* 清理掉这个僵尸进程 */
+                    pre->aliveChildCount--;             /* 更新存活子进程数量 */
+                }
             }
         }
     }
 
-    if(child_count > 0){                        /* 没有找到任何子进程是僵尸 */
-        if(options & WNOHANG) return 0;         /* 如果进程表示不需要等待子进程，那么请直接回复结果 */
-        curr_mp->flags |= WAITING;              /* 父进程希望等待子进程完成 */
-        curr_mp->wait_pid = (pid_t)pid;         /* 保存起来等待的进程号 */
-        return ERROR_NO_MESSAGE;                /* 没有回复，让调用者等待 */
-    } else {
-        return ECHILD;                          /* 没有任何子进程 */
+    if(pre->aliveChildCount > 0){                       /* 还有子进程是存活的，父进程应该等待 */
+        if(options & WNOHANG) return 0;                 /* 如果进程表示不需要等待子进程，那么请直接回复结果 */
+        curr_mp->flags |= WAITING;                      /* 父进程希望等待子进程完成 */
+        return WHANG;                                   /* 没有回复，让调用者等待 */
     }
+    if(pre->aliveChildCount==0){                        /* 没有子进程，或者已经清理完毕 */
+        return OK;
+    }
+
+    assert(pre->aliveChildCount>=0);                    /* 理论上不会来到负数 */
 }

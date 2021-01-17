@@ -10,26 +10,21 @@
  * 一个节点管理一段连续的页，这里以页为单位 ，比用树的形式减少12字节的指针大小，
  * 同时借鉴了伙伴系统的内存管理机制
  */
-typedef struct card_node_s { /* 可能对齐，12字节*/
+typedef struct card_node_s {        /* 可能对齐，12字节*/
     phys_page base;
     phys_page len;
-    bool_t available; /* TRUE为辖下可用，可全部借出，FALSE为不可全部借出 */
+    bool_t available;               /* TRUE为辖下可用，可全部借出，FALSE为不可全部借出 */
 } CardNode;
 
 #define NIL_CARD_NODE (CardNode*) 0
 
 typedef struct mm_process_s {
-    MemoryMap map;          /* 参考内核中的进程结构map */
-    u8_t exit_status;       /* 退出状态：在进程已经结束而父进程还没有执行对它的WAIT时的终止状态。 */
-    pid_t pid;           /* 进程号 */
-    pid_t wait_pid;         /* 正在等待的进程的进程号 */
-    pid_t ppid;           /* 父进程的进程索引号 */
-
-
-    u16_t flags;                     /* 标志 */
-    vir_addr proc_args;                /* 初始堆栈参数指针 */
-    struct mm_process_s *swap_queue;    /* 等待被换入的进程队列 */
-    Message reply;                      /* 存放进程要回复的消息 */
+    MemoryMap map;                  /* 参考内核中的进程结构map */
+    u8_t exit_status;               /* 退出状态：在进程已经结束而父进程还没有执行对它的WAIT时的终止状态。 */
+    pid_t pid;                      /* 进程pid */
+    u8_t aliveChildCount;           /* 存活的子进程的数量，在父fork时增加，子exit时减少 */
+    pid_t ppid;                     /* 父进程的进程pid，空闲时为NO_TASK */
+    u16_t flags;                    /* 标志 */
 } MMProcess;
 
 /* 标志值 */
@@ -47,6 +42,7 @@ typedef struct mm_process_s {
 
 #define NIL_MMPROC ((MMProcess *) 0)
 
+#define WHANG           0     /* 调用者需要等待 */
 #define WNOHANG         1   /* 不需要等待子进程退出 */
 #define WUNTRACED       2   /* 为了任务控制；但我还未实现 */
 

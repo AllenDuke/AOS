@@ -49,9 +49,9 @@ PUBLIC int printf(const char *fmt, ...) {
     /* 格式化字符串 */
     len = vsprintf(t_buf, fmt, ap);
 
-    int c = write(1, t_buf, len);
+    len = write(1, t_buf, len);
 
-    assert(c == len);
+//    assert(c == len);
 //    if (c != len) panic("printf err\n", c);
 
     return len;

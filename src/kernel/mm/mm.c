@@ -28,14 +28,14 @@ PUBLIC void mm_task(void) {
     while (TRUE) {
         rec(ANY);
         int src = mm_msg.source;
-        assert(src>=0); /* 系统任务没有调用mm相关的东西 */
-        curr_mp=&mmProcs[src];
-        mm_who=src;
+        assert(src >= 0); /* 系统任务没有调用mm相关的东西 */
+        curr_mp = &mmProcs[src];
+        mm_who = src;
         int reply = 1;
 
         int msgtype = mm_msg.type;
 
-//        kprintf("{MM}->get msg from:%d, type:%d  \n",src,msgtype);
+//        kprintf("{MM}->get msg from:%d, type:%d  \n", src, msgtype);
 
         switch (msgtype) {
             case FORK:
@@ -43,14 +43,13 @@ PUBLIC void mm_task(void) {
                 break;
             case EXIT:
                 mm_do_exit();
-                reply = 0;
+                reply = 0; /* 进程已经退出，不用回复原进程，todo 考虑回复其父 */
                 break;
             case EXEC:
                 mm_msg.RETVAL = mm_do_exec();
                 break;
             case WAIT:
-                mm_do_wait();
-                reply = 0;
+                reply = mm_do_wait();
                 break;
             default:
                 dump_msg("{MM}->unknown msg: ", &mm_msg);
@@ -60,7 +59,7 @@ PUBLIC void mm_task(void) {
 
         if (reply) {
             mm_msg.type = SYSCALL_RET;
-            send(src, &mm_msg);
+            send(curr_mp->pid, &mm_msg);
 //            kprintf("{MM}->service done\n");
         }
 
@@ -72,12 +71,18 @@ PRIVATE void mm_init() {
     register int proc_nr;
     register MMProcess *rmp;
 
-    /* 初始化内存管理器所有的进程表项 */
-    for (proc_nr = 0; proc_nr <= ORIGIN_PROC_NR; proc_nr++) {
+    /* 准备ORIGIN进程表项 */
+    rmp = &mmProcs[ORIGIN_PROC_NR];
+    rmp->pid = ORIGIN_PID;
+    rmp->ppid = NO_TASK;                /* origin没有父亲 */
+    rmp->flags |= IN_USE;
+    /* 拿到该进程的内存映像，它很重要对于MM，这些信息用于FORK。 */
+    get_mem_map(proc_nr, &rmp->map);
+    proc_in_use = ORIGIN_PROC_NR + 1;   /* 有多少进程正在使用中？ */
+
+    for (proc_nr = 1; proc_nr < NR_PROCS; proc_nr++) {
         rmp = &mmProcs[proc_nr];
-        rmp->flags |= IN_USE;
-        /* 拿到该进程的内存映像，它很重要对于MM，这些信息用于FORK。 */
-        get_mem_map(proc_nr, &rmp->map);
+        rmp->ppid = NO_TASK;
     }
 
 //    phys_page totalPages = gp_bootParam->memorySize >> 2; /* memorySize的单位是KB */
@@ -91,28 +96,10 @@ PRIVATE void mm_init() {
     /* 得到剩余可用的空闲内存，总内存减去程序可以使用的空间即可 */
     phys_page freePages = totalPages - PROC_BASE_PAGE;
 
-    /* 准备ORIGIN进程表项 */
-    mmProcs[ORIGIN_PROC_NR].pid = ORIGIN_PID;
-    proc_in_use = ORIGIN_PROC_NR + 1;    /* 有多少进程正在使用中？ */
-
     /* 打印内存信息：内存总量、核心内存的使用和空闲内存情况 */
-    kprintf("{MM}->total memory size = %dKB, available = %dKB freePages = %d.\n", totalPages << 2, freePages << 2, freePages);
+    kprintf("{MM}->total memory size = %dKB, available = %dKB freePages = %d.\n", totalPages << 2, freePages << 2,
+            freePages);
 
     in_outbox(&mm_msg, &mm_msg);
 }
 
-/**
- *
- * @param proc_nr 回复的进程
- * @param rs 调用结果（通常是OK或错误号）
- */
-PUBLIC void set_reply(int proc_nr, int rs) {
-    /**
-     * 通过调用的结果填写回复消息，以便稍后发送给用户进程。
-     * 系统调用有时会填写消息的其他字段。这仅仅适用于主要返
-     * 回值以及用于设置“必须发送回复”标志。
-     */
-    register MMProcess *rmp = &mmProcs[proc_nr];
-    rmp->reply_rs1 = rs;
-    rmp->flags |= REPLY;    /* 挂起了一个回复，等待处理 */
-}

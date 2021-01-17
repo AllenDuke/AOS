@@ -37,7 +37,7 @@ PUBLIC void dump_proc(void) {
         } else if (target->flags == CLEAN_MAP) {
             kprintf(" CLEAN ");
         }
-        kprintf("%s\n", target->name);
+        kprintf("%s.\n", target->name);
     }
     if (target == END_PROC_ADDR) target = BEG_PROC_ADDR; else kprintf("--more--\r");
     old_proc = target;

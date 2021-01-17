@@ -32,7 +32,7 @@ PUBLIC int do_stat()
 	int inode_nr = search_file(pathname);
 	if (inode_nr == INVALID_INODE) {	/* file not found */
 		kprintf("{FS} FS::do_stat():: search_file() returns "
-		       "invalid inode: %s\n", pathname);
+		       "invalid inode: %s.\n", pathname);
 		return -1;
 	}
 

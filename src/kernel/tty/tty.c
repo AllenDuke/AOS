@@ -56,7 +56,7 @@ PUBLIC void tty_task() {
         switch (ttyMsg.type) {
             case DEVICE_OPEN:
                 ttyMsg.type = SYSCALL_RET;
-                send(src, &ttyMsg);
+                send(proc_addr(src)->pid, &ttyMsg);
                 break;
             case DEVICE_READ:
                 tty_do_read(ptty, &ttyMsg);

@@ -4,6 +4,10 @@
 #include "core/kernel.h"
 #include "../include/stdio.h"
 
+/**
+ * 进程退出时调用
+ * @param status 这个值来自于main函数的返回值。
+ */
 PUBLIC void exit(int status) {
     Message msg;
     msg.type = EXIT;

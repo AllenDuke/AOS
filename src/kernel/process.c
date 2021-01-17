@@ -192,7 +192,7 @@ PUBLIC void interrupt(int task) {
         intMsgs[i].msg.source = HARDWARE;
         intMsgs[i].msg.type = HARD_INT;
         intMsgsSize++;
-        kprintf("int msg into queue\n");
+        kprintf("int msg into queue.\n");
         return;
     }
 

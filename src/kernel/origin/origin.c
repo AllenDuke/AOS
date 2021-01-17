@@ -18,8 +18,8 @@ void origin_task() {
     char cmdBuf[128];
     u32_t cmdLen = 0;
 
+    printf("$ ");
     while (1) {
-        printf("$ ");
         int r = read(fd_stdin, cmdBuf, 70);
         cmdLen = r;
         cmdBuf[r] = 0;
@@ -27,24 +27,18 @@ void origin_task() {
         int pid = fork();
         if (pid==0) {
             exec_cmd(cmdLen, cmdBuf);
+            exit(0);
         }else{
-            printf("child pid:%d \n",pid);
+            printf("child pid:%d.\n",pid);
+            waitpid(pid);
+            printf("child (%d) exited with status: %d.\n", pid, 0);
+            printf("$ ");
         }
-    }
-
-
-    int pid = fork();
-    if (pid != 0) { /* parent process */
-        int s;
-        int child = wait(&s);
-        printf("child (%d) exited with status: %d.\n", child, s);
-    } else {    /* child process */
-        execl("/echo", "echo", "hello", "world", 0);
     }
 
     while (1) {
         int s;
-        int child = wait(&s);
+        int child = waitpid(&s);
         printf("child (%d) exited with status: %d.\n", child, s);
     }
 
@@ -93,7 +87,6 @@ PRIVATE void exec_cmd(int cmdLen, char *cmdBuf) {
         }
         pre++;
     }
-    //todo fork出一条进程去执行cmd
     switch (index) {
         case 0: {
             printf("default cmd\n");

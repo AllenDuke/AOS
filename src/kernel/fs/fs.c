@@ -72,7 +72,7 @@ PUBLIC void fs_task(void) {
         /* reply */
         if (fs_msg.type != SUSPEND_PROC) {
             fs_msg.type = SYSCALL_RET;
-            send(src, &fs_msg);
+            send(proc_addr(src)->pid, &fs_msg);
         }
     }
 }
@@ -175,7 +175,7 @@ PRIVATE void read_super_block(int dev) {
     for (i = 0; i < NR_SUPER_BLOCK; i++)
         if (superBlocks[i].sb_dev == NO_DEV)
             break;
-    if (i == NR_SUPER_BLOCK) panic("super_block slots used up", PANIC_ERR_NUM);
+    if (i == NR_SUPER_BLOCK) panic("super_block slots used up\n", PANIC_ERR_NUM);
 
     assert(i == 0); /* currently we use only the 1st slot */
 //    if (i != 0) panic("super_block slots remaining", PANIC_ERR_NUM);
@@ -234,7 +234,7 @@ PUBLIC struct inode *get_inode(int dev, int num) {
         }
     }
 
-    if (!q) panic("the inode table is full", PANIC_ERR_NUM);
+    if (!q) panic("the inode table is full.\n", PANIC_ERR_NUM);
 
     q->i_dev = dev;
     q->i_num = num;
