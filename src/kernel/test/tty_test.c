@@ -68,9 +68,9 @@ PRIVATE void exec_cmd(int cmdLen,char* cmdBuf) {
      * 在权衡质量与速度后，选择了这种方式。成本不高，质量也不错。
      */
     hash = hash ^ (hash >> 16); /* int类型 >> 符号位保持不变 */
-    int index = hash & (NR_CMDS - 1);
+    int index = hash & (8 - 1);
 
-    char *cmd_map[NR_CMDS] = {
+    char *cmd_map[8] = {
             "",
             "",
             "pwd",

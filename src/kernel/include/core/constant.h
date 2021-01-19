@@ -15,14 +15,16 @@
 /* the assert macro */
 #define ASSERT
 #ifdef ASSERT
+
 void assertion_failure(char *exp, char *file, char *base_file, int line);
+
 #define assert(exp)  if (exp) ; \
         else assertion_failure(#exp, __FILE__, __BASE_FILE__, __LINE__)
 #else
 #define assert(exp)
 #endif
-#define MAG_CH_PANIC	'\002'
-#define MAG_CH_ASSERT	'\003'
+#define MAG_CH_PANIC    '\002'
+#define MAG_CH_ASSERT    '\003'
 
 #define PRIVATE         static            /* PRIVATE x limits the scope of x */
 #define PUBLIC                            /* PUBLIC is the opposite of PRIVATE */
@@ -35,9 +37,6 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 
 #define INIT_PSW      0x202        /* initial psw :IF=1, 位2一直是1 */
 #define INIT_TASK_PSW 0x1202    /* initial psw for tasks (with IOPL 1) : IF=1, IOPL=1, 位2一直是1*/
-
-#define NR_CMDS         8     /* 预设命令数量，该值为2的次方数，利于利用位运算，加快速度 */
-
 //======================================================================================================================
 
 
@@ -68,21 +67,21 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 /* BIOS中断向量 和 保护模式下所需的中断向量 */
 #define INT_VECTOR_BIOS_IRQ0        0x00
 #define INT_VECTOR_BIOS_IRQ8        0x10
-#define    INT_VECTOR_IRQ0                0x20    // 32
-#define    INT_VECTOR_IRQ8                0x28    // 40
+#define INT_VECTOR_IRQ0                0x20    // 32
+#define INT_VECTOR_IRQ8                0x28    // 40
 
 /* 硬件中断数量 */
 #define NR_IRQ_VECTORS      16      /* 中断请求的数量 */
 /* 主8259A上的 */
-#define    CLOCK_IRQ            0       /* 时钟中断请求号 */
-#define    KEYBOARD_IRQ        1       /* 键盘中断请求号 */
-#define    CASCADE_IRQ            2        /* 第二个AT控制器的级联启用 */
-#define    ETHER_IRQ            3        /* 默认以太网中断向量 */
-#define    SECONDARY_IRQ        3        /* RS232 interrupt vector for port 2  */
-#define    RS232_IRQ            4        /* RS232 interrupt vector for port 1 */
-#define    XT_WINI_IRQ            5        /* xt风格硬盘 */
-#define    FLOPPY_IRQ            6        /* 软盘 */
-#define    PRINTER_IRQ            7       /* 打印机 */
+#define CLOCK_IRQ           0       /* 时钟中断请求号 */
+#define KEYBOARD_IRQ        1       /* 键盘中断请求号 */
+#define CASCADE_IRQ         2       /* 第二个AT控制器的级联启用 */
+#define ETHER_IRQ           3       /* 默认以太网中断向量 */
+#define SECONDARY_IRQ       3       /* RS232 interrupt vector for port 2  */
+#define RS232_IRQ           4       /* RS232 interrupt vector for port 1 */
+#define XT_WINI_IRQ         5       /* xt风格硬盘 */
+#define FLOPPY_IRQ          6       /* 软盘 */
+#define PRINTER_IRQ         7       /* 打印机 */
 /* 从8259A上的 */
 #define REAL_CLOCK_IRQ      8       /* 实时时钟 */
 #define DIRECT_IRQ2_IRQ     9       /* 重定向IRQ2 */
@@ -196,7 +195,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 
 #define ORIGIN_PID           0      /* origin 第一个用户进程，linux中init的进程号为1 */
 
-#define NO_TASK		(NR_TASKS + NR_PROCS + 20)
+#define NO_TASK        (NR_TASKS + NR_PROCS + 20)
 //======================================================================================================================
 
 
@@ -326,7 +325,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 /* 这是一个普通堆栈大小，1KB */
 #define NORMAL_STACK        (256 * sizeof(char*))
 
-#define	PROC_IMAGE_SIZE_DEFAULT	0x100000 /*  1 MB */
+#define PROC_IMAGE_SIZE_DEFAULT    0x100000 /*  1 MB */
 #define PROC_ORIGIN_STACK   0x400 /* 1kB 干嘛用的 */
 
 #ifdef ENABLE_TEST

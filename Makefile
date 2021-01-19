@@ -22,6 +22,7 @@ sk = src/kernel
 # 库文件所在目录
 lansi = src/kernel/lib/ansi
 lstdio = src/kernel/lib/stdio
+lstdlib = src/kernel/lib/stdlib
 li386 = src/kernel/lib/i386
 
 # 编译链接中间目录
@@ -66,16 +67,17 @@ KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/prote
                   $(tk)/console.o $(tk)/idle.o $(tk)/alloc.o $(tk)/mm.o $(tk)/fork.o $(tk)/mem_map.o \
                   $(tk)/exit.o $(tk)/wait.o $(tk)/at_wini.o $(tk)/fs.o $(tk)/open.o $(tk)/fs_misc.o \
                   $(tk)/read_write.o $(tk)/link.o $(tk)/fs_test.o $(tk)/tty_test.o $(tk)/exec.o \
-                  $(tk)/misc.o $(tk)/origin.o
+                  $(tk)/misc.o $(tk)/origin.o $(tk)/hash.o $(tk)/pwd.o $(tk)/date.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LIB		        = $(l)/aos_lib.a
-LibObjs         = $(AnsiObjs) $(StdioObjs) $(I386Objs)
+LibObjs         = $(AnsiObjs) $(StdioObjs) $(I386Objs) $(StdlibObjs)
 AnsiObjs        = $(tl)/ansi/string.o $(tl)/ansi/memcmp.o $(tl)/ansi/cstring.o
 StdioObjs       = $(tl)/stdio/printf.o $(tl)/stdio/open.o $(tl)/stdio/close.o $(tl)/stdio/write.o \
                   $(tl)/stdio/read.o $(tl)/stdio/stat.o $(tl)/stdio/exit.o $(tl)/stdio/vsprintf.o \
                   $(tl)/stdio/fork.o $(tl)/stdio/exec.o $(tl)/stdio/wait.o
 I386Objs        = $(tl)/i386/ipc/ipc.o
+StdlibObjs      = $(tl)/stdlib/get_time.o
 
 Objs            = $(KernelObjs) $(LibObjs)
 # ======================================================================================================================
@@ -273,6 +275,17 @@ $(tk)/link.o: $(sk)/fs/link.c
 # ----------------------------------------------------------------------------------------------------------------------
 $(tk)/origin.o: $(sk)/origin/origin.c
 	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/hash.o: $(sk)/origin/hash.c
+	$(CC) $(CFlags) -o $@ $<
+# ----------------------------------------------------------------------------------------------------------------------
+#   origin/cmd
+# ----------------------------------------------------------------------------------------------------------------------
+$(tk)/pwd.o: $(sk)/origin/cmd/pwd.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/date.o: $(sk)/origin/cmd/date.c
+	$(CC) $(CFlags) -o $@ $<
 # ----------------------------------------------------------------------------------------------------------------------
 #   test
 # ----------------------------------------------------------------------------------------------------------------------
@@ -333,4 +346,9 @@ $(tl)/stdio/wait.o: $(lstdio)/wait.c
 # ----------------------------------------------------------------------------------------------------------------------
 $(tl)/i386/ipc/ipc.o: $(li386)/ipc/ipc.asm
 	$(ASM) $(ASMFlagsOfKernel) -o $@ $<
+# ----------------------------------------------------------------------------------------------------------------------
+#   stdlib
+# ----------------------------------------------------------------------------------------------------------------------
+$(tl)/stdlib/get_time.o: $(lstdlib)/get_time.c
+	$(CC) $(CFlags) -o $@ $<
 # ======================================================================================================================
