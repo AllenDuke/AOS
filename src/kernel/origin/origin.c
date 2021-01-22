@@ -13,7 +13,7 @@
 
 PRIVATE void exec_cmd(char *cmdBuf, int cmdLen, HashTableNode hashTable[]);
 
-PRIVATE void start(UserTask main);
+PRIVATE void start(HashTableNode *node);
 
 void origin_task() {
 
@@ -24,8 +24,8 @@ void origin_task() {
 
     HashTableNode hashTable[NR_CMD_TSIZE];      /* HashTable，冲突时线性探测，2倍是有想法的 */
 
-    putTask("pwd", 3, pwd, hashTable);
-    putTask("date", 4, date, hashTable);
+    put("pwd", 3, pwd, hashTable);
+    put("date", 4, date, hashTable);
 
     printf("{ORIGIN}->origin_task is working...\n");
 
@@ -44,16 +44,10 @@ void origin_task() {
         } else {
             unsigned char exitStat;
             printf("child pid:%d.\n", pid);
-            waitpid_stat(pid,&exitStat);
+            waitpid_stat(pid, &exitStat);
             printf("child (%d) exited with status: %d.\n", pid, exitStat);
             printf("$ ");
         }
-    }
-
-    while (1) {
-        int s;
-        int child = waitpid(&s);
-        printf("child (%d) exited with status: %d.\n", child, s);
     }
 
 }
@@ -63,18 +57,22 @@ void origin_task() {
  * 实际上，它应该完成这样的事情，利用文件系统，把命令对应的文件读进内存，然后设置好该进程相关信息。
  */
 PRIVATE void exec_cmd(char *cmdBuf, int cmdLen, HashTableNode hashTable[]) {
-    UserTask task = getTask(cmdBuf, cmdLen, hashTable);
-    start(task);
+    HashTableNode *node = get(cmdBuf, cmdLen, hashTable);
+    start(node);
 }
 
 /**
  * 一个伪装的runtime
  */
-PRIVATE void start(UserTask main) {
-    if (main == NO_USER_TASK) {
+PRIVATE void start(HashTableNode *node) {
+    if (node == NO_NODE) {
         printf("no such a cmd.\n");
-        exit(-1);                   /* 子进程退出，退出状态-1 */
+        exit(-1);                               /* 子进程退出，退出状态-1 */
     }
-    int exitStat = main(0, 0);
+    UserTask main = node->userTask;
+
+    char *argv[1];
+    sprintf(argv[0], "/%s", node->cmdName);   /* 程序运行时的全限定名 */
+    int exitStat = main(1, argv);
     exit(exitStat);
 }

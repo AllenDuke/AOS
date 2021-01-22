@@ -3,7 +3,7 @@
 //
 #include "origin.h"
 
-PUBLIC void putTask(char *name, int cmdLen, UserTask task, HashTableNode hashTable[]) {
+PUBLIC void put(char *name, int cmdLen, UserTask task, HashTableNode hashTable[]) {
     if (cmdLen <= 0) return;
     int hash = 0;
     /**
@@ -52,8 +52,8 @@ PUBLIC void putTask(char *name, int cmdLen, UserTask task, HashTableNode hashTab
 
 }
 
-PUBLIC UserTask getTask(char *name, int cmdLen, HashTableNode hashTable[]) {
-    if (cmdLen <= 0) return NO_USER_TASK;
+PUBLIC HashTableNode *get(char *name, int cmdLen, HashTableNode hashTable[]) {
+    if (cmdLen <= 0) return NO_NODE;
     int hash = 0;
     for (int i = 0; i < cmdLen; i++) {
         hash = ((hash << 8) - hash) + name[i];
@@ -67,15 +67,15 @@ PUBLIC UserTask getTask(char *name, int cmdLen, HashTableNode hashTable[]) {
 
     for (int i = 0; i < NR_CMD_TSIZE; i++) {        /* 最多检查所有槽位 */
         if (hashTable[index].keyHashVal == 0)       /* 必定不存在 */
-            return NO_USER_TASK;
+            return NO_NODE;
 
         if (hashTable[index].keyHashVal == hash) {
             for (int j = 0; j < cmdLen; j++) {      /* 谨慎起见，继续检查名称 */
                 if (name[j] != hashTable[index].cmdName[j])
-                    return NO_USER_TASK;
+                    return NO_NODE;
             }
 //            printf("cmd:%s, index:%d, hash:%d.\n",name,index,hash);
-            return hashTable[index].userTask;
+            return &hashTable[index];
         }
 
         /* 检查下一个 */
@@ -83,5 +83,5 @@ PUBLIC UserTask getTask(char *name, int cmdLen, HashTableNode hashTable[]) {
         index &= (NR_CMD_TSIZE - 1);
     }
 
-    return NO_USER_TASK;
+    return NO_NODE;
 }

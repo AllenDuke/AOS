@@ -6,6 +6,7 @@
 #include "../origin.h"
 
 int pwd(int argc, char *argv[]) {
+//    printf("%s\n",argv[0]);
     printf("/\n");
     return 0;
 }
