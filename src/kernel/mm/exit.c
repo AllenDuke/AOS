@@ -155,7 +155,7 @@ PRIVATE int do_exit(int proc_nr, int pre_proc_nr) {
  * @param wait_parent 退出进程的父进程
  * @return 退出进程的退出状态
  */
-PUBLIC void exit_cleanup(register MMProcess *exit_proc) {
+PUBLIC u8_t exit_cleanup(register MMProcess *exit_proc) {
     /**
      * 完成进程的退出，做一些清理等善后的工作
      * 当一个进程已经结束运行并且它的父进程在等待它的时候，不管这
@@ -169,6 +169,8 @@ PUBLIC void exit_cleanup(register MMProcess *exit_proc) {
     exit_proc->flags = 0;           /* 重置状态 */
     exit_proc->ppid=NO_TASK;        /* 重置父亲为NO_TASK */
     proc_in_use--;
+
+    return exit_proc->exit_status;
 }
 
 PRIVATE void check_pre_wakeup(int preLogicIndex) {

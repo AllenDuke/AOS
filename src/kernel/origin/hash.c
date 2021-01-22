@@ -44,7 +44,7 @@ PUBLIC void putTask(char *name, int cmdLen, UserTask task, HashTableNode hashTab
          * 以0为例，它的检查顺序应该为，0，8，1，9，2，10...
          * 再配合位运算，有点无敌！！！
          *
-         * 相信这个比+1的探测要厉害。
+         * 在java 10万级测试种显示，此种算法比+1要稳定。因为涉及cpu缓存，所以应该量级低更为有利一些。
          */
         index += NR_CMD + (i & 1);                  /* 每当来到奇数轮时+1，用位运算代替判断或者取模 */
         index &= (NR_CMD_TSIZE - 1);

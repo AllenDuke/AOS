@@ -34,12 +34,12 @@ PUBLIC int wait() {
 
 /**
  * 等待一个子进程结束（需要两者为父子关系），接收子进程退出时的状态
- * @param pid -1为等待所有的子进程
+ * @param pid 非负数 特定的子进程
  * @param status 退出状态指针
  * @return 成功返回子进程pid，错误返回-1
  */
 PUBLIC int waitpid_stat(pid_t pid, u8_t *status) {
-    if (pid < 0 && pid != -1) return -1;       /* 如果是负数但不是-1，那么直接返回-1，不进行系统调用 */
+    if (pid < 0) return -1;       /* 如果是负数，那么直接返回-1，不进行系统调用 */
 
     Message msg;
     msg.type = WAIT;

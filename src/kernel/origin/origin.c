@@ -42,9 +42,10 @@ void origin_task() {
         if (pid == 0) {
             exec_cmd(cmdBuf, cmdLen, hashTable);
         } else {
+            unsigned char exitStat;
             printf("child pid:%d.\n", pid);
-            waitpid(pid);
-            printf("child (%d) exited with status: %d.\n", pid, 0);
+            waitpid_stat(pid,&exitStat);
+            printf("child (%d) exited with status: %d.\n", pid, exitStat);
             printf("$ ");
         }
     }
@@ -57,6 +58,10 @@ void origin_task() {
 
 }
 
+/**
+ * 一个伪装的exec命令。
+ * 实际上，它应该完成这样的事情，利用文件系统，把命令对应的文件读进内存，然后设置好该进程相关信息。
+ */
 PRIVATE void exec_cmd(char *cmdBuf, int cmdLen, HashTableNode hashTable[]) {
     UserTask task = getTask(cmdBuf, cmdLen, hashTable);
     start(task);
