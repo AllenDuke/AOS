@@ -11,9 +11,11 @@
 #include "origin.h"
 #include "stdio.h"
 
-PRIVATE void exec_cmd(char *cmdBuf, int cmdLen, HashTableNode hashTable[]);
+PRIVATE void exec_cmd(CmdResult *result, HashTableNode hashTable[]);
 
-PRIVATE void start(HashTableNode *node);
+PRIVATE void start(CmdResult *result, HashTableNode *node);
+
+PRIVATE void split(CmdResult *result, char *cmdBuf, int size);
 
 void origin_task() {
 
@@ -26,6 +28,7 @@ void origin_task() {
 
     put("pwd", 3, pwd, hashTable);
     put("date", 4, date, hashTable);
+    put("echo", 4, echo, hashTable);
 
     printf("{ORIGIN}->origin_task is working...\n");
 
@@ -35,12 +38,13 @@ void origin_task() {
     printf("$ ");
     while (1) {
         int r = read(fd_stdin, cmdBuf, 70);
-        cmdLen = r;
         cmdBuf[r] = 0;
 
         int pid = fork();
         if (pid == 0) {
-            exec_cmd(cmdBuf, cmdLen, hashTable);
+            CmdResult cmdResult;
+            split(&cmdResult, cmdBuf, r);
+            exec_cmd(&cmdResult, hashTable);
         } else {
             unsigned char exitStat;
             printf("child pid:%d.\n", pid);
@@ -56,23 +60,60 @@ void origin_task() {
  * 一个伪装的exec命令。
  * 实际上，它应该完成这样的事情，利用文件系统，把命令对应的文件读进内存，然后设置好该进程相关信息。
  */
-PRIVATE void exec_cmd(char *cmdBuf, int cmdLen, HashTableNode hashTable[]) {
-    HashTableNode *node = get(cmdBuf, cmdLen, hashTable);
-    start(node);
+PRIVATE void exec_cmd(CmdResult *result, HashTableNode hashTable[]) {
+    HashTableNode *node = get(result->cmd, result->cmdLen, hashTable);
+    start(result, node);
 }
 
 /**
  * 一个伪装的runtime
  */
-PRIVATE void start(HashTableNode *node) {
+PRIVATE void start(CmdResult *result, HashTableNode *node) {
     if (node == NO_NODE) {
         printf("no such a cmd.\n");
         exit(-1);                               /* 子进程退出，退出状态-1 */
     }
     UserTask main = node->userTask;
-
-    char *argv[1];
-    sprintf(argv[0], "/%s", node->cmdName);   /* 程序运行时的全限定名 */
-    int exitStat = main(1, argv);
+    int exitStat = main(result->argc, result->argv);
     exit(exitStat);
+}
+
+/**
+ * 以空格为分割符，分割cmdBuf，构造真正的命令和参数
+ * @param result
+ * @param cmdBuf
+ * @param size
+ */
+PRIVATE void split(CmdResult *result, char *cmdBuf, int size) {
+    int r = 0;
+    while (cmdBuf[r] == ' ' && r < size) r++;   /* 跳过开头的空格 */
+
+    if (r == size) {        /* 只是一串空格 */
+        result->cmdLen = 0;
+        return;
+    }
+
+    int l = r;
+    result->cmd = cmdBuf + l;
+    while (cmdBuf[r] != ' ' && r < size) r++;       /* 找到了命令的结尾 */
+    result->cmdLen = r - l;
+    cmdBuf[r++] = 0;        /* 设置这个空格或者末尾位成为 0 */
+
+    /* argv至少有一个参数，argv[0]为程序运行时的全限定名 */
+    sprintf(result->argv[0], "/%s", result->cmd);
+    result->argc = 1;
+
+    /* 开始专心处理参数 */
+    while (r < size) {
+        while (cmdBuf[r] == ' ' && r < size) r++;   /* 跳过空格 */
+        if (r >= size) {        /* 这里要用>= */
+            return;
+        }
+        result->argv[result->argc] = cmdBuf + r;
+        result->argc++;
+        while (cmdBuf[r] != ' ' && r < size) r++;
+        cmdBuf[r++] = 0;        /* 设置这个空格或者末尾位成为 0 */
+    }
+
+    return;
 }

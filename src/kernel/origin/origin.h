@@ -8,7 +8,9 @@
 #include "core/constant.h"
 
 #define NR_CMD         8                    /* 预设命令数量，该值为2的次方数，利于利用位运算，加快速度 */
-#define NR_CMD_TSIZE    NR_CMD*2            /*  存放cmd的HashTable的大小，冲突时线程探测，2倍是有道理的，在hash.c中有解释 */
+#define NR_CMD_TSIZE    NR_CMD*2            /* 存放cmd的HashTable的大小，冲突时线程探测，2倍是有道理的，在hash.c中有解释 */
+
+#define NR_ARGC        10                   /* 一个命令最多可以接受的参数 */
 
 /**
  * 用户例程指针。
@@ -26,9 +28,21 @@ typedef struct hash_table_node_s {
 } HashTableNode;
 
 void put(char *name, int cmdLen, UserTask task, HashTableNode tableNode[]);
-HashTableNode * get(char *name, int cmdLen, HashTableNode tableNode[]);
+
+HashTableNode *get(char *name, int cmdLen, HashTableNode tableNode[]);
+
+/* 分割解析cmdBuf后的结果 */
+typedef struct cmd_result_s {
+    char* cmd;              /* 命令的虚拟内存地址 */
+    int cmdLen;             /* 命令的长度 */
+    int argc;               /* 参数的数量 */
+    char* argv[NR_ARGC];    /* 存储各参数的虚拟内存地址 */
+} CmdResult;
 
 int pwd(int argc, char *argv[]);
+
 int date(int argc, char *argv[]);
+
+int echo(int argc, char *argv[]);
 
 #endif //AOS_ORIGIN_H
