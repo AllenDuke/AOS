@@ -29,6 +29,8 @@ void origin_task() {
     put("pwd", 3, pwd, hashTable);
     put("date", 4, date, hashTable);
     put("echo", 4, echo, hashTable);
+    put("cat",3,cat,hashTable);
+    put("touch",5,touch,hashTable);
 
     printf("{ORIGIN}->origin_task is working...\n");
 

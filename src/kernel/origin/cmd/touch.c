@@ -6,25 +6,18 @@
 #include "../origin.h"
 #include "errno.h"
 
-int cat(int argc, char *argv[]) {
+int touch(int argc, char *argv[]) {
     if(argc!=2) {
         printf("arg err!\n");
         return -1;
     }
 
-    int fd = open(argv[1], O_RDWR);
+    int fd = open(argv[1], O_CREAT | O_RDWR);
     if(fd==-1){
-        printf("no such a file.\n");
+        printf("file creat err!\n");
         return ENOENT;
     }
 
-    int size = 512;
-    char buf[size];
-
-    /* read */
-    int n = read(fd, buf, size);
-    buf[n]=0;
-
-    printf("%s\n",buf);
+    printf("File created.\n");
     return 0;
 }

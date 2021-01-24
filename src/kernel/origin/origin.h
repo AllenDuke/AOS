@@ -45,4 +45,8 @@ int date(int argc, char *argv[]);
 
 int echo(int argc, char *argv[]);
 
+int cat(int argc, char *argv[]);
+
+int touch(int argc, char *argv[]);
+
 #endif //AOS_ORIGIN_H

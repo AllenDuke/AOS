@@ -67,7 +67,8 @@ KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/prote
                   $(tk)/console.o $(tk)/idle.o $(tk)/alloc.o $(tk)/mm.o $(tk)/fork.o $(tk)/mem_map.o \
                   $(tk)/exit.o $(tk)/wait.o $(tk)/at_wini.o $(tk)/fs.o $(tk)/open.o $(tk)/fs_misc.o \
                   $(tk)/read_write.o $(tk)/link.o $(tk)/fs_test.o $(tk)/tty_test.o $(tk)/exec.o \
-                  $(tk)/misc.o $(tk)/origin.o $(tk)/hash.o $(tk)/pwd.o $(tk)/date.o $(tk)/echo.o
+                  $(tk)/misc.o $(tk)/origin.o $(tk)/hash.o $(tk)/pwd.o $(tk)/date.o $(tk)/echo.o \
+                  $(tk)/cat.o $(tk)/touch.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LIB		        = $(l)/aos_lib.a
@@ -288,6 +289,12 @@ $(tk)/date.o: $(sk)/origin/cmd/date.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tk)/echo.o: $(sk)/origin/cmd/echo.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/cat.o: $(sk)/origin/cmd/cat.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/touch.o: $(sk)/origin/cmd/touch.c
 	$(CC) $(CFlags) -o $@ $<
 # ----------------------------------------------------------------------------------------------------------------------
 #   test

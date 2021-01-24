@@ -68,14 +68,14 @@ PUBLIC int do_open() {
         if (flags & O_CREAT) {
             pin = create_file(pathname, flags);
         } else {
-            kprintf("{FS} file not exists: %s\n", pathname);
+            kprintf("{FS}->file not exists: %s\n", pathname);
             return -1;
         }
     } else if (flags & O_RDWR) { /* file exists */
         if ((flags & O_CREAT) && (!(flags & O_TRUNC))) {
             assert(flags == (O_RDWR | O_CREAT));
 //            if(flags != (O_RDWR | O_CREAT)) panic("flags err\n", flags);
-            kprintf("{FS} file exists: %s\n", pathname);
+            kprintf("{FS}->file exists: %s\n", pathname);
             return -1;
         }
         assert((flags == O_RDWR) || (flags == (O_RDWR | O_TRUNC)) || (flags == (O_RDWR | O_TRUNC | O_CREAT)));
@@ -87,7 +87,7 @@ PUBLIC int do_open() {
             return -1;
         pin = get_inode(dir_inode->i_dev, inode_nr);
     } else { /* file exists, no O_RDWR flag */
-        kprintf("{FS} file exists: %s\n", pathname);
+        kprintf("{FS}->file exists: %s\n", pathname);
         return -1;
     }
 
