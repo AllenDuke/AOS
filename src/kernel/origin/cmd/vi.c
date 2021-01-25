@@ -6,7 +6,7 @@
 #include "../origin.h"
 #include "errno.h"
 
-/* 不同于linux，要求文件必须存在 */
+/* 不同于linux，要求文件必须存在，只能在末尾追加 */
 int vi(int argc, char *argv[]) {
     if (argc != 2) {
         printf("arg err!\n");
@@ -15,12 +15,12 @@ int vi(int argc, char *argv[]) {
 
     int fd_in = open(argv[1], O_RDWR);
     if (fd_in == -1) {
-        printf("no such a file.\n");
+        printf("no such file.\n");
         return ENOENT;
     }
     int fd_out = open(argv[1], O_RDWR);
     if (fd_out == -1) {
-        printf("no such a file.\n");
+        printf("no such file.\n");
         return ENOENT;
     }
 
@@ -33,15 +33,18 @@ int vi(int argc, char *argv[]) {
     int size = 1024;        /* 暂时限制文件大小为1024字节 */
     char buf[size];
 
-    int n = read(fd_in, buf, size);
-    buf[n] = 0;
+    read(fd_in, buf, size);
+
+    int n = 0;                /* 不可以直接使用read的返回值，因为它以512字节为单位 */
+    while (buf[n] != 0) n++;
 //    pprintf(fd_stdout,"read:%d.\n",n);
 
     pprintf(fd_stdout, "%s", buf);
 
     int c = read(fd_stdin, buf + n, size);      /* 读取键盘输入 */
+    buf[n + c] = 0;         /* 写入一个结尾 */
 
-    n = write(fd_out, buf, n + c);              /* 写到文件 */
+    n = write(fd_out, buf, n + c + 1);              /* 写到文件 */
 
     close(fd_in);
     close(fd_out);
@@ -51,6 +54,6 @@ int vi(int argc, char *argv[]) {
 
     chang_console(0);
 
-    printf("writen:%d.\n", n);
+    printf("writen:%d.\n", c);
     return 0;
 }

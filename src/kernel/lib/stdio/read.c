@@ -13,7 +13,7 @@
  *
  * @param fd     File descriptor.
  * @param buf    Buffer to accept the bytes read.
- * @param count  How many bytes to read.
+ * @param count  How many bytes to read. 单位512字节
  *
  * @return  On success, the number of bytes read are returned.
  *          On error, -1 is returned.

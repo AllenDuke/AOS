@@ -12,7 +12,7 @@ PUBLIC int unlink(const char *pathname) {
     msg.PATHNAME = (void *) pathname;
     msg.NAME_LEN = strlen(pathname);
 
-    send(FS_TASK, &msg);
+    send_rec(FS_TASK, &msg);
 
     return msg.RETVAL;
 }

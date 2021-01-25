@@ -79,7 +79,7 @@ PUBLIC void select_console(int consoleNum) { /* 0 ~ (NR_ConsoleS - 1) */
 }
 
 PUBLIC void clear_console(Console *p_con) {
-    memory2video_copy(BLANK_MEM, p_con->original_addr, SCREEN_SIZE);
+    memory2video_copy(BLANK_MEM, p_con->original_addr, p_con->v_mem_limit);
     p_con->cursor = p_con->current_start_addr;      /* 重置光标至当前tty所属的现存的起始处 */
 //    flush(p_con);
 }
@@ -115,13 +115,13 @@ PRIVATE void memory2video_copy(register u16_t *src, register unsigned int dest, 
     /* 将一个字串（不是字符串）从核心的内存区域拷贝到视频显示器的存储器中（通俗讲就是显存）。
      * 该字串中包含替换字符码和若干属性字节 *
      */
-    u16_t *video_memory = (u16_t *) (V_MEM_BASE + dest * 2);  /* 得到目标显存 */
+    u16_t *video_memory = (u16_t *) (V_MEM_BASE + dest * 2);  /* 得到目标显存 todo 为什么是*2 */
     unsigned int i = 0;
 
     /* 如果字串是BLANK_MEM，执行清空整个屏幕空间 */
     if (src == BLANK_MEM) {
 //        blank_color = BLANK_COLOR;
-        for (; i < SCREEN_SIZE; i++) {   /* 整个屏幕 */
+        for (; i < count; i++) {        /* 所属的整段显存 */
             *video_memory = BLANK_COLOR;
             video_memory++;
         }

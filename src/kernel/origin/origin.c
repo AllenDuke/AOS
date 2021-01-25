@@ -32,6 +32,7 @@ void origin_task() {
     put("cat",3,cat,hashTable);
     put("touch",5,touch,hashTable);
     put("vi",2,vi,hashTable);
+    put("rm",2,rm,hashTable);
     put("clear",5,clear,hashTable);
 
     printf("{ORIGIN}->origin_task is working...\n");
@@ -74,7 +75,7 @@ PRIVATE void exec_cmd(CmdResult *result, HashTableNode hashTable[]) {
  */
 PRIVATE void start(CmdResult *result, HashTableNode *node) {
     if (node == NO_NODE) {
-        printf("no such a cmd.\n");
+        printf("no such cmd.\n");
         exit(-1);                               /* 子进程退出，退出状态-1 */
     }
     UserTask main = node->userTask;

@@ -53,4 +53,6 @@ int vi(int argc, char *argv[]);
 
 int clear(int argc, char *argv[]);
 
+int rm(int argc, char *argv[]);
+
 #endif //AOS_ORIGIN_H

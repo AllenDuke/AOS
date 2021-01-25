@@ -68,7 +68,7 @@ KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/prote
                   $(tk)/exit.o $(tk)/wait.o $(tk)/at_wini.o $(tk)/fs.o $(tk)/open.o $(tk)/fs_misc.o \
                   $(tk)/read_write.o $(tk)/link.o $(tk)/fs_test.o $(tk)/tty_test.o $(tk)/exec.o \
                   $(tk)/misc.o $(tk)/origin.o $(tk)/hash.o $(tk)/pwd.o $(tk)/date.o $(tk)/echo.o \
-                  $(tk)/cat.o $(tk)/touch.o $(tk)/vi.o $(tk)/clear.o
+                  $(tk)/cat.o $(tk)/touch.o $(tk)/vi.o $(tk)/clear.o $(tk)/rm.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LIB		        = $(l)/aos_lib.a
@@ -76,7 +76,7 @@ LibObjs         = $(AnsiObjs) $(StdioObjs) $(I386Objs) $(StdlibObjs)
 AnsiObjs        = $(tl)/ansi/string.o $(tl)/ansi/memcmp.o $(tl)/ansi/cstring.o
 StdioObjs       = $(tl)/stdio/printf.o $(tl)/stdio/open.o $(tl)/stdio/close.o $(tl)/stdio/write.o \
                   $(tl)/stdio/read.o $(tl)/stdio/stat.o $(tl)/stdio/exit.o $(tl)/stdio/vsprintf.o \
-                  $(tl)/stdio/fork.o $(tl)/stdio/exec.o $(tl)/stdio/wait.o
+                  $(tl)/stdio/fork.o $(tl)/stdio/exec.o $(tl)/stdio/wait.o $(tl)/stdio/unlink.o
 I386Objs        = $(tl)/i386/ipc/ipc.o
 StdlibObjs      = $(tl)/stdlib/get_time.o $(tl)/stdlib/change_console.o $(tl)/stdlib/clean_console.o
 
@@ -302,6 +302,9 @@ $(tk)/vi.o: $(sk)/origin/cmd/vi.c
 
 $(tk)/clear.o: $(sk)/origin/cmd/clear.c
 	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/rm.o: $(sk)/origin/cmd/rm.c
+	$(CC) $(CFlags) -o $@ $<
 # ----------------------------------------------------------------------------------------------------------------------
 #   test
 # ----------------------------------------------------------------------------------------------------------------------
@@ -356,6 +359,9 @@ $(tl)/stdio/fork.o: $(lstdio)/fork.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tl)/stdio/wait.o: $(lstdio)/wait.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/stdio/unlink.o: $(lstdio)/unlink.c
 	$(CC) $(CFlags) -o $@ $<
 # ----------------------------------------------------------------------------------------------------------------------
 #   i386/ipc

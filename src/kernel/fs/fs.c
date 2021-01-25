@@ -64,9 +64,7 @@ PUBLIC void fs_task(void) {
                 fs_msg.RETVAL = do_stat();
                 break;
             default:
-                kprintf("FS::unknown message:%s\n", &fs_msg);
-                panic("wrong msg type\n", msgtype);
-                break;
+                dump_msg("{FS}->unknown message:%s\n", &fs_msg);
         }
 
         /* reply */

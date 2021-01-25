@@ -51,5 +51,5 @@ int fork();
 int exec(const char * path);
 int execl(const char *path, const char *arg, ...);
 int execv(const char *path, char * argv[]);
-
+int unlink(const char *pathname);
 #endif //AOS_STDIO_H

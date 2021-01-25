@@ -20,6 +20,7 @@ extern Message fs_msg;
  *****************************************************************************/
 PUBLIC int do_unlink()
 {
+//    kprintf("rm %s.",fs_msg.PATHNAME);
 	char pathname[MAX_PATH];
 
 	/* get parameters from the message */
@@ -33,13 +34,13 @@ PUBLIC int do_unlink()
 	pathname[name_len] = 0;
 
 	if (strcmp(pathname , "/") == 0) {
-		kprintf("{FS} FS:do_unlink():: cannot unlink the root\n");
+		kprintf("{FS}->do_unlink():: cannot unlink the root\n");
 		return -1;
 	}
 
 	int inode_nr = search_file(pathname);
 	if (inode_nr == INVALID_INODE) {	/* file not found */
-		kprintf("{FS} FS::do_unlink():: search_file() returns "
+		kprintf("{FS}->do_unlink():: search_file() returns "
 			"invalid inode: %s\n", pathname);
 		return -1;
 	}
@@ -52,14 +53,14 @@ PUBLIC int do_unlink()
 	struct inode * pin = get_inode(dir_inode->i_dev, inode_nr);
 
 	if (pin->i_mode != I_REGULAR) { /* can only remove regular files */
-		kprintf("{FS} cannot remove file %s, because "
+		kprintf("{FS}->cannot remove file %s, because "
 		       "it is not a regular file.\n",
 		       pathname);
 		return -1;
 	}
 
 	if (pin->i_cnt > 1) {	/* the file was opened */
-		kprintf("{FS} cannot remove file %s, because pin->i_cnt is %d.\n",
+		kprintf("{FS}->cannot remove file %s, because pin->i_cnt is %d.\n",
 		       pathname, pin->i_cnt);
 		return -1;
 	}

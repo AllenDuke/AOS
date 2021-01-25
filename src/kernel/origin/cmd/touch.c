@@ -18,6 +18,6 @@ int touch(int argc, char *argv[]) {
         return ENOENT;
     }
 
-    printf("File created.\n");
+    printf("file created.\n");
     return 0;
 }

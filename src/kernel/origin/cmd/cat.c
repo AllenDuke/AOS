@@ -14,7 +14,7 @@ int cat(int argc, char *argv[]) {
 
     int fd = open(argv[1], O_RDWR);
     if(fd==-1){
-        printf("no such a file.\n");
+        printf("no such file.\n");
         return ENOENT;
     }
 
