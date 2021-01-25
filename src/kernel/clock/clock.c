@@ -171,7 +171,7 @@ PRIVATE int clock_handler(int irq) {
 
     pending_ticks++;
 
-    /* 闹钟时间到了？产生一个时钟中断，唤醒时钟任务 */
+    /* 闹钟时间到了？唤醒时钟任务 */
     if (nextAlarm <= ticks) {
         interrupt(CLOCK_TASK);
         return ENABLE;
@@ -182,10 +182,20 @@ PRIVATE int clock_handler(int irq) {
         delayAlarm = ULONG_MAX;    /* 关闭毫秒级延迟闹钟 */
     }
 
-    /* 重置用户进程调度时间片 */
-    if (--scheduleTicks == 0) {
-        scheduleTicks = SCHEDULE_TICKS;
-        p_lastProc = gp_billProc;  /* 记录最后一个消费进程 */
+//    /* 重置用户进程调度时间片 */
+//    if (--scheduleTicks == 0) {
+//        scheduleTicks = SCHEDULE_TICKS;
+//        p_lastProc = gp_billProc;  /* 记录最后一个消费进程 */
+//    }
+
+    if(is_user_proc(gp_billProc)) scheduleTicks--;
+
+    /* 用户进程调度时间到了？ */
+    if(scheduleTicks == 0 && gp_readyHeads[USER_QUEUE] != NIL_PROC) {
+        /* 如果消费进程等于最后使用时钟任务的进程，重新调度 */
+        if(gp_billProc == p_lastProc) lock_schedule();
+        scheduleTicks = SCHEDULE_TICKS;         /* 调度时间计数重置 */
+        p_lastProc = gp_billProc;               /* 设置最后使用时钟任务的用户进程为消费进程 */
     }
     return ENABLE;  /* 返回ENABLE，使其再能发生时钟中断 */
 }

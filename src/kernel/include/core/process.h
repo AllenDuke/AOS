@@ -10,7 +10,7 @@
  * CPU 通过 PCB来调度进程，而不是通过tts
  * 各成员的位置是有讲究的，不能随便放置。
  */
-typedef struct process_s{
+typedef struct process_s {
     /* 这里存放 进程的寄存器信息(栈帧) 和 LDT(本地描述符表) 信息，它们由 CPU 使用并调度，和硬件相关 */
     StackFrame regs;                /* 进程的栈帧，包含进程自己所有寄存器的信息 */
     reg_t ldtSelector;              /* 进程的 LDT 选择子，是LDT指针描述符在GDT中的偏移量，用于lldt指令 */
@@ -22,7 +22,7 @@ typedef struct process_s{
      * 堆栈保护字指针，指向堆栈保护字
      * 用于识别堆栈是否正常，如果被改变那么堆栈已经出现问题
      */
-    reg_t* stackGuardWord;
+    reg_t *stackGuardWord;
 
     /**
      * 进程的内存映像
@@ -39,11 +39,11 @@ typedef struct process_s{
     u8_t flags;
     pid_t pid;                      /* 进程号，用户可见的 */
     u8_t priority;                  /* 权限：任务0/服务1/用户进程3 */
-    struct process_s* p_nextReady;  /* 指向下一个就绪的进程，形成一个队列 */
-    int logicIndex;                  /* 进程在进程表中的槽位的逻辑索引，系统任务为负数 */
+    struct process_s *p_nextReady;  /* 指向下一个就绪的进程，形成一个队列 */
+    int logicIndex;                 /* 进程在进程表中的槽位的逻辑索引，系统任务为负数 */
     bool_t intBlocked;              /* 被置位，当目标进程有一条中断消息被繁忙的任务堵塞了 */
     bool_t intHeld;                 /* 被置位，当目标进程有一条中断消息被繁忙的系统调用挂起保留了 */
-    struct process_s* p_nextHeld;   /* 被挂起保留的中断过程队列 */
+    struct process_s *p_nextHeld;   /* 被挂起保留的中断过程队列 */
 
     /* 时间相关 */
     clock_t userTime;               /* 用户时间(以时钟滴答为单位)，即进程自己使用的时间 */
@@ -59,37 +59,37 @@ typedef struct process_s{
     /* 当一个进程执行接收操作，但没有发现有任何人想发消息过来时将会堵塞，然后将自己期望接收消息的进程逻辑编号保存在这 */
     int getFrom;                    /* 逻辑索引 */
     int sendTo;                     /* 同上，保存要发送消息给谁？ */
-    struct process_s* p_nextWaiter; /* 指向下一个要发送消息给我的人，为了实现等待队列 */
+    struct process_s *p_nextWaiter; /* 指向下一个要发送消息给我的人，为了实现等待队列 */
 
-    struct file_desc * filp[NR_FILES]; /* 文件描述符指针数组，指向打开的文件s */
+    struct file_desc *filp[NR_FILES]; /* 文件描述符指针数组，指向打开的文件s */
 
     char name[32];                  /* 这个没啥好说的，就是进程的名称，记得起个好名字哦 */
 } Process;
 
 
 /* 系统堆栈的保护字 */
-#define SYS_TASK_STACK_GUARD	((reg_t) (sizeof(reg_t) == 2 ? 0xBEEF : 0xDEADBEEF))    /* 任务的 */
-#define SYS_SERVER_STACK_GUARD	((reg_t) (sizeof(reg_t) == 2 ? 0xBFEF : 0xDEADCEEF))    /* 服务的 */
+#define SYS_TASK_STACK_GUARD    ((reg_t) (sizeof(reg_t) == 2 ? 0xBEEF : 0xDEADBEEF))    /* 任务的 */
+#define SYS_SERVER_STACK_GUARD    ((reg_t) (sizeof(reg_t) == 2 ? 0xBFEF : 0xDEADCEEF))    /* 服务的 */
 
 /**
  * flags 状态标志位图域中的标志位状态定义
  * 现在一共有三种状态，只要任一状态位被置位，那么进程就会被堵塞
  */
-#define CLEAN_MAP       0       /* 干净的状态，进程正在快乐的执行 */
-#define NO_MAP		    0x01	/* 执行一个 FORK 操作后,如果子进程的内存映像尚未建立起来,那么 NO_MAP 将被置位以阻止子进程运行 */
-#define SENDING		    0x02	/* 进程正在试图发送一条消息 */
-#define RECEIVING	    0x04	/* 进程正在试图接收一条消息 */
-#define PENDING		    0x08	/* set when inform() of signal pending */
-#define SIG_PENDING	    0x10	/* keeps to-be-signalled proc from running */
-#define PROC_STOP		0x20	/* set when process is being traced */
-#define PARKING         0x40    /* parking */
+#define CLEAN_MAP           0       /* 干净的状态，进程正在快乐的执行 */
+#define NO_MAP              0x01    /* 执行一个 FORK 操作后,如果子进程的内存映像尚未建立起来,那么 NO_MAP 将被置位以阻止子进程运行 */
+#define SENDING             0x02    /* 进程正在试图发送一条消息 */
+#define RECEIVING           0x04    /* 进程正在试图接收一条消息 */
+#define PENDING             0x08    /* set when inform() of signal pending */
+#define SIG_PENDING         0x10    /* keeps to-be-signalled proc from running */
+#define PROC_STOP           0x20    /* set when process is being traced */
+#define PARKING             0x40    /* parking */
 
 /* 进程权限定义 */
-#define PROC_PRI_NONE	0	    /* 表示该进程插槽未使用 */
-#define PROC_PRI_TASK	1	    /* 部分内核，即系统任务 */
-#define PROC_PRI_SERVER	2	    /* 内核之外的系统服务 */
-#define PROC_PRI_USER	3	    /* 用户进程 */
-#define PROC_PRI_IDLE	4	    /* 空闲进程，一个特殊的进程，当系统没有正在活动的进程时被运行 */
+#define PROC_PRI_NONE       0       /* 表示该进程插槽未使用 */
+#define PROC_PRI_TASK       1       /* 部分内核，即系统任务 */
+#define PROC_PRI_SERVER     2       /* 内核之外的系统服务 */
+#define PROC_PRI_USER       3       /* 用户进程 */
+#define PROC_PRI_IDLE       4       /* 空闲进程，一个特殊的进程，当系统没有正在活动的进程时被运行 */
 
 /* 对过程表地址操作的一些宏定义。 */
 #define BEG_PROC_ADDR       (&g_procs[0])
@@ -123,14 +123,14 @@ typedef struct process_s{
 #define proc_vir2phys(p, vir) ((phys_addr)(p)->map.base + (vir_addr)(vir))  /* 进程内的虚拟地址转物理地址 */
 
 /* 反推：通过一个段描述符，反向得到对应的物理地址，例如正文段的基地址。 */
-#define	reassembly(high, high_shift, mid, mid_shift, low)	\
-	(((high) << (high_shift)) |				\
-	 ((mid)  << (mid_shift)) |				\
-	 (low))
+#define    reassembly(high, high_shift, mid, mid_shift, low)    \
+    (((high) << (high_shift)) |                \
+     ((mid)  << (mid_shift)) |                \
+     (low))
 
 /* 互斥锁，信号量为1 */
-typedef struct mutex_s{
+typedef struct mutex_s {
 
-}Mutex;
+} Mutex;
 
 #endif //AOS_PROCESS_H
