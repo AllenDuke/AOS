@@ -7,9 +7,11 @@ PRIVATE void set_cursor(unsigned int position);
 
 PRIVATE void set_video_start_addr(u32_t addr);
 
-PRIVATE void flush(CONSOLE *p_con);
+PRIVATE void flush(Console *p_con);
 
-PUBLIC void out_char(CONSOLE *p_con, char ch) {
+PRIVATE void memory2video_copy(register u16_t *src,register unsigned int dest,unsigned int count);
+
+PUBLIC void out_char(Console *p_con, char ch) {
     u8_t *p_vmem = (u8_t *) (V_MEM_BASE + p_con->cursor * 2);
 
     switch (ch) {
@@ -58,22 +60,34 @@ PUBLIC void init_screen(TTY *p_tty) {
     if (nr_tty == 0) {
         p_tty->p_console->cursor = g_dispPosition / 2;           /* 第一个控制台延用原来的光标位置 */
     } else {
-        out_char(p_tty->p_console, nr_tty + '0');
-        out_char(p_tty->p_console, '#');
+//        out_char(p_tty->p_console, nr_tty + '0');
+//        out_char(p_tty->p_console, '#');
     }
 
     set_cursor(p_tty->p_console->cursor);
 }
 
-PUBLIC void select_console(int consoleNum){ /* 0 ~ (NR_CONSOLES - 1) */
+PUBLIC void select_console(int consoleNum) { /* 0 ~ (NR_ConsoleS - 1) */
     if ((consoleNum < 0) || (consoleNum >= NR_CONSOLES)) {    /* invalid console number */
         return;
     }
 
     nrCurConsole = consoleNum;
+    if(consoleNum==1){
+        consoles[consoleNum].cursor=0;
+        consoles[consoleNum].current_start_addr=0;
+        kprintf("%d reset cursor.\n",nrCurConsole);
+    }
 
     set_cursor(consoles[consoleNum].cursor);
     set_video_start_addr(consoles[consoleNum].current_start_addr);
+}
+
+PUBLIC void clear_console(Console *p_con) {
+    memory2video_copy(BLANK_MEM, p_con->original_addr, SCREEN_SIZE);
+//    p_con->current_start_addr = 0;
+//    p_con->cursor = 0;
+//    flush(p_con);
 }
 
 /**
@@ -81,7 +95,7 @@ PUBLIC void select_console(int consoleNum){ /* 0 ~ (NR_CONSOLES - 1) */
  * @param p_con
  * @param direction     SCROLL_SCREEN_UP:向上滚屏，SCROLL_SCREEN_DOWN:向下滚屏，其他不做处理
  */
-PUBLIC void scroll_screen(CONSOLE *p_con, int direction) {
+PUBLIC void scroll_screen(Console *p_con, int direction) {
     if (direction == SCROLL_SCREEN_UP) {
         if (p_con->current_start_addr > p_con->original_addr) {
             p_con->current_start_addr -= SCREEN_WIDTH;
@@ -95,6 +109,36 @@ PUBLIC void scroll_screen(CONSOLE *p_con, int direction) {
 
     set_video_start_addr(p_con->current_start_addr);
     set_cursor(p_con->cursor);
+}
+
+/**
+ * 内存到显存复制
+ * @param src 要复制到显存的word字串
+ * @param dest 目标，是显存中的相对位置
+ * @param count 要复制多少个字？
+ */
+PRIVATE void memory2video_copy(register u16_t *src,register unsigned int dest,unsigned int count) {
+    /* 将一个字串（不是字符串）从核心的内存区域拷贝到视频显示器的存储器中（通俗讲就是显存）。
+     * 该字串中包含替换字符码和若干属性字节 *
+     */
+    u16_t *video_memory = (u16_t *) ( V_MEM_BASE+ dest * 2);  /* 得到目标显存 */
+    unsigned int i = 0;
+
+    /* 如果字串是BLANK_MEM，执行清空整个屏幕空间 */
+    if (src == BLANK_MEM) {
+//        blank_color = BLANK_COLOR;
+        for (; i < SCREEN_SIZE; i++) {   /* 整个屏幕 */
+            *video_memory = BLANK_COLOR;
+            video_memory++;
+        }
+    } else {                            /* 移动src字串到显存，从dest相对位置开始，复制count个字 */
+        while (count != 0) {             /* 只要count != 0，一直复制 */
+            *video_memory = src[i];
+            video_memory++;
+            i++;
+            count--;
+        }
+    }
 }
 
 PRIVATE void set_cursor(unsigned int position) {
@@ -115,8 +159,7 @@ PRIVATE void set_video_start_addr(u32_t addr) {
     interrupt_unlock();
 }
 
-PRIVATE void flush(CONSOLE *p_con) {
+PRIVATE void flush(Console *p_con) {
     set_cursor(p_con->cursor);
     set_video_start_addr(p_con->current_start_addr);
-
 }

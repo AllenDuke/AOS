@@ -30,7 +30,7 @@ PUBLIC int kprintf(const char *p_string, ...) {
 //    /* 调用low_print函数打印格式化后的字符串 */
 //    low_print(buf);
     for (int i = 0; i < len; i++) {
-        out_char(&consoles[0], buf[i]);
+        out_char(&consoles[nrCurConsole], buf[i]);
     }
 
     /* 可变参数访问结束 */
@@ -50,6 +50,25 @@ PUBLIC int printf(const char *fmt, ...) {
     len = vsprintf(t_buf, fmt, ap);
 
     len = write(1, t_buf, len);
+
+//    assert(c == len);
+//    if (c != len) panic("printf err\n", c);
+
+    return len;
+}
+
+PUBLIC int pprintf(int fd,const char *fmt, ...) {
+    va_list ap;
+    int len;
+    char t_buf[1024];
+
+    /* 准备开始访问可变参数 */
+    va_start(ap, fmt);
+
+    /* 格式化字符串 */
+    len = vsprintf(t_buf, fmt, ap);
+
+    len = write(fd, t_buf, len);
 
 //    assert(c == len);
 //    if (c != len) panic("printf err\n", c);

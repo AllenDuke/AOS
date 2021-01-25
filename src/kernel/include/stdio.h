@@ -35,6 +35,7 @@ struct stat {
 
 int printf(const char *fmt, ...);
 int sprintf(char *buf, const char *fmt, ...);
+int pprintf(int fd,const char *fmt, ...);
 
 void exit(int status);
 int open(const char *pathname, int flags);

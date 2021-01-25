@@ -7,7 +7,7 @@
 PUBLIC void fs_test(){
     int fd;
     int n;
-    const char filename[] = "blah";
+    const char filename[] = "test";
     const char bufw[] = "abcde";
     const int rd_bytes = 3;
     char bufr[rd_bytes];

@@ -232,6 +232,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define CRTC_DATA_IDX_CURSOR_L        0xF        /* register index of cursor position (LSB) */
 #define V_MEM_BASE                    0xB8000    /* base of color video memory */
 #define V_MEM_SIZE                    0x8000    /* 32K: B8000H -> BFFFFH */
+#define BLANK_COLOR     0x0700	        /* 确定光标在空白屏幕上的颜色 */
 //======================================================================================================================
 
 

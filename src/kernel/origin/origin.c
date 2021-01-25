@@ -31,6 +31,8 @@ void origin_task() {
     put("echo", 4, echo, hashTable);
     put("cat",3,cat,hashTable);
     put("touch",5,touch,hashTable);
+    put("vi",2,vi,hashTable);
+    put("clear",5,clear,hashTable);
 
     printf("{ORIGIN}->origin_task is working...\n");
 

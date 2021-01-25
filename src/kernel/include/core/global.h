@@ -60,7 +60,7 @@ char *sysProcStack[TOTAL_TASK_STACK / sizeof(char *)];
 char *originStack[ORIGIN_TASK_STACK/sizeof(char *)];
 
 TTY ttys[NR_CONSOLES];
-CONSOLE consoles[NR_CONSOLES];
+Console consoles[NR_CONSOLES];
 int nrCurConsole;                   /* 表示当前的控制台 */
 
 /* 其他 */

@@ -106,7 +106,7 @@ typedef struct message_s {
 #define POSITION        m2_l1    /* 分区内字节偏移地址 */
 #define ADDRESS         m2_p1    /* 进程地址空间起的缓冲区偏移地址 */
 #define BUF             m2_p1
-#define	BUF_LEN		    m2_i3
+#define BUF_LEN         m2_i3
 #define PID             m2_i2
 #define LOGIC_I         m2_i2
 #define NAME_LEN        m2_i2
@@ -114,9 +114,10 @@ typedef struct message_s {
 #define FD              m2_i1
 #define OFFSET          m2_i2
 #define WHENCE          m2_i3
-#define	RETVAL		    m2_i1
-#define	STATUS		    m2_i1
+#define RETVAL          m2_i1
+#define STATUS          m2_i1
 #define STATUS_NEED     0x1234
+#define CONSOLE         m2_i1
 
 /* 任务回复消息中使用的消息字段名称。 */
 #define REPLY_PROC_NR   m2_i1       /* 代表I/O完成的进程索引号 */
@@ -167,11 +168,13 @@ enum msgtype {
     DEVICE_CLOSE,          /* 终端功能索引代码，关闭一个终端设备  */
     DEVICE_SCATTER,        /* fcn code for writing from a vector */
     DEVICE_GATHER,         /* fcn code for reading into a vector */
+    CONSOLE_CHANGE,        /* 改变console */
+    CLEAR,
 };
 
 typedef struct {
     int to; /* 逻辑索引 */
     Message msg;
-}IntMsg;
+} IntMsg;
 
 #endif //AOS_MESSAGE_H

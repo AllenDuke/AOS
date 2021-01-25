@@ -64,6 +64,14 @@ PUBLIC void tty_task() {
             case DEVICE_WRITE:
                 tty_do_write(ptty, &ttyMsg);
                 break;
+            case CONSOLE_CHANGE:
+                select_console(ttyMsg.CONSOLE);
+                send(proc_addr(src)->pid, &ttyMsg);
+                break;
+            case CLEAR:
+                clear_console(ttys[nrCurConsole].p_console);
+                send(proc_addr(src)->pid, &ttyMsg);
+                break;
             case HARD_INT:
                 /**
                  * waked up by clock_handler -- a key was just pressed
@@ -73,7 +81,6 @@ PUBLIC void tty_task() {
                 continue;
             default:
                 dump_msg("{TTY}->unknown ttyMsg: ", &ttyMsg);
-                assert(0);
                 break;
         }
     }
@@ -124,7 +131,7 @@ PUBLIC void in_process(u32_t key, TTY *p_tty) {
 
 }
 
-PUBLIC bool_t is_cur_console(CONSOLE *p_con) {
+PUBLIC bool_t is_cur_console(Console *p_con) {
     return (p_con == &consoles[nrCurConsole]);
 }
 
