@@ -12,7 +12,6 @@ PRIVATE time_t realTime;                            /* 时钟运行的时间(s)�
 
 /* 由中断处理程序更改的变量 */
 PRIVATE clock_t scheduleTicks = SCHEDULE_TICKS;     /* 用户进程调度时间，当为0时候，进行程序调度 */
-PRIVATE Process *p_lastProc;                        /* 最后使用时钟任务的用户进程 */
 PRIVATE time_t bootTime;                            /* 系统开机时间(s) */
 
 PRIVATE clock_t nextAlarm = ULONG_MAX;              /* 下一个闹钟发生的时刻 */
@@ -192,10 +191,9 @@ PRIVATE int clock_handler(int irq) {
 
     /* 用户进程调度时间到了？ */
     if(scheduleTicks == 0 && gp_readyHeads[USER_QUEUE] != NIL_PROC) {
-        /* 如果消费进程等于最后使用时钟任务的进程，重新调度 */
-        if(gp_billProc == p_lastProc) lock_schedule();
+        /* 重新调度 */
+        lock_schedule();
         scheduleTicks = SCHEDULE_TICKS;         /* 调度时间计数重置 */
-        p_lastProc = gp_billProc;               /* 设置最后使用时钟任务的用户进程为消费进程 */
     }
     return ENABLE;  /* 返回ENABLE，使其再能发生时钟中断 */
 }
