@@ -9,7 +9,7 @@ PRIVATE void set_video_start_addr(u32_t addr);
 
 PRIVATE void flush(Console *p_con);
 
-PRIVATE void memory2video_copy(register u16_t *src,register unsigned int dest,unsigned int count);
+PRIVATE void memory2video_copy(register u16_t *src, register unsigned int dest, unsigned int count);
 
 PUBLIC void out_char(Console *p_con, char ch) {
     u8_t *p_vmem = (u8_t *) (V_MEM_BASE + p_con->cursor * 2);
@@ -73,11 +73,6 @@ PUBLIC void select_console(int consoleNum) { /* 0 ~ (NR_ConsoleS - 1) */
     }
 
     nrCurConsole = consoleNum;
-    if(consoleNum==1){
-        consoles[consoleNum].cursor=0;
-        consoles[consoleNum].current_start_addr=0;
-        kprintf("%d reset cursor.\n",nrCurConsole);
-    }
 
     set_cursor(consoles[consoleNum].cursor);
     set_video_start_addr(consoles[consoleNum].current_start_addr);
@@ -85,8 +80,7 @@ PUBLIC void select_console(int consoleNum) { /* 0 ~ (NR_ConsoleS - 1) */
 
 PUBLIC void clear_console(Console *p_con) {
     memory2video_copy(BLANK_MEM, p_con->original_addr, SCREEN_SIZE);
-//    p_con->current_start_addr = 0;
-//    p_con->cursor = 0;
+    p_con->cursor = p_con->current_start_addr;      /* 重置光标至当前tty所属的现存的起始处 */
 //    flush(p_con);
 }
 
@@ -117,11 +111,11 @@ PUBLIC void scroll_screen(Console *p_con, int direction) {
  * @param dest 目标，是显存中的相对位置
  * @param count 要复制多少个字？
  */
-PRIVATE void memory2video_copy(register u16_t *src,register unsigned int dest,unsigned int count) {
+PRIVATE void memory2video_copy(register u16_t *src, register unsigned int dest, unsigned int count) {
     /* 将一个字串（不是字符串）从核心的内存区域拷贝到视频显示器的存储器中（通俗讲就是显存）。
      * 该字串中包含替换字符码和若干属性字节 *
      */
-    u16_t *video_memory = (u16_t *) ( V_MEM_BASE+ dest * 2);  /* 得到目标显存 */
+    u16_t *video_memory = (u16_t *) (V_MEM_BASE + dest * 2);  /* 得到目标显存 */
     unsigned int i = 0;
 
     /* 如果字串是BLANK_MEM，执行清空整个屏幕空间 */

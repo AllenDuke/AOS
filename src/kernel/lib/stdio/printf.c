@@ -30,7 +30,7 @@ PUBLIC int kprintf(const char *p_string, ...) {
 //    /* 调用low_print函数打印格式化后的字符串 */
 //    low_print(buf);
     for (int i = 0; i < len; i++) {
-        out_char(&consoles[nrCurConsole], buf[i]);
+        out_char(&consoles[nrCurConsole], buf[i]); /* 在当前屏幕打印 */
     }
 
     /* 可变参数访问结束 */
@@ -49,7 +49,7 @@ PUBLIC int printf(const char *fmt, ...) {
     /* 格式化字符串 */
     len = vsprintf(t_buf, fmt, ap);
 
-    len = write(1, t_buf, len);
+    len = write(1, t_buf, len); /* 固定在0号屏幕输出 */
 
 //    assert(c == len);
 //    if (c != len) panic("printf err\n", c);
@@ -57,6 +57,7 @@ PUBLIC int printf(const char *fmt, ...) {
     return len;
 }
 
+/* 在特定的屏幕输出 */
 PUBLIC int pprintf(int fd,const char *fmt, ...) {
     va_list ap;
     int len;

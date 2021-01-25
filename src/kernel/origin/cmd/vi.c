@@ -14,36 +14,34 @@ int vi(int argc, char *argv[]) {
     }
 
     int fd_in = open(argv[1], O_RDWR);
-    if(fd_in==-1){
+    if (fd_in == -1) {
         printf("no such a file.\n");
         return ENOENT;
     }
     int fd_out = open(argv[1], O_RDWR);
-    if(fd_out==-1){
+    if (fd_out == -1) {
         printf("no such a file.\n");
         return ENOENT;
     }
 
     int fd_stdin = open("/dev_tty1", O_RDWR);
     int fd_stdout = open("/dev_tty1", O_RDWR);
-    chang_console(1);
+    chang_console(1);       /* 这里仍要切换，因为tty任务处理的当前屏幕 */
 
-    clean_console();
+    clean_console();           /* 清屏 */
 
-    int size = 512;
+    int size = 1024;        /* 暂时限制文件大小为1024字节 */
     char buf[size];
 
     int n = read(fd_in, buf, size);
-    buf[n]=0;
-    pprintf(fd_stdout,"read:%d.\n",n);
+    buf[n] = 0;
+//    pprintf(fd_stdout,"read:%d.\n",n);
 
-    pprintf(fd_stdout,"%s",buf);
+    pprintf(fd_stdout, "%s", buf);
 
-    n=read(fd_stdin,buf,size);
+    int c = read(fd_stdin, buf + n, size);      /* 读取键盘输入 */
 
-    n=write(fd_out,buf,n);
-
-    pprintf(fd_stdout,"writen:%d.\n",n);
+    n = write(fd_out, buf, n + c);              /* 写到文件 */
 
     close(fd_in);
     close(fd_out);
@@ -52,5 +50,7 @@ int vi(int argc, char *argv[]) {
     close(fd_stdout);
 
     chang_console(0);
+
+    printf("writen:%d.\n", n);
     return 0;
 }

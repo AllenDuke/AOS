@@ -69,7 +69,7 @@ PUBLIC void tty_task() {
                 send(proc_addr(src)->pid, &ttyMsg);
                 break;
             case CLEAR:
-                clear_console(ttys[nrCurConsole].p_console);
+                clear_console(&consoles[nrCurConsole]);
                 send(proc_addr(src)->pid, &ttyMsg);
                 break;
             case HARD_INT:
@@ -143,7 +143,7 @@ PRIVATE void init_tty(TTY *p_tty) {
 }
 
 PRIVATE void tty_dev_read(TTY *p_tty) {
-    if (is_cur_console(p_tty->p_console)) keyboard_read(p_tty);
+    if (is_cur_console(p_tty->p_console)) keyboard_read(p_tty);     /* 处理的是当前屏幕 */
 }
 
 PRIVATE void tty_dev_write(TTY *tty) {
