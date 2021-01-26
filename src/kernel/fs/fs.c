@@ -34,6 +34,8 @@ PUBLIC void fs_task(void) {
         int src = fs_msg.source;
         pcaller = proc_addr(src);
 
+//        kprintf("{FS}->get msg from:%d, type:%d  \n", src, msgtype);
+
         switch (msgtype) {
             case OPEN:
                 fs_msg.FD = do_open();
@@ -110,8 +112,7 @@ PRIVATE void fs_init() {
     RD_SECT(ROOT_DEV, 1);
 
     sb = (struct super_block *) fsbuf;
-    if (sb->magic != MAGIC_V1)
-    { /* 魔数不对，开始格式化 */
+    if (sb->magic != MAGIC_V1) { /* 魔数不对，开始格式化 */
         kprintf("{FS}->mkfs\n");
         mkfs(); /* make FS */
     }
@@ -478,9 +479,9 @@ PUBLIC void sync_inode(struct inode *p) {
  * 当fs接收到来自mm的fork时，执行fs_do_fork，更新文件描述符表
  * @return
  */
-PRIVATE int fs_do_fork(){
+PRIVATE int fs_do_fork() {
     int i;
-    Process * child = proc_addr(fs_msg.LOGIC_I);
+    Process *child = proc_addr(fs_msg.LOGIC_I);
     for (i = 0; i < NR_FILES; i++) {
         if (child->filp[i]) {
             child->filp[i]->fd_cnt++;

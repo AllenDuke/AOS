@@ -52,10 +52,10 @@ PUBLIC void mm_task(void) {
                 reply = mm_do_wait();
                 break;
             case GET_PID:
-                mm_msg.PID=curr_mp->pid;
+                mm_msg.PID = curr_mp->pid;
                 break;
             case GET_PPID:
-                mm_msg.PID=curr_mp->ppid;
+                mm_msg.PID = curr_mp->ppid;
                 break;
             default:
                 dump_msg("{MM}->unknown msg: ", &mm_msg);
@@ -67,6 +67,7 @@ PUBLIC void mm_task(void) {
             send(curr_mp->pid, &mm_msg);
 //            kprintf("{MM}->service done\n");
         }
+//        else kprintf("son is alive.\n");
 
     }
 

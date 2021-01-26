@@ -85,6 +85,7 @@ PUBLIC int mm_do_exit(void) {
         if (exit_proc->ppid == wait_parent->pid) {          /* 空闲的进程的ppid为NO_TASK */
             exit_proc->ppid = ORIGIN_PID;
             origin->aliveChildCount++;                      /* origin白捡一儿子 */
+            kprintf("origin get son:%d.\n",exit_proc->pid);
 
             if (origin->flags & WAITING) {                  /* origin正在等待子进程 */
                 /* 刚得一儿子，却发现已经死了，含泪收尸。 */

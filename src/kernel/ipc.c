@@ -264,6 +264,7 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
 PRIVATE i8_t spinLocks[NR_TASKS + NR_PROCS] = {0}; /* 最大值为1，即这是值为1的信号量，理论上[-1,1] */
 
 PUBLIC void aos_park() {
+//    kprintf("park pid:%d.\n",gp_curProc->pid);
     int i = logic_nr_2_index(gp_curProc->logicIndex);
     spinLocks[i]--;
     if (spinLocks[i] < 0) {

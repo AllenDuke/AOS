@@ -79,7 +79,7 @@ StdioObjs       = $(tl)/stdio/printf.o $(tl)/stdio/open.o $(tl)/stdio/close.o $(
                   $(tl)/stdio/fork.o $(tl)/stdio/exec.o $(tl)/stdio/wait.o $(tl)/stdio/unlink.o
 I386Objs        = $(tl)/i386/ipc/ipc.o
 StdlibObjs      = $(tl)/stdlib/get_time.o $(tl)/stdlib/change_console.o $(tl)/stdlib/clean_console.o \
-                  $(tl)/stdlib/delay.o
+                  $(tl)/stdlib/delay.o $(tl)/stdlib/get_pid.o $(tl)/stdlib/get_ppid.o
 
 Objs            = $(KernelObjs) $(LibObjs)
 # ======================================================================================================================

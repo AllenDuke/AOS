@@ -283,7 +283,7 @@ PRIVATE void hunter(void) {
     }
     if ((prey = gp_readyHeads[USER_QUEUE]) != NIL_PROC) {
         gp_billProc = gp_curProc = prey;
-//        kprintf("%s hunter\n", gp_curProc->name);
+//        kprintf("%s hunter, eax:%d.\n", gp_curProc->name,gp_curProc->regs.eax);
         return;
     }
 
