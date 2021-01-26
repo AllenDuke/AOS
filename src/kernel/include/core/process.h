@@ -39,12 +39,16 @@ typedef struct process_s {
     u8_t flags;
     pid_t pid;                      /* 进程号，用户可见的 */
     u8_t priority;                  /* 权限：任务0/服务1/用户进程3 */
-    u8_t level;                     /* 用户进程等级，分为1~5，越大越高，用于高响应比调度，fork时指定 */
     struct process_s *p_nextReady;  /* 指向下一个就绪的进程，形成一个队列 */
     int logicIndex;                 /* 进程在进程表中的槽位的逻辑索引，系统任务为负数 */
     bool_t intBlocked;              /* 被置位，当目标进程有一条中断消息被繁忙的任务堵塞了 */
     bool_t intHeld;                 /* 被置位，当目标进程有一条中断消息被繁忙的系统调用挂起保留了 */
     struct process_s *p_nextHeld;   /* 被挂起保留的中断过程队列 */
+
+    /* 高响应比调度相关 */
+    u8_t level;                     /* 用户进程等级，分为1~5，越大越高，fork时指定 */
+    float wait;                     /* 进程的等待时间(就绪时但未被调度，以调度次数为单位) */
+    float service;                  /* 作业要求服务时间(以调度次数为单位)，初始时为level次，不够再续 */
 
     /* 时间相关 */
     clock_t userTime;               /* 用户时间(以时钟滴答为单位)，即进程自己使用的时间 */
@@ -52,8 +56,6 @@ typedef struct process_s {
     clock_t childUserTime;          /* 子进程累积使用的用户时间 */
     clock_t childSysTime;           /* 子进程累积使用的系统时间 */
     clock_t alarm;                  /* 进程下一次闹钟响起的时间 */
-    clock_t want;                   /* 进程的等待时间(就绪时未被调度)，用于高响应比调度 */
-    clock_t service;                /* 作业要求服务时间 */
 
     /* 消息通信相关 */
     Message *inBox;                 /* 收件箱，当有人发送消息过来将被邮局将消息放在这里，它是一个物理地址 */

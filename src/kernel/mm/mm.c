@@ -51,10 +51,15 @@ PUBLIC void mm_task(void) {
             case WAIT:
                 reply = mm_do_wait();
                 break;
+            case GET_PID:
+                mm_msg.PID=curr_mp->pid;
+                break;
+            case GET_PPID:
+                mm_msg.PID=curr_mp->ppid;
+                break;
             default:
                 dump_msg("{MM}->unknown msg: ", &mm_msg);
-                assert(0);
-                break;
+//                assert(0);
         }
 
         if (reply) {

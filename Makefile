@@ -374,6 +374,12 @@ $(tl)/i386/ipc/ipc.o: $(li386)/ipc/ipc.asm
 $(tl)/stdlib/get_time.o: $(lstdlib)/get_time.c
 	$(CC) $(CFlags) -o $@ $<
 
+$(tl)/stdlib/get_pid.o: $(lstdlib)/get_pid.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/stdlib/get_ppid.o: $(lstdlib)/get_ppid.c
+	$(CC) $(CFlags) -o $@ $<
+
 $(tl)/stdlib/change_console.o: $(lstdlib)/change_console.c
 	$(CC) $(CFlags) -o $@ $<
 

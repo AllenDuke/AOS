@@ -143,7 +143,7 @@ enum msgtype {
 
 
     /* SYS task */
-    GET_TICKS, GET_PID, GET_RTC_TIME,
+    GET_TICKS, GET_RTC_TIME,
 
     /* FS */
     OPEN, CLOSE, READ, WRITE, LSEEK, STAT, UNLINK,
@@ -152,7 +152,7 @@ enum msgtype {
     SUSPEND_PROC, RESUME_PROC,
 
     /* MM */
-    EXEC, WAIT,
+    EXEC, WAIT, GET_PID, GET_PPID,
 
     /* FS & MM */
     FORK, EXIT,
