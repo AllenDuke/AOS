@@ -118,6 +118,7 @@ typedef struct message_s {
 #define STATUS          m2_i1
 #define STATUS_NEED     0x1234
 #define CONSOLE         m2_i1
+#define LEVEL           m2_i1
 
 /* 任务回复消息中使用的消息字段名称。 */
 #define REPLY_PROC_NR   m2_i1       /* 代表I/O完成的进程索引号 */

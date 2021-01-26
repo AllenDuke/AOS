@@ -10,6 +10,7 @@ PRIVATE pid_t nextPid = ORIGIN_PID + 1;
 PRIVATE int do_fork(int child_nr, int pre_nr, int pid);
 
 extern MMProcess mmProcs[];
+extern Message mm_msg;;
 
 /**
  * 当一个进程想要创建一个新进程的时候，使用FORK调用生成一个新的进程分支，
@@ -151,6 +152,10 @@ PRIVATE int do_fork(int child_nr, int pre_nr, pid_t pid) {
 
     /* 清零子进程的时间记账信息 */
     child->userTime = child->sysTime = child->childUserTime = child->childSysTime = 0;
+
+//    child->level=mm_msg.LEVEL;
+//    child->wait=0;
+//    child->service=child->level;
 
 //    kprintf("{MM}->child proc name:%s \n", child->name);
     return OK;  /* OK了 */

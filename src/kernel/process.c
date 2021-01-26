@@ -58,6 +58,15 @@ PUBLIC void ready(register Process *p_proc) {
     }
     p_proc->p_nextReady = gp_readyHeads[USER_QUEUE];
     gp_readyHeads[USER_QUEUE] = p_proc;
+
+//    if (gp_readyHeads[USER_QUEUE] != NIL_PROC) {
+//        gp_readyTails[USER_QUEUE]->p_nextReady = p_proc;
+//    } else {
+//        gp_curProc = gp_readyHeads[USER_QUEUE] = p_proc;
+//    }
+//    gp_readyTails[USER_QUEUE] = p_proc;
+//    p_proc->p_nextReady = NIL_PROC;
+    return;
 }
 
 /* 阻塞一个进程 */
@@ -308,6 +317,23 @@ PRIVATE void schedule(void) {
      * 该算法的结果是将用户进程按时间片轮转方式运行。I/O任务绝不会被放在队尾，因为它们肯定不会运行得太久。这些进程可以
      * 被认为是非常可靠的，因为它们是我们编写的，而且在完成要做的工作后将堵塞。
      */
+
+    /* 如果没有准备好的用户进程，请返回 */
+    if (gp_readyHeads[USER_QUEUE] == NIL_PROC) return;
+
+    /* 将队首的进程移到队尾 */
+    Process *p_tmp;
+    p_tmp = gp_readyHeads[USER_QUEUE]->p_nextReady;
+    gp_readyTails[USER_QUEUE]->p_nextReady = gp_readyHeads[USER_QUEUE];
+    gp_readyTails[USER_QUEUE] = gp_readyTails[USER_QUEUE]->p_nextReady;
+    gp_readyHeads[USER_QUEUE] = p_tmp;
+    gp_readyTails[USER_QUEUE]->p_nextReady = NIL_PROC;  /* 队尾没有后继进程 */
+    /* 汉特儿 */
+    hunter();
+}
+
+/* 进程调度 */
+PRIVATE void level_schedule(void) {
 
     /* 如果没有准备好的用户进程，请返回 */
     if (gp_readyHeads[USER_QUEUE] == NIL_PROC) return;

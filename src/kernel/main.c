@@ -34,8 +34,8 @@ void aos_main(void) {
          */
         kprintf("get kernel map failed!!!\n");
         assert(0);
-    }else{
-        kprintf("kernel file begin:%d, end:%d.\n",kernel_base,kernel_base+kernel_limit);
+    } else {
+        kprintf("kernel file begin:%d, end:%d.\n", kernel_base, kernel_base + kernel_limit);
     }
 
     /**
@@ -140,10 +140,10 @@ void aos_main(void) {
 PRIVATE void init_origin() {
     Process *origin = proc_addr(ORIGIN_PROC_NR);
     init_segment_desc(&origin->ldt[CS_LDT_INDEX],
-                      /**
-                       * base最好为0，虽然会有一点浪费，但如果使用kernel_base，而内核挂载点高于0x475L，
-                       * 那么在初始化hd时（要读取内存0x475L处的BIOS信息），那么会触发GP异常。
-                       */
+            /**
+             * base最好为0，虽然会有一点浪费，但如果使用kernel_base，而内核挂载点高于0x475L，
+             * 那么在初始化hd时（要读取内存0x475L处的BIOS信息），那么会触发GP异常。
+             */
                       0,
                       (kernel_base + kernel_limit) >> LIMIT_4K_SHIFT, /* limit是大小-1 */
                       DA_32 | DA_LIMIT_4K | DA_C | USER_PRIVILEGE << 5
@@ -201,16 +201,20 @@ PRIVATE void init_origin() {
     origin->regs.es = origin->regs.fs = origin->regs.ss = origin->regs.ds;  /* C 语言不加以区分这几个段寄存器 */
     origin->regs.gs = ((KERNEL_GS_SELECTOR | USER_PRIVILEGE) & SA_RPL_MASK);     /* gs 指向显存 */
     origin->regs.eip = (reg_t) origin_task;                        /* eip 指向要执行的代码首地址 */
-    origin->regs.esp = (reg_t)originStack + ORIGIN_TASK_STACK;                           /* 设置栈顶 */
+    origin->regs.esp = (reg_t) originStack + ORIGIN_TASK_STACK;                           /* 设置栈顶 */
     origin->regs.eflags = is_task_proc(origin) ? INIT_TASK_PSW : INIT_PSW; /* 设置if位 */
 
     /* 进程刚刚初始化，让它处于可运行状态，所以标志位上没有1 */
     origin->flags = CLEAN_MAP;
 
-    origin->priority=PROC_PRI_USER;
-    origin->logicIndex=ORIGIN_PROC_NR;
-    origin->pid=ORIGIN_PID;
+    origin->priority = PROC_PRI_USER;
+    origin->logicIndex = ORIGIN_PROC_NR;
+    origin->pid = ORIGIN_PID;
     strcpy(origin->name, "origin");
+
+//    origin->level = 5;
+//    origin->wait = 0.0;
+//    origin->service = (float) origin->level;
 
     ready(origin);
 }
