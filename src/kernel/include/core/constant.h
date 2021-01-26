@@ -48,6 +48,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define INT_VECTOR_LEVEL0           0x30
 #define INT_VECTOR_PARK             0x31
 #define INT_VECTOR_UNPARK           0x32
+#define INT_VECTOR_DELAY            0x33
 #define INT_VECTOR_SYS_CALL         0x94        /* AOS 系统调用向量 */
 //======================================================================================================================
 

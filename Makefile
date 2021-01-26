@@ -68,7 +68,7 @@ KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/prote
                   $(tk)/exit.o $(tk)/wait.o $(tk)/at_wini.o $(tk)/fs.o $(tk)/open.o $(tk)/fs_misc.o \
                   $(tk)/read_write.o $(tk)/link.o $(tk)/fs_test.o $(tk)/tty_test.o $(tk)/exec.o \
                   $(tk)/misc.o $(tk)/origin.o $(tk)/hash.o $(tk)/pwd.o $(tk)/date.o $(tk)/echo.o \
-                  $(tk)/cat.o $(tk)/touch.o $(tk)/vi.o $(tk)/clear.o $(tk)/rm.o
+                  $(tk)/cat.o $(tk)/touch.o $(tk)/vi.o $(tk)/clear.o $(tk)/rm.o $(tk)/show_proc.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LIB		        = $(l)/aos_lib.a
@@ -78,7 +78,8 @@ StdioObjs       = $(tl)/stdio/printf.o $(tl)/stdio/open.o $(tl)/stdio/close.o $(
                   $(tl)/stdio/read.o $(tl)/stdio/stat.o $(tl)/stdio/exit.o $(tl)/stdio/vsprintf.o \
                   $(tl)/stdio/fork.o $(tl)/stdio/exec.o $(tl)/stdio/wait.o $(tl)/stdio/unlink.o
 I386Objs        = $(tl)/i386/ipc/ipc.o
-StdlibObjs      = $(tl)/stdlib/get_time.o $(tl)/stdlib/change_console.o $(tl)/stdlib/clean_console.o
+StdlibObjs      = $(tl)/stdlib/get_time.o $(tl)/stdlib/change_console.o $(tl)/stdlib/clean_console.o \
+                  $(tl)/stdlib/delay.o
 
 Objs            = $(KernelObjs) $(LibObjs)
 # ======================================================================================================================
@@ -305,6 +306,9 @@ $(tk)/clear.o: $(sk)/origin/cmd/clear.c
 
 $(tk)/rm.o: $(sk)/origin/cmd/rm.c
 	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/show_proc.o: $(sk)/origin/cmd/show_proc.c
+	$(CC) $(CFlags) -o $@ $<
 # ----------------------------------------------------------------------------------------------------------------------
 #   test
 # ----------------------------------------------------------------------------------------------------------------------
@@ -385,4 +389,7 @@ $(tl)/stdlib/change_console.o: $(lstdlib)/change_console.c
 
 $(tl)/stdlib/clean_console.o: $(lstdlib)/clean_console.c
 	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/stdlib/delay.o: $(lstdlib)/delay.asm
+	$(ASM) $(ASMFlagsOfKernel) -o $@ $<
 # ======================================================================================================================

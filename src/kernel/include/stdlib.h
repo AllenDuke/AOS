@@ -12,5 +12,6 @@ int chang_console(int n);
 int clean_console();
 int get_pid();
 int get_ppid();
+void delay(unsigned long delay_ms);
 
 #endif //AOS_STDLIB_H

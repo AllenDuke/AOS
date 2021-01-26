@@ -52,6 +52,7 @@ void halt(void);
 void level0_sys_call(void);
 void park_sys_call(void);
 void unpark_sys_call(void);
+void delay_sys_call(void);
 
 // 异常处理例程
 void divide_error(void);

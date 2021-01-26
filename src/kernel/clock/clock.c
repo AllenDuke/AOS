@@ -5,7 +5,7 @@
 #include "core/kernel.h"
 
 PRIVATE clock_t ticks;                              /* 时钟运行的时间(滴答数)，也是开机后时钟运行的时间 */
-PRIVATE clock_t  pending_ticks; /* 中断挂起的时间 */
+PRIVATE clock_t pending_ticks; /* 中断挂起的时间 */
 PRIVATE Message msg;
 
 PRIVATE time_t realTime;                            /* 时钟运行的时间(s)，也是开机后时钟运行的时间 */
@@ -145,8 +145,11 @@ PUBLIC void milli_delay(time_t delay_ms) {
 
     /* 得出退出循环的闹钟时间 */
     delayAlarm = ticks + delay_ms / ONE_TICK_MILLISECOND;
+
+//    kprintf("now:%d alarm:%d.\n",ticks,delayAlarm);
     /* 只要检测到毫秒级闹钟未被关闭，说明时候未到，继续死循环 */
     while (delayAlarm != ULONG_MAX) {}
+//    kprintf("milli_delay done.\n");
 }
 
 /* 10ms发生一次时钟中断 */
@@ -179,13 +182,8 @@ PRIVATE int clock_handler(int irq) {
     /* 毫秒级休眠函数退出闹钟响了？ */
     if (delayAlarm <= ticks) {
         delayAlarm = ULONG_MAX;    /* 关闭毫秒级延迟闹钟 */
+//        kprintf("shut down delayAlarm.\n");
     }
-
-//    /* 重置用户进程调度时间片 */
-//    if (--scheduleTicks == 0) {
-//        scheduleTicks = SCHEDULE_TICKS;
-//        p_lastProc = gp_billProc;  /* 记录最后一个消费进程 */
-//    }
 
     if(is_user_proc(gp_billProc)) scheduleTicks--;
 
