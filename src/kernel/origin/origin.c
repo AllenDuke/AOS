@@ -7,6 +7,8 @@
  * 实际上它可以变得更小，比如独立编译，然后将其写进硬盘，最后内核将其读到内存里运行。
  *
  * origin的数据尽量在栈上，否则fork后的子进程，访问的数据可能会有异常。所以origin的栈尽可能大一点。
+ *
+ * 嵌套fork会有问题。
  */
 #include "origin.h"
 #include "stdio.h"
@@ -23,6 +25,8 @@ void origin_task() {
     assert(fd_stdin == 0);
     int fd_stdout = open("/dev_tty0", O_RDWR);
     assert(fd_stdout == 1);
+
+    int tmp_out = open("/tmp_out", O_RDWR);     /* 放到这里是免得每次都去打开，浪费时间 */
 
     HashTableNode hashTable[NR_CMD_TSIZE];      /* HashTable，冲突时线性探测，2倍是有想法的 */
 
@@ -44,16 +48,24 @@ void origin_task() {
     while (1) {
         int r = read(fd_stdin, cmdBuf, 70);
         cmdBuf[r] = 0;
-
+        CmdResult cmdResult;
+        split(&cmdResult, cmdBuf, r);
+        if (cmdResult.argv[cmdResult.argc - 1][0] == '&') {     /* 如果当前是后台运行，那么将输出到文件tmp_out */
+            cmdResult.argv[cmdResult.argc]=&tmp_out;            /* 最后加入tmp_out fd */
+            cmdResult.argc++;
+        }
         int pid = fork();
         if (pid == 0) {
-            CmdResult cmdResult;
-            split(&cmdResult, cmdBuf, r);
             exec_cmd(&cmdResult, hashTable);
         } else {
+            if(cmdResult.argv[cmdResult.argc-1][0]=='&'){
+                printf("$ ");
+                continue;
+            }
             unsigned char exitStat;
             printf("child pid:%d.\n", pid);
-            waitpid_stat(pid, &exitStat);
+//            waitpid_stat(pid, &exitStat);
+            wait();
             printf("child (%d) exited with status: %d.\n", pid, exitStat);
             printf("$ ");
         }

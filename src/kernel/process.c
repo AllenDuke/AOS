@@ -52,6 +52,7 @@ PUBLIC void ready(register Process *p_proc) {
     /**
      * 用户进程的处理稍微有所不同
      * 我们将用户进程添加到队列的最前面。（对于受I/O约束的进程来说更公平一些。）
+     * fork后，先执行子进程，再执行父进程。
      */
     if (gp_readyHeads[USER_QUEUE] != NIL_PROC) {
         gp_readyTails[USER_QUEUE] = p_proc;
@@ -59,13 +60,6 @@ PUBLIC void ready(register Process *p_proc) {
     p_proc->p_nextReady = gp_readyHeads[USER_QUEUE];
     gp_readyHeads[USER_QUEUE] = p_proc;
 
-//    if (gp_readyHeads[USER_QUEUE] != NIL_PROC) {
-//        gp_readyTails[USER_QUEUE]->p_nextReady = p_proc;
-//    } else {
-//        gp_curProc = gp_readyHeads[USER_QUEUE] = p_proc;
-//    }
-//    gp_readyTails[USER_QUEUE] = p_proc;
-//    p_proc->p_nextReady = NIL_PROC;
     return;
 }
 

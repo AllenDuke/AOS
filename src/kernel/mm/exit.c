@@ -81,19 +81,20 @@ PUBLIC int mm_do_exit(void) {
      * 如果发现某个子进程已经exit，那么完成这些进程的退出工作。
      */
     MMProcess *origin=&mmProcs[ORIGIN_PROC_NR];
-    for (exit_proc = &mmProcs[1]; exit_proc < &mmProcs[NR_PROCS]; exit_proc++) {
-        if (exit_proc->ppid == wait_parent->pid) {          /* 空闲的进程的ppid为NO_TASK */
-            exit_proc->ppid = ORIGIN_PID;
+    MMProcess *tmp;
+    for (tmp = &mmProcs[1]; tmp < &mmProcs[NR_PROCS]; tmp++) {
+        if (tmp->ppid == exit_proc->pid) {          /* 空闲的进程的ppid为NO_TASK */
+            tmp->ppid = ORIGIN_PID;
             origin->aliveChildCount++;                      /* origin白捡一儿子 */
-            kprintf("origin get son:%d.\n",exit_proc->pid);
+            kprintf("origin get son:%d.\n",tmp->pid);
 
             if (origin->flags & WAITING) {                  /* origin正在等待子进程 */
                 /* 刚得一儿子，却发现已经死了，含泪收尸。 */
                 if (exit_proc->flags & ZOMBIE) {
-                    exit_cleanup(exit_proc);
+                    exit_cleanup(tmp);
                     origin->aliveChildCount--;              /* 更新父进程存活的子进程数量 */
                     check_pre_wakeup(ORIGIN_PROC_NR);       /* 如果可以，就唤醒父亲 */
-                }
+                }else kprintf("new son is not dead.\n");
             }
         }
     }

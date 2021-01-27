@@ -13,6 +13,6 @@ PUBLIC void exit(int status) {
     msg.type = EXIT;
     msg.STATUS = status;
 
-    send_rec(MM_TASK, &msg);
+    send_rec(MM_TASK, &msg);    /* 进程调用exit后，不需要等待回复，仍用rec是为了unready */
 //    assert(msg.type == SYSCALL_RET);
 }
