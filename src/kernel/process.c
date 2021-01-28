@@ -54,8 +54,9 @@ PUBLIC void ready(register Process *p_proc) {
      * 我们将用户进程添加到队列的最前面。（对于受I/O约束的进程来说更公平一些。）
      * fork后，先执行子进程，再执行父进程。
      */
-    if (gp_readyHeads[USER_QUEUE] != NIL_PROC) {
+    if (gp_readyHeads[USER_QUEUE] == NIL_PROC) {
         gp_readyTails[USER_QUEUE] = p_proc;
+        gp_readyTails[USER_QUEUE]->p_nextReady = NIL_PROC;
     }
     p_proc->p_nextReady = gp_readyHeads[USER_QUEUE];
     gp_readyHeads[USER_QUEUE] = p_proc;
@@ -286,7 +287,7 @@ PRIVATE void hunter(void) {
     }
     if ((prey = gp_readyHeads[USER_QUEUE]) != NIL_PROC) {
         gp_billProc = gp_curProc = prey;
-//        kprintf("%s hunter, eax:%d.\n", gp_curProc->name,gp_curProc->regs.eax);
+//        kprintf("%s hunter, eax:%d.\n", gp_curProc->name, gp_curProc->regs.eax);
         return;
     }
 
@@ -312,8 +313,8 @@ PRIVATE void schedule(void) {
      * 被认为是非常可靠的，因为它们是我们编写的，而且在完成要做的工作后将堵塞。
      */
 
-    /* 如果没有准备好的用户进程，请返回 */
-    if (gp_readyHeads[USER_QUEUE] == NIL_PROC) return;
+    /* 如果没有准备好的其他用户进程，请返回。此时的就绪队列头部仍是当前被中断的用户进程 */
+    if (gp_readyHeads[USER_QUEUE]->p_nextReady == NIL_PROC) return;
 
     /* 将队首的进程移到队尾 */
     Process *p_tmp;
@@ -322,7 +323,6 @@ PRIVATE void schedule(void) {
     gp_readyTails[USER_QUEUE] = gp_readyTails[USER_QUEUE]->p_nextReady;
     gp_readyHeads[USER_QUEUE] = p_tmp;
     gp_readyTails[USER_QUEUE]->p_nextReady = NIL_PROC;  /* 队尾没有后继进程 */
-    kprintf("schedule.\n");
     /* 汉特儿 */
     hunter();
 }
