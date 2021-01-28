@@ -322,6 +322,7 @@ PRIVATE void schedule(void) {
     gp_readyTails[USER_QUEUE] = gp_readyTails[USER_QUEUE]->p_nextReady;
     gp_readyHeads[USER_QUEUE] = p_tmp;
     gp_readyTails[USER_QUEUE]->p_nextReady = NIL_PROC;  /* 队尾没有后继进程 */
+    kprintf("schedule.\n");
     /* 汉特儿 */
     hunter();
 }

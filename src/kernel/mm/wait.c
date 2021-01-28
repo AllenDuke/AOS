@@ -5,6 +5,8 @@
 
 PRIVATE int mm_waitpid(int pid, int options);
 
+PRIVATE void clean_origin_other_children(pid_t theOne);
+
 extern MMProcess mmProcs[];
 extern Message mm_msg;
 
@@ -41,6 +43,20 @@ PRIVATE int mm_waitpid(pid_t pid, int options) {
     register MMProcess *proc;
     register MMProcess *pre = &mmProcs[mm_who];
 
+    /* 如果当前origin进程，那么必定是waitpid，必定是pid存在，必定是父子关系，origin先进入waitpid状态 */
+    if (mm_who == ORIGIN_PROC_NR) {
+        /* 清理所有的僵死进程，然后进入waitpid */
+        for (proc = &mmProcs[1]; proc < &mmProcs[NR_PROCS]; proc++) {
+            if (proc->ppid == pre->pid && (proc->flags & ZOMBIE)) { /* 找到特定的子进程 */
+                /* 子进程已经exit，成为一个僵尸进程 */
+                exit_cleanup(proc);                         /* 清理掉这个僵尸进程并答复调用者 */
+                pre->aliveChildCount--;                     /* 更新存活子进程数量 */
+            }
+        }
+        curr_mp->flags |= WAITPID_STAT;
+        return WHANG;
+    }
+
     /**
      * 遍历所有进程
      * 这里需要注意一下，通过pid参数我们可以判断出进程具体要等什么：
@@ -49,7 +65,7 @@ PRIVATE int mm_waitpid(pid_t pid, int options) {
      */
     if (pid > 0) {
         bool_t found = FALSE;
-        for (proc = &mmProcs[0]; proc < &mmProcs[NR_PROCS]; proc++) {
+        for (proc = &mmProcs[1]; proc < &mmProcs[NR_PROCS]; proc++) {
             if (proc->pid == pid) {                         /* 找到特定的子进程 */
                 if (proc->ppid != pre->pid) {               /* 两者不是父子关系 */
                     mm_msg.PID = NO_TASK;
@@ -57,9 +73,9 @@ PRIVATE int mm_waitpid(pid_t pid, int options) {
                 }
                 if (proc->flags & ZOMBIE) {                 /* 子进程已经exit，成为一个僵尸进程 */
                     u8_t exitStat = exit_cleanup(proc);     /* 清理掉这个僵尸进程并答复调用者 */
-                    pre->aliveChildCount--;                 /* 更新存活子进程数量 */
-                    if(mm_msg.STATUS==STATUS_NEED)
-                        mm_msg.STATUS=exitStat;             /* 返回子进程的退出状态 */
+                    pre->aliveChildCount--;                  /* 更新存活子进程数量 */
+                    if (mm_msg.STATUS == STATUS_NEED)
+                        mm_msg.STATUS = exitStat;           /* 返回子进程的退出状态 */
                     return 1;                               /* 回复父进程，清理成功 */
                 }
                 found = TRUE;                               /* 子进程还存活 */
@@ -72,7 +88,7 @@ PRIVATE int mm_waitpid(pid_t pid, int options) {
         }
         /* 接着往下处理这个存活的子进程 */
     } else {                                                /* if (pid==-1) */
-        for (proc = &mmProcs[0]; proc < &mmProcs[NR_PROCS]; proc++) {
+        for (proc = &mmProcs[1]; proc < &mmProcs[NR_PROCS]; proc++) {
             if (proc->ppid == proc_addr(mm_who)->pid) {     /* 找到一个子进程 */
                 if (proc->flags & ZOMBIE) {                 /* 子进程已exit，成为僵尸 */
                     exit_cleanup(proc);                     /* 清理掉这个僵尸进程 */
@@ -82,13 +98,16 @@ PRIVATE int mm_waitpid(pid_t pid, int options) {
         }
     }
 
-    if (pre->aliveChildCount > 0) {                         /* 还有子进程是存活的，父进程应该等待 */
-        if (options & WNOHANG) return 0;                    /* 如果进程表示不需要等待子进程，那么请直接回复结果 */
-        curr_mp->flags |= WAITING;                          /* 父进程希望等待子进程完成 */
-        return WHANG;                                       /* 没有回复，让调用者等待 */
-    }
     if (pre->aliveChildCount == 0) {                        /* 没有子进程，或者已经清理完毕 */
         return 1;
+    }
+
+    if (pre->aliveChildCount > 0) {                         /* 还有子进程是存活的，父进程应该等待 */
+        if (options & WNOHANG) return 0;                    /* 如果进程表示不需要等待子进程，那么请直接回复结果 */
+        if (pid == -1) curr_mp->flags |= WAIT_F;            /* 父进程希望等待子进程完成 */
+        else if (mm_msg.STATUS == STATUS_NEED) curr_mp->flags |= WAITPID_STAT;
+        else curr_mp->flags |= WAITPID;
+        return WHANG;                                       /* 没有回复，让调用者等待 */
     }
 
     assert(pre->aliveChildCount >= 0);                      /* 理论上不会来到负数 */

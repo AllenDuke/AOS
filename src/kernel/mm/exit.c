@@ -45,7 +45,7 @@ PUBLIC int mm_do_exit(void) {
 
     int preLogicIndex = get_logicI(exit_proc->ppid);
     if (!is_ok_src_dest(preLogicIndex)) {
-        kprintf("{MM}->get a invalid pre addr logicIndex:%d.\n",preLogicIndex);
+        kprintf("{MM}->get a invalid pre addr logicIndex:%d.\n", preLogicIndex);
         assert(0);
     }
 
@@ -66,12 +66,22 @@ PUBLIC int mm_do_exit(void) {
     /**
      * 检查父进程是否在等待子进程退出，如果在等待，考虑解除父进程的
      * 等待状态，使父进程能继续运行。
+     *
      */
     wait_parent = &mmProcs[preLogicIndex];
     if (wait_parent->flags & WAITING) {         /* 父进程在等待退出进程 */
-        exit_cleanup(exit_proc);                /* 父亲已进入等待状态，子进程错过了收尸时间，自觉进行自我清理 */
-        wait_parent->aliveChildCount--;         /* 更新父进程存活的子进程数量 */
-        check_pre_wakeup(preLogicIndex);        /* 如果可以，就唤醒父亲 */
+        u8_t exitStat = exit_cleanup(exit_proc);/* 父亲已进入等待状态，子进程错过了收尸时间，自觉进行自我清理 */
+        wait_parent->aliveChildCount--;          /* 更新父进程存活的子进程数量 */
+        if (wait_parent->flags & WAITPID) {     /* 如果waitpid */
+            wait_parent->flags &= ~WAITING;     /* 直接解除父进程等待状态 */
+            mm_msg.type = SYSCALL_RET;
+            send(wait_parent->pid, &mm_msg);    /* 发送信息给退出进程的父进程 */
+        } else if (wait_parent->flags & WAITPID_STAT) {
+            wait_parent->flags &= ~WAITING;     /* 直接解除父进程等待状态 */
+            mm_msg.type = SYSCALL_RET;
+            mm_msg.STATUS = exitStat;
+            send(wait_parent->pid, &mm_msg);    /* 发送信息给退出进程的父进程 */
+        } else check_pre_wakeup(preLogicIndex); /* 尝试唤醒父亲 */
     } else {                                    /* 父进程并不等待 */
         exit_proc->flags = IN_USE | ZOMBIE;     /* 成为僵尸进程，等着被收尸 */
     }
@@ -80,21 +90,21 @@ PUBLIC int mm_do_exit(void) {
      * 寻找mm进程表，如果退出进程还存在子进程，那么设置这些子进程的父亲为起源进程，
      * 如果发现某个子进程已经exit，那么完成这些进程的退出工作。
      */
-    MMProcess *origin=&mmProcs[ORIGIN_PROC_NR];
+    MMProcess *origin = &mmProcs[ORIGIN_PROC_NR];
     MMProcess *tmp;
     for (tmp = &mmProcs[1]; tmp < &mmProcs[NR_PROCS]; tmp++) {
         if (tmp->ppid == exit_proc->pid) {          /* 空闲的进程的ppid为NO_TASK */
             tmp->ppid = ORIGIN_PID;
             origin->aliveChildCount++;                      /* origin白捡一儿子 */
-            kprintf("origin get son:%d.\n",tmp->pid);
+            kprintf("origin get son:%d.\n", tmp->pid);
 
-            if (origin->flags & WAITING) {                  /* origin正在等待子进程 */
+            if (origin->flags & WAITPID) {                  /* origin正在等待子进程 */
                 /* 刚得一儿子，却发现已经死了，含泪收尸。 */
                 if (exit_proc->flags & ZOMBIE) {
                     exit_cleanup(tmp);
-                    origin->aliveChildCount--;              /* 更新父进程存活的子进程数量 */
-                    check_pre_wakeup(ORIGIN_PROC_NR);       /* 如果可以，就唤醒父亲 */
-                }else kprintf("new son is not dead.\n");
+                    origin->aliveChildCount--;                   /* 更新父进程存活的子进程数量 */
+//                    check_pre_wakeup(ORIGIN_PROC_NR);       /* 如果可以，就唤醒父亲 */
+                } else kprintf("new son is not dead.\n");
             }
         }
     }
@@ -169,12 +179,13 @@ PUBLIC u8_t exit_cleanup(register MMProcess *exit_proc) {
 
     /* 释放进程槽位，减少计数 */
     exit_proc->flags = 0;           /* 重置状态 */
-    exit_proc->ppid=NO_TASK;        /* 重置父亲为NO_TASK */
+    exit_proc->ppid = NO_TASK;        /* 重置父亲为NO_TASK */
     proc_in_use--;
 
     return exit_proc->exit_status;
 }
 
+/* 检查WAIT_F状态的父进程 */
 PRIVATE void check_pre_wakeup(int preLogicIndex) {
     MMProcess *wait_parent = &mmProcs[preLogicIndex];
 //    kprintf("mm check pre:%d, child alive:%d.\n",preLogicIndex,wait_parent->aliveChildCount);

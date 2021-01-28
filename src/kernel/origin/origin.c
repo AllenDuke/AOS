@@ -26,8 +26,6 @@ void origin_task() {
     int fd_stdout = open("/dev_tty0", O_RDWR);
     assert(fd_stdout == 1);
 
-    int tmp_out = open("/tmp_out", O_RDWR);     /* 放到这里是免得每次都去打开，浪费时间 */
-
     HashTableNode hashTable[NR_CMD_TSIZE];      /* HashTable，冲突时线性探测，2倍是有想法的 */
 
     put("pwd", 3, pwd, hashTable);
@@ -38,6 +36,7 @@ void origin_task() {
     put("vi",2,vi,hashTable);
     put("rm",2,rm,hashTable);
     put("clear",5,clear,hashTable);
+    put("proc",4,proc,hashTable);
 
     printf("{ORIGIN}->origin_task is working...\n");
 
@@ -50,22 +49,19 @@ void origin_task() {
         cmdBuf[r] = 0;
         CmdResult cmdResult;
         split(&cmdResult, cmdBuf, r);
-        if (cmdResult.argv[cmdResult.argc - 1][0] == '&') {     /* 如果当前是后台运行，那么将输出到文件tmp_out */
-            cmdResult.argv[cmdResult.argc]=&tmp_out;            /* 最后加入tmp_out fd */
-            cmdResult.argc++;
-        }
         int pid = fork();
         if (pid == 0) {
             exec_cmd(&cmdResult, hashTable);
         } else {
             if(cmdResult.argv[cmdResult.argc-1][0]=='&'){
+                printf("child pid:%d.\n", pid);
                 printf("$ ");
                 continue;
             }
             unsigned char exitStat;
             printf("child pid:%d.\n", pid);
-//            waitpid_stat(pid, &exitStat);
-            wait();
+            waitpid_stat(pid, &exitStat);       /* 必定是origin先进入等待状态 */
+//            wait();
             printf("child (%d) exited with status: %d.\n", pid, exitStat);
             printf("$ ");
         }

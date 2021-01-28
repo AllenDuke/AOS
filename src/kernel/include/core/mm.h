@@ -29,14 +29,16 @@ typedef struct mm_process_s {
 
 /* 标志值 */
 #define IN_USE              0x001	/* 当进程插槽在使用时被设置 */
-#define WAITING             0x002	/* 当WAIT（等待）系统调用时被设置 */
+#define WAITPID             0x002	/* 当waitpid（等待）系统调用时被设置 */
 #define ZOMBIE              0x004	/* 当EXIT时被置位，当WAIT时被复位清除。 */
 #define PAUSED              0x008	/* set by PAUSE system call */
 #define ALARM_ON            0x010	/* set when SIGALRM timer started */
+#define WAITPID_STAT        0x020	/* 当waitpid_stat（等待）系统调用时被设置 */
 #define	TRACED		        0x040	/* set if process is to be traced */
 #define STOPPED		        0x080	/* 设置当进程停止跟踪调试 */
 #define SIG_SUSPENDED 	    0x100	/* 系统调用SIGSUSPEND */
-#define REPLY	 	        0x200	/* set if a reply message is pending */
+#define WAIT_F	 	        0x200	/* 当wait（等待）系统调用时被设置 */
+#define WAITING             0x222   /*  waiting状态*/
 #define ON_SWAP	 	        0x400	/* 数据段被换出 */
 #define SWAP_IN	 	        0x800	/* set if on the "swap this in" queue */
 
