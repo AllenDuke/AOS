@@ -33,10 +33,11 @@ HashTableNode *get(char *name, int cmdLen, HashTableNode tableNode[]);
 
 /* 分割解析cmdBuf后的结果 */
 typedef struct cmd_result_s {
-    char* cmd;              /* 命令的虚拟内存地址 */
+    char *cmd;              /* 命令的虚拟内存地址 */
     int cmdLen;             /* 命令的长度 */
     int argc;               /* 参数的数量 */
-    char* argv[NR_ARGC];    /* 存储各参数的虚拟内存地址 */
+    char *argv[NR_ARGC];    /* 存储各参数的虚拟内存地址 */
+    unsigned char level;    /* 执行该cmd进程的等级 */
 } CmdResult;
 
 int pwd(int argc, char *argv[]);

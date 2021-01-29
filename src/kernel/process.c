@@ -302,7 +302,7 @@ PRIVATE void hunter(void) {
 //    }
 }
 
-/* 进程调度 */
+/* 进程调度，时间片轮转算法 */
 PRIVATE void schedule(void) {
     /**
      * 这个调度程序只针对于用户进程
@@ -327,20 +327,36 @@ PRIVATE void schedule(void) {
     hunter();
 }
 
-/* 进程调度 */
+/* 进程调度，时间片轮转与高响应比结合 */
 PRIVATE void level_schedule(void) {
 
-    /* 如果没有准备好的用户进程，请返回 */
-    if (gp_readyHeads[USER_QUEUE] == NIL_PROC) return;
+    /* 如果没有准备好的其他用户进程，请返回。此时的就绪队列头部仍是当前被中断的用户进程 */
+    if (gp_readyHeads[USER_QUEUE]->p_nextReady == NIL_PROC) return;
 
-    /* 将队首的进程移到队尾 */
-    Process *p_tmp;
-    p_tmp = gp_readyHeads[USER_QUEUE]->p_nextReady;
-    gp_readyTails[USER_QUEUE]->p_nextReady = gp_readyHeads[USER_QUEUE];
-    gp_readyTails[USER_QUEUE] = gp_readyTails[USER_QUEUE]->p_nextReady;
-    gp_readyHeads[USER_QUEUE] = p_tmp;
-    gp_readyTails[USER_QUEUE]->p_nextReady = NIL_PROC;  /* 队尾没有后继进程 */
-    /* 汉特儿 */
+    Process *p_cur, *p_pre, *p_max, *p_maxPre;
+    float ratio, max;
+    p_max = p_pre = gp_readyHeads[USER_QUEUE];
+    max = p_max->wait / p_max->service;
+    p_maxPre = NIL_PROC;
+    p_cur = gp_readyHeads[USER_QUEUE]->p_nextReady;
+    while (p_cur != NIL_PROC) {                         /* 遍历就绪队列，找出响应比最高的进程 */
+        ratio = p_cur->wait / p_cur->service;
+        if (ratio > max) {
+            max = ratio;
+            p_max = p_cur;
+            p_maxPre = p_pre;
+        }
+        p_pre = p_cur;
+        p_cur = p_cur->p_nextReady;
+    }
+    if (p_max == gp_readyHeads[USER_QUEUE]) return;     /* 当前队头的响应比最高，不用调整 */
+
+    /* 把响应比最高的进程调整为队头 */
+    p_maxPre->p_nextReady = p_max->p_nextReady;
+    p_max->p_nextReady = gp_readyHeads[USER_QUEUE];
+    gp_readyHeads[USER_QUEUE] = p_max;
+
+    /* 切换进程 */
     hunter();
 }
 

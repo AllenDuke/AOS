@@ -153,11 +153,11 @@ PRIVATE int do_fork(int child_nr, int pre_nr, pid_t pid) {
     /* 清零子进程的时间记账信息 */
     child->userTime = child->sysTime = child->childUserTime = child->childSysTime = 0;
 
-//    child->level=mm_msg.LEVEL;
+    child->level=mm_msg.LEVEL;
 //    child->wait=0;
 //    child->service=child->level;
 
-//    kprintf("{MM}->child proc name:%s \n", child->name);
+//    kprintf("{MM}->child proc name:%s, level:%d.\n", child->name,child->level);
     return OK;  /* OK了 */
 }
 

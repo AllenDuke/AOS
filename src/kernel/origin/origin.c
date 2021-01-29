@@ -31,12 +31,12 @@ void origin_task() {
     put("pwd", 3, pwd, hashTable);
     put("date", 4, date, hashTable);
     put("echo", 4, echo, hashTable);
-    put("cat",3,cat,hashTable);
-    put("touch",5,touch,hashTable);
-    put("vi",2,vi,hashTable);
-    put("rm",2,rm,hashTable);
-    put("clear",5,clear,hashTable);
-    put("proc",4,proc,hashTable);
+    put("cat", 3, cat, hashTable);
+    put("touch", 5, touch, hashTable);
+    put("vi", 2, vi, hashTable);
+    put("rm", 2, rm, hashTable);
+    put("clear", 5, clear, hashTable);
+    put("proc", 4, proc, hashTable);
 
     printf("{ORIGIN}->origin_task is working...\n");
 
@@ -49,11 +49,11 @@ void origin_task() {
         cmdBuf[r] = 0;
         CmdResult cmdResult;
         split(&cmdResult, cmdBuf, r);
-        int pid = fork();
+        int pid = fork_level(cmdResult.level);
         if (pid == 0) {
             exec_cmd(&cmdResult, hashTable);
         } else {
-            if(cmdResult.argv[cmdResult.argc-1][0]=='&'){
+            if (cmdResult.argv[cmdResult.argc - 1][0] == '&') {
                 printf("child pid:%d.\n", pid);
                 printf("$ ");
                 continue;
@@ -110,7 +110,30 @@ PRIVATE void split(CmdResult *result, char *cmdBuf, int size) {
     result->cmd = cmdBuf + l;
     while (cmdBuf[r] != ' ' && r < size) r++;       /* 找到了命令的结尾 */
     result->cmdLen = r - l;
-    cmdBuf[r++] = 0;        /* 设置这个空格或者末尾位成为 0 */
+    cmdBuf[r++] = 0;                                /* 设置这个空格或者末尾位成为 0 */
+
+    int argL = r;                                   /* main函数的入参 */
+    unsigned char level = 1;                        /* 默认的level=1 */
+
+    while (cmdBuf[r] == ' ' && r < size) r++;       /* 跳过空格 */
+    /* 如果cmd输入的接下来的一个参数是-l且-l接着一个[1,5]的u8_t，那么它成为level，否则当它们是main函数的入参 */
+    if (r + 1 < size && cmdBuf[r] == '-' && cmdBuf[r + 1] == 'l') {
+        r += 2;
+        while (cmdBuf[r] == ' ' && r < size) r++;   /* 跳过空格 */
+        if (r < size) {
+            level = cmdBuf[r];
+            if (level >= '1' && level <= '5') {
+                level = level - '0';
+                argL = r + 1;   /* 这里才是main函数的入参起始 */
+//                printf("found -l %d.\n",result->level);
+            }
+        }
+//        printf("found -l.\n");
+    }
+
+    result->level = level;
+
+    r = argL;
 
     /* argv至少有一个参数，argv[0]为程序运行时的全限定名 */
     sprintf(result->argv[0], "/%s", result->cmd);

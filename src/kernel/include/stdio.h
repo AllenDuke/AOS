@@ -48,6 +48,7 @@ int waitpid(int pid);
 int waitpid_stat(int pid, unsigned char *status);
 int wait();
 int fork();
+int fork_level(unsigned char level);
 int exec(const char * path);
 int execl(const char *path, const char *arg, ...);
 int execv(const char *path, char * argv[]);
