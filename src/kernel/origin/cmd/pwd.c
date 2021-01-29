@@ -17,6 +17,7 @@ int pwd(int argc, char *argv[]) {
         return 0;
     }
 
+//    if(fork()==0)
     printf("/\n");
     return 0;
 }

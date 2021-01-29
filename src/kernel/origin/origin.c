@@ -8,7 +8,6 @@
  *
  * origin的数据尽量在栈上，否则fork后的子进程，访问的数据可能会有异常。所以origin的栈尽可能大一点。
  *
- * 嵌套fork会有问题。
  */
 #include "origin.h"
 #include "stdio.h"
