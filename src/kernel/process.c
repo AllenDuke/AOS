@@ -18,6 +18,8 @@ FORWARD void hunter(void);
 
 FORWARD void schedule(void);
 
+PRIVATE void level_schedule(void);
+
 /* 就绪一个进程 */
 PUBLIC void ready(register Process *p_proc) {
     if (is_task_proc(p_proc)) {
@@ -268,6 +270,7 @@ PUBLIC void lock_unready(Process *proc) {
 PUBLIC void lock_schedule(void) {
     switching = TRUE;
     schedule();
+//    level_schedule();
     switching = FALSE;
 }
 
@@ -287,7 +290,15 @@ PRIVATE void hunter(void) {
     }
     if ((prey = gp_readyHeads[USER_QUEUE]) != NIL_PROC) {
         gp_billProc = gp_curProc = prey;
+        gp_curProc->wait=0;             /* 到你了 */
+        gp_curProc->service--;          /* 得到了一次服务 */
 //        kprintf("%s hunter, eax:%d.\n", gp_curProc->name, gp_curProc->regs.eax);
+        Process *p_cur;
+        p_cur = gp_readyHeads[USER_QUEUE]->p_nextReady;
+        while (p_cur != NIL_PROC) {     /* 遍历队列，高响应比调度相关信息 */
+            p_cur->wait++;              /* 其他的要等待一次调度 */
+            p_cur = p_cur->p_nextReady;
+        }
         return;
     }
 
@@ -330,13 +341,16 @@ PRIVATE void schedule(void) {
 /* 进程调度，时间片轮转与高响应比结合 */
 PRIVATE void level_schedule(void) {
 
+    Process *head=gp_readyHeads[USER_QUEUE];
+    if(head->service==0) head->service=head->level;
+
     /* 如果没有准备好的其他用户进程，请返回。此时的就绪队列头部仍是当前被中断的用户进程 */
     if (gp_readyHeads[USER_QUEUE]->p_nextReady == NIL_PROC) return;
 
+    /* 必定要更换队头 */
     Process *p_cur, *p_pre, *p_max, *p_maxPre;
     float ratio, max;
-    p_max = p_pre = gp_readyHeads[USER_QUEUE];
-    max = p_max->wait / p_max->service;
+    max = 0;
     p_maxPre = NIL_PROC;
     p_cur = gp_readyHeads[USER_QUEUE]->p_nextReady;
     while (p_cur != NIL_PROC) {                         /* 遍历就绪队列，找出响应比最高的进程 */
@@ -349,14 +363,13 @@ PRIVATE void level_schedule(void) {
         p_pre = p_cur;
         p_cur = p_cur->p_nextReady;
     }
-    if (p_max == gp_readyHeads[USER_QUEUE]) return;     /* 当前队头的响应比最高，不用调整 */
 
     /* 把响应比最高的进程调整为队头 */
     p_maxPre->p_nextReady = p_max->p_nextReady;
     p_max->p_nextReady = gp_readyHeads[USER_QUEUE];
     gp_readyHeads[USER_QUEUE] = p_max;
 
-    /* 切换进程 */
+    /* 切换进程，高相应比信息的更新，在hunter中进行。 */
     hunter();
 }
 

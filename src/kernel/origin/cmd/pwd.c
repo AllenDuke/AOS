@@ -4,6 +4,7 @@
 
 #include "stdio.h"
 #include "../origin.h"
+#include "stdlib.h"
 
 int pwd(int argc, char *argv[]) {
     if (argv[argc - 1][0] == '&') {     /* 如果当前是后台运行，那么将输出到文件tmp_out */
