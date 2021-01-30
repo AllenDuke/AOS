@@ -275,11 +275,11 @@ PUBLIC void aos_park() {
 
 PUBLIC void aos_unpark(pid_t pid) {
     /* if the caller is a user process, then the pid must be >=0 */
-    if (gp_curProc->pid >= 0 && pid < 0) {/* 当前进程没有权限 */
-        kprintf("cur:%s, pid:%d\n", gp_curProc->name, pid);
-
-        panic("cur process can not able to unpark target process!", EACCES);
-    }
+//    if (gp_curProc->pid >= 0 && pid < 0) {/* 当前进程没有权限 */
+//        kprintf("cur:%s, pid:%d\n", gp_curProc->name, pid);
+//
+//        panic("cur process can not able to unpark target process!", EACCES);
+//    }
     int logicIndex=get_logicI(pid);
     int i = logic_nr_2_index(logicIndex);
     if (spinLocks[i] < 1) spinLocks[i]++;

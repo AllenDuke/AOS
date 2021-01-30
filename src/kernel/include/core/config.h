@@ -43,4 +43,6 @@
 
 //#define ENABLE_TEST /* 定义这个即开启测试 */
 
+//#define LEVEL_SCHEDULE  /* 定义这个将使用优化后的高响应比进程调度 */
+
 #endif //AOS_CONFIG_H

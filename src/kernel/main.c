@@ -212,9 +212,10 @@ PRIVATE void init_origin() {
     origin->pid = ORIGIN_PID;
     strcpy(origin->name, "origin");
 
-//    origin->level = 5;
-//    origin->wait = 0.0;
-//    origin->service = (float) origin->level;
-
+    origin->level = 5;
+#ifdef LEVEL_SCHEDULE
+    origin->wait = 0.0;
+    origin->service = (float) origin->level;
+#endif
     ready(origin);
 }

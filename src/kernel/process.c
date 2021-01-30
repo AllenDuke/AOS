@@ -269,8 +269,11 @@ PUBLIC void lock_unready(Process *proc) {
 
 PUBLIC void lock_schedule(void) {
     switching = TRUE;
+#ifdef LEVEL_SCHEDULE
+    level_schedule();
+#else
     schedule();
-//    level_schedule();
+#endif
     switching = FALSE;
 }
 
@@ -290,15 +293,17 @@ PRIVATE void hunter(void) {
     }
     if ((prey = gp_readyHeads[USER_QUEUE]) != NIL_PROC) {
         gp_billProc = gp_curProc = prey;
+        //        kprintf("%s hunter, eax:%d.\n", gp_curProc->name, gp_curProc->regs.eax);
+#ifdef LEVEL_SCHEDULE
         gp_curProc->wait=0;             /* 到你了 */
         gp_curProc->service--;          /* 得到了一次服务 */
-//        kprintf("%s hunter, eax:%d.\n", gp_curProc->name, gp_curProc->regs.eax);
         Process *p_cur;
         p_cur = gp_readyHeads[USER_QUEUE]->p_nextReady;
         while (p_cur != NIL_PROC) {     /* 遍历队列，高响应比调度相关信息 */
             p_cur->wait++;              /* 其他的要等待一次调度 */
             p_cur = p_cur->p_nextReady;
         }
+#endif
         return;
     }
 

@@ -46,9 +46,9 @@ PUBLIC int mm_do_fork(void) {
      * 如果要进行FORK操作的是起源进程，那么复制可以从内核的基地址（挂载点）开始，
      * 这样可以节约时间，因为内核挂载点前面的数据对于起源进程是没有用的。
      */
-    if(parent->pid==ORIGIN_PID){
-        phys_copy(kernel_base, child_base+kernel_base, parent->map.size-(kernel_limit+1));
-    } else{
+    if (parent->pid == ORIGIN_PID) {
+        phys_copy(kernel_base, child_base + kernel_base, parent->map.size - (kernel_limit + 1));
+    } else {
         phys_copy(parent->map.base, child_base, parent->map.size);
     }
 
@@ -68,7 +68,7 @@ PUBLIC int mm_do_fork(void) {
     *child = *parent;
     child->ppid = proc_addr(mm_who)->pid;     /* 不要忘了父亲是谁 */
     child->flags &= IN_USE;     /* 这个进程插槽已经被使用了，这很重要。 */
-    child->aliveChildCount=0;    /* 子进程还没有子 */
+    child->aliveChildCount = 0;    /* 子进程还没有子 */
 
     /* 为子进程找到一个可用的进程号，并将其放入进程表中 */
     do {
@@ -153,10 +153,11 @@ PRIVATE int do_fork(int child_nr, int pre_nr, pid_t pid) {
     /* 清零子进程的时间记账信息 */
     child->userTime = child->sysTime = child->childUserTime = child->childSysTime = 0;
 
-    child->level=mm_msg.LEVEL;
-//    child->wait=0;
-//    child->service=child->level;
-
+    child->level = mm_msg.LEVEL;
+#ifdef LEVEL_SCHEDULE
+    child->wait = 0.0;
+    child->service = (float) child->level;
+#endif
 //    kprintf("{MM}->child proc name:%s, level:%d.\n", child->name,child->level);
     return OK;  /* OK了 */
 }
