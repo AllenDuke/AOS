@@ -58,7 +58,8 @@ PUBLIC int mm_do_exit(void) {
     send_rec(FS_TASK, &msg2fs);
 
     /* 释放退出进程所占的内存 */
-    free(exit_proc->map.base >> PAGE_SHIFT, exit_proc->map.size >> PAGE_SHIFT);
+    free_page(exit_proc->map.base >> PAGE_SHIFT, exit_proc->map.size >> PAGE_SHIFT);
+    exit_proc->keep=0;
 
     /* 设置退出状态 */
     exit_proc->exit_status = exit_status;
@@ -180,6 +181,7 @@ PUBLIC u8_t exit_cleanup(register MMProcess *exit_proc) {
     /* 释放进程槽位，减少计数 */
     exit_proc->flags = 0;           /* 重置状态 */
     exit_proc->ppid = NO_TASK;        /* 重置父亲为NO_TASK */
+    strcpy(exit_proc->name, "none");
     proc_in_use--;
 
     return exit_proc->exit_status;

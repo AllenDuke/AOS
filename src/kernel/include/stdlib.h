@@ -21,4 +21,8 @@ void delay(unsigned long delay_ms);
 
 int get_alive_proc(char *pids);
 
+int dump_pm();
+
+unsigned int alloc(unsigned int applyPages);
+
 #endif //AOS_STDLIB_H

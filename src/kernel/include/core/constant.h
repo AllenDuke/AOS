@@ -251,7 +251,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 //----------------------------------------------------------------------------------------------------------------------
 //  mm，内存管理相关
 //----------------------------------------------------------------------------------------------------------------------
-#define PAGE_SIZE      8*1024            /* 分配内存的单位 8K */
+/* 分配内存的单位 8K */
 #define PAGE_SHIFT     13                /* 内存块位数，用于移位 */
 #define TREE_SIZE      256*1024*1024    /* 一个树大小256MB 从0到255 这里暂时定死  */
 #define NR_TREE_NODE   32*1024*2-1        /* 一颗树的节点数 */
@@ -373,7 +373,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 /* 滴答 转化为 秒 */
 #define tick2sec(t)         ((time_t)tick2ms(t) / 1000)
 /* 字节 转换为 KB */
-#define bytes2round_k(n)    ((unsigned) (((n + 512) >> 10)))
+#define bytes2round_k(n)    ((unsigned) (((n + 512) >> 10)))    /* 向上取整 */
 
 /* 为了消息通信调用的简洁 */
 #define sen(n)              send(n, NIL_MESSAGE)

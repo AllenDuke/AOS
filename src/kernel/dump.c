@@ -44,28 +44,6 @@ PUBLIC void dump_proc(void) {
     kprintf("\n");
 }
 
-/* 转储进程内存影响信息 */
-PUBLIC void dump_proc_map(void) {
-    /* 提供详细的内存使用信息。 */
-    register Process *target;
-    static Process *old_proc = cproc_addr(HARDWARE);
-    int n = 0;
-
-    kprintf("\nPROC  -NAME-  -----BASE-----  -SIZE-\n");
-    for (target = old_proc; target < END_PROC_ADDR; target++) {
-        if (is_empty_proc(target)) continue;    /* 空进程跳过 */
-        if (++n > 20) break;
-        kprintf("%3d %s  %12xB  %5uK\n",
-                target->pid,
-                target->name,
-                target->map.base,
-                bytes2round_k(target->map.size));
-    }
-    if (target == END_PROC_ADDR) target = cproc_addr(HARDWARE); else kprintf("--more--\r");
-    old_proc = target;
-    kprintf("\n");
-}
-
 /* 得到进程名字 */
 PRIVATE inline char *proc_name(int proc_nr) {
     if (proc_nr == ANY) return "ANY";

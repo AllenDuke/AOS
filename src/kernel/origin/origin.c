@@ -11,6 +11,7 @@
  */
 #include "origin.h"
 #include "stdio.h"
+#include "stdlib.h"
 
 PRIVATE void exec_cmd(CmdResult *result, HashTableNode hashTable[]);
 
@@ -37,6 +38,7 @@ void origin_task() {
     put("clear", 5, clear, hashTable);
     put("proc", 4, proc, hashTable);
     put("ps", 2, ps, hashTable);
+    put("top",3,top,hashTable);
 
     printf("{ORIGIN}->origin_task is working...\n");
 

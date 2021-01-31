@@ -38,7 +38,7 @@ PUBLIC int mm_do_fork(void) {
      * 先进行内存分配是为了防止内存不足导致失败可以没
      * 有任何后果，因为新的进程表项还没有进行分配。
      */
-    child_base = alloc(parent->map.size >> PAGE_SHIFT) << PAGE_SHIFT;
+    child_base = alloc_page(bytes2round_k(parent->map.size) >> 3) << PAGE_SHIFT;
     if (child_base == NO_MEM) return ENOMEM;     /* 空间分配失败... */
 //    kprintf("{MM}->childBase:%d, size:%d  \n", child_base, parent->map.size);
 
@@ -61,14 +61,14 @@ PUBLIC int mm_do_fork(void) {
     }
 
     /* 得到子进程索引号 */
-    child_nr = child - &mmProcs[0];  /* 得到子进程的进程索引号 */
+    child_nr = child - &mmProcs[0];             /* 得到子进程的进程索引号 */
 //    kprintf("{MM}->child logic index:%d \n", child_nr);
-    proc_in_use++;     /* 一个新的进程被使用了 */
+    proc_in_use++;                              /* 一个新的进程被使用了 */
     /* 设置子进程信息及其内存映像，子进程继承父进程的结构（MM中的） */
     *child = *parent;
-    child->ppid = proc_addr(mm_who)->pid;     /* 不要忘了父亲是谁 */
-    child->flags |= IN_USE;     /* 这个进程插槽已经被使用了，这很重要。 */
-    child->aliveChildCount = 0;    /* 子进程还没有子 */
+    child->ppid = proc_addr(mm_who)->pid;       /* 不要忘了父亲是谁 */
+    child->flags |= IN_USE;                     /* 这个进程插槽已经被使用了，这很重要。 */
+    child->aliveChildCount = 0;                 /* 子进程还没有子 */
 
     /* 为子进程找到一个可用的进程号，并将其放入进程表中 */
     do {
@@ -88,16 +88,19 @@ PUBLIC int mm_do_fork(void) {
                 break;  /* 结束这次查找 */
             }
         }
-        child->pid = nextPid;      /* 我们分配给子进程。 */
+        child->pid = nextPid;       /* 我们分配给子进程。 */
         nextPid++;
     } while (pid_in_use == TRUE);   /* 找到的进程号依然被使用，就继续 */
 
     /* 更新子进程的内存映像，子进程的正文段，数据段和堆栈段基址必须引用新分配的 */
     child->map.base = child_base;
     child->map.size = parent->map.size;
-    child->exit_status = 0;     /* 退出状态置位 */
+    child->keep = parent->keep;     /* todo 子进程同样要keep有内存，要做映射 */
+    child->exit_status = 0;         /* 退出状态置位 */
 
     do_fork(child_nr, mm_who, child->pid);
+
+    strcpy(child->name, proc_addr(child_nr)->name);
 
     /* tell FS, see fs_do_fork() */
     Message msg2fs;

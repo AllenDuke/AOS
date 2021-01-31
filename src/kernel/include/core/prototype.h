@@ -166,7 +166,6 @@ void rm_proc_from_waiters(Process* proc);
 //  dump.c
 //----------------------------------------------------------------------------------------------------------------------
 void dump_proc(void);
-void dump_proc_map(void);
 void dump_msg(const char *title, Message *m);
 //======================================================================================================================
 
@@ -237,8 +236,8 @@ int mm_do_wait(void);
 //  alloc.c
 //----------------------------------------------------------------------------------------------------------------------
 void mem_init(phys_page base, phys_page freePages);
-phys_page alloc(phys_page applyPages);
-void free(phys_page begin,phys_page size);
+phys_page alloc_page(phys_page applyPages);
+void free_page(phys_page begin,phys_page size);
 void mem_dump();
 //======================================================================================================================
 

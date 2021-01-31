@@ -25,6 +25,8 @@ typedef struct mm_process_s {
     u8_t aliveChildCount;           /* 存活的子进程的数量，在父fork时增加，子exit时减少 */
     pid_t ppid;                     /* 父进程的进程pid，空闲时为NO_TASK */
     u16_t flags;                    /* 标志 */
+    char name[32];
+    phys_page keep;                 /* 持有的页面数 */
 } MMProcess;
 
 /* 标志值 */

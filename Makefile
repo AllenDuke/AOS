@@ -69,6 +69,7 @@ KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/prote
                   $(tk)/read_write.o $(tk)/link.o $(tk)/fs_test.o $(tk)/tty_test.o $(tk)/exec.o \
                   $(tk)/misc.o $(tk)/origin.o $(tk)/hash.o $(tk)/pwd.o $(tk)/date.o $(tk)/echo.o \
                   $(tk)/cat.o $(tk)/touch.o $(tk)/vi.o $(tk)/clear.o $(tk)/rm.o $(tk)/proc.o $(tk)/ps.o \
+                  $(tk)/top.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LIB		        = $(l)/aos_lib.a
@@ -80,7 +81,7 @@ StdioObjs       = $(tl)/stdio/printf.o $(tl)/stdio/open.o $(tl)/stdio/close.o $(
 I386Objs        = $(tl)/i386/ipc/ipc.o
 StdlibObjs      = $(tl)/stdlib/get_time.o $(tl)/stdlib/change_console.o $(tl)/stdlib/clean_console.o \
                   $(tl)/stdlib/delay.o $(tl)/stdlib/get_pid.o $(tl)/stdlib/get_ppid.o \
-                  $(tl)/stdlib/get_alive_proc.o
+                  $(tl)/stdlib/get_alive_proc.o $(tl)/stdlib/dump_pm.o $(tl)/stdlib/alloc.o
 
 Objs            = $(KernelObjs) $(LibObjs)
 # ======================================================================================================================
@@ -313,6 +314,9 @@ $(tk)/proc.o: $(sk)/origin/cmd/proc.c
 
 $(tk)/ps.o: $(sk)/origin/cmd/ps.c
 	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/top.o: $(sk)/origin/cmd/top.c
+	$(CC) $(CFlags) -o $@ $<
 # ----------------------------------------------------------------------------------------------------------------------
 #   test
 # ----------------------------------------------------------------------------------------------------------------------
@@ -395,6 +399,12 @@ $(tl)/stdlib/clean_console.o: $(lstdlib)/clean_console.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tl)/stdlib/get_alive_proc.o: $(lstdlib)/get_alive_proc.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/stdlib/dump_pm.o: $(lstdlib)/dump_pm.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tl)/stdlib/alloc.o: $(lstdlib)/alloc.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tl)/stdlib/delay.o: $(lstdlib)/delay.asm

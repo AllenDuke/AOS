@@ -120,6 +120,8 @@ typedef struct message_s {
 #define CONSOLE         m2_i1
 #define LEVEL           m2_i1
 #define PIDS            m2_p1
+#define PAGE_ADDR       m2_i1
+#define PAGE_SIZE       m2_i2
 
 /* 任务回复消息中使用的消息字段名称。 */
 #define REPLY_PROC_NR   m2_i1       /* 代表I/O完成的进程索引号 */
@@ -154,7 +156,7 @@ enum msgtype {
     SUSPEND_PROC, RESUME_PROC,
 
     /* MM */
-    EXEC, WAIT, GET_PID, GET_PPID,GET_ALIVE_PROC,
+    EXEC, WAIT, GET_PID, GET_PPID, GET_ALIVE_PROC, ALLOC, FREE, TOP,
 
     /* FS & MM */
     FORK, EXIT,

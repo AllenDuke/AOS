@@ -5,6 +5,8 @@
 
 PRIVATE void mm_init();
 
+PRIVATE void dump_proc_map(void);
+
 /**
  * 一棵树管理 256 MB内存，一页8k，共有 32k个叶子节点，树高15，全部节点数为 64k-1个，占用空间约为 768KB
  * todo 修改为动态内存管理机制（当前假定内存为256MB） 一棵树管理 16MB，当一颗树用完时，复制出另外一个树管理接下来的16MB内存
@@ -69,7 +71,15 @@ PUBLIC void mm_task(void) {
                 }
                 break;
             }
-
+            case ALLOC:
+                mm_msg.PAGE_ADDR = alloc_page(mm_msg.PAGE_SIZE);
+                if(mm_msg.PAGE_ADDR!=NO_MEM) curr_mp->keep+=mm_msg.PAGE_SIZE;
+                break;
+            case FREE:
+                break;
+            case TOP:
+                dump_proc_map();
+                break;
             default:
                 dump_msg("{MM}->unknown msg: ", &mm_msg);
 //                assert(0);
@@ -95,6 +105,8 @@ PRIVATE void mm_init() {
     rmp->pid = ORIGIN_PID;
     rmp->ppid = NO_TASK;                /* origin没有父亲 */
     rmp->flags |= IN_USE;
+    strcpy(rmp->name, proc_addr(ORIGIN_PROC_NR)->name);
+
     /* 拿到该进程的内存映像，它很重要对于MM，这些信息用于FORK。 */
     get_mem_map(proc_nr, &rmp->map);
     proc_in_use = ORIGIN_PROC_NR + 1;   /* 有多少进程正在使用中？ */
@@ -110,7 +122,7 @@ PRIVATE void mm_init() {
 
     mem_init(0, totalPages);
     phys_page initCost = FREE_BASE >> PAGE_SHIFT; /* 初始时，认为FREE_BASE以下已被内核使用 */
-    alloc(initCost); /* 这里不能直接把宏当参数，这样入参会变成0 */
+    alloc_page(initCost); /* 这里不能直接把宏当参数，这样入参会变成0 */
 
     /* 得到剩余可用的空闲内存，总内存减去程序可以使用的空间即可 */
     phys_page freePages = totalPages - PROC_BASE_PAGE;
@@ -122,3 +134,19 @@ PRIVATE void mm_init() {
     in_outbox(&mm_msg, &mm_msg);
 }
 
+/* 转储进程内存影响信息 */
+PRIVATE void dump_proc_map(void) {
+    mem_dump();
+    /* 提供详细的内存使用信息。 */
+    register MMProcess *target;
+    kprintf("\nPROC  --------------NAME--------------  ----BASE----  ---SIZE---\n");
+    for (target = &mmProcs[ORIGIN_PROC_NR]; target < &mmProcs[NR_PROCS]; target++) {
+        if (!(target->flags & IN_USE)) continue;    /* 空进程跳过 */
+        kprintf("%3d  %30s  %12xB  %9uK\n",
+                target->pid,
+                target->name,
+                target->map.base,
+                bytes2round_k(target->map.size) + target->keep * 8);
+    }
+    kprintf("\n");
+}

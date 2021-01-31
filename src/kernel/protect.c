@@ -11,7 +11,7 @@
 PRIVATE GateDescriptor s_idt[IDT_SIZE];
 
 /* 中断门信息 */
-typedef struct gate_desc_s{
+typedef struct gate_desc_s {
     u8_t vector;            /* 中断向量号 */
     int_handler handler;  /* 处理例程，这相当于一个32位的函数指针 */
     u8_t privilege;         /* 门权限 */
@@ -21,53 +21,53 @@ typedef struct gate_desc_s{
 /* 中断门信息表 */
 GateInfo s_initGateInfos[] = {
         /* 暂时只考虑i386中的0~16号异常 */
-        {0x0,   divide_error,           KERNEL_PRIVILEGE},
-        {0x1,   debug_exception,        KERNEL_PRIVILEGE},
-        {0x2,   non_maskable_int,       KERNEL_PRIVILEGE},
-        {0x3,   break_point,            KERNEL_PRIVILEGE},
-        {0x4,   over_flow,              KERNEL_PRIVILEGE},
-        {0x5,   out_of_bounds,          KERNEL_PRIVILEGE},
-        {0x6,   invalid_opcode,         KERNEL_PRIVILEGE},
-        {0x7,   dev_not_available,      KERNEL_PRIVILEGE},
-        {0x8,   double_fault,           KERNEL_PRIVILEGE},
-        {0x9,   coop_proc_seg_oob,      KERNEL_PRIVILEGE},
-        {0xA,   invalid_tss,            KERNEL_PRIVILEGE},
-        {0xB,   segment_not_present,    KERNEL_PRIVILEGE},
-        {0xC,   stack_exception,        KERNEL_PRIVILEGE},
-        {0xD,   general_protection,     KERNEL_PRIVILEGE},
-        {0xE,   page_fault,             KERNEL_PRIVILEGE},
+        {0x0, divide_error, KERNEL_PRIVILEGE},
+        {0x1, debug_exception, KERNEL_PRIVILEGE},
+        {0x2, non_maskable_int, KERNEL_PRIVILEGE},
+        {0x3, break_point, KERNEL_PRIVILEGE},
+        {0x4, over_flow, KERNEL_PRIVILEGE},
+        {0x5, out_of_bounds, KERNEL_PRIVILEGE},
+        {0x6, invalid_opcode, KERNEL_PRIVILEGE},
+        {0x7, dev_not_available, KERNEL_PRIVILEGE},
+        {0x8, double_fault, KERNEL_PRIVILEGE},
+        {0x9, coop_proc_seg_oob, KERNEL_PRIVILEGE},
+        {0xA, invalid_tss, KERNEL_PRIVILEGE},
+        {0xB, segment_not_present, KERNEL_PRIVILEGE},
+        {0xC, stack_exception, KERNEL_PRIVILEGE},
+        {0xD, general_protection, KERNEL_PRIVILEGE},
+        {0xE, page_fault, KERNEL_PRIVILEGE},
         /* 中断向量号 0xF 为intel保留，未使用 */
-        {0x10,  math_fault,             KERNEL_PRIVILEGE},
+        {0x10, math_fault, KERNEL_PRIVILEGE},
         /* 17~19是80486后支持，20~31为intel保留，未使用 */
 
         /* 硬件中断 32~47 */
-        { INT_VECTOR_IRQ0 + 0, hwint00, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 1, hwint01, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 2, hwint02, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 3, hwint03, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 4, hwint04, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 5, hwint05, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 6, hwint06, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ0 + 7, hwint07, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 0, hwint08, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 1, hwint09, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 2, hwint10, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 3, hwint11, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 4, hwint12, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 5, hwint13, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 6, hwint14, KERNEL_PRIVILEGE },
-        { INT_VECTOR_IRQ8 + 7, hwint15, KERNEL_PRIVILEGE },
+        {INT_VECTOR_IRQ0 + 0, hwint00, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ0 + 1, hwint01, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ0 + 2, hwint02, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ0 + 3, hwint03, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ0 + 4, hwint04, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ0 + 5, hwint05, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ0 + 6, hwint06, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ0 + 7, hwint07, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ8 + 0, hwint08, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ8 + 1, hwint09, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ8 + 2, hwint10, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ8 + 3, hwint11, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ8 + 4, hwint12, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ8 + 5, hwint13, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ8 + 6, hwint14, KERNEL_PRIVILEGE},
+        {INT_VECTOR_IRQ8 + 7, hwint15, KERNEL_PRIVILEGE},
 
         /* ************* 软件中断 *************** */
-        {INT_VECTOR_LEVEL0,level0_sys_call,TASK_PRIVILEGE}, /* 提供给系统任务的系统调用：提权 */
-        { INT_VECTOR_PARK, park_sys_call, USER_PRIVILEGE },
-        { INT_VECTOR_UNPARK, unpark_sys_call, USER_PRIVILEGE },
-        { INT_VECTOR_DELAY, delay_sys_call, USER_PRIVILEGE },
-        { INT_VECTOR_SYS_CALL, aos_sys_call, USER_PRIVILEGE },
+        {INT_VECTOR_LEVEL0, level0_sys_call, TASK_PRIVILEGE}, /* 提供给系统任务的系统调用：提权 */
+        {INT_VECTOR_PARK, park_sys_call, USER_PRIVILEGE},
+        {INT_VECTOR_UNPARK, unpark_sys_call, USER_PRIVILEGE},
+        {INT_VECTOR_DELAY, delay_sys_call, USER_PRIVILEGE},
+        {INT_VECTOR_SYS_CALL, aos_sys_call, USER_PRIVILEGE},
 };
 
 /* 本地函数 */
-FORWARD void init_gate_desc (GateInfo *gateInfo, u8_t desc_type, GateDescriptor *p);
+FORWARD void init_gate_desc(GateInfo *gateInfo, u8_t desc_type, GateDescriptor *p);
 
 /* 保护模式初始化 */
 PUBLIC void init_protect(void) {
@@ -93,7 +93,8 @@ PUBLIC void init_protect(void) {
     *p_idt_limit = IDT_SIZE * sizeof(GateDescriptor) - 1;
     *p_idt_base = vir2phys(&s_idt);
     /* 初始化所有中断门描述符到 IDT中 */
-    for (GateInfo *p_gate = &s_initGateInfos[0]; p_gate < &s_initGateInfos[sizeof(s_initGateInfos)/sizeof(GateInfo)]; p_gate++) {
+    for (GateInfo *p_gate = &s_initGateInfos[0];
+         p_gate < &s_initGateInfos[sizeof(s_initGateInfos) / sizeof(GateInfo)]; p_gate++) {
         init_gate_desc(p_gate, DA_386IGate, &s_idt[p_gate->vector]);
     }
 
@@ -112,7 +113,7 @@ PUBLIC void init_protect(void) {
 
     /* 为每个进程分配唯一的 LDT */
     Process *proc = BEG_PROC_ADDR;
-    for(int ldtI = LDT_FIRST_INDEX; proc < END_PROC_ADDR; proc++, ldtI++) {
+    for (int ldtI = LDT_FIRST_INDEX; proc < END_PROC_ADDR; proc++, ldtI++) {
         memset(proc, 0, sizeof(Process)); /* clean */
         /* 每个进程的LDT指针作为一个描述符存放在GDT中 */
         init_segment_desc(&g_gdt[ldtI], vir2phys(proc->ldt), sizeof(proc->ldt) - 1, DA_LDT);
@@ -133,7 +134,7 @@ PUBLIC void init_segment_desc(SegDescriptor *p_desc, phys_addr base, u32_t limit
     p_desc->baseLow = base & 0x0FFFF;                                          /* 段基址 1    (2 字节) */
     p_desc->baseMiddle = (base >> 16) & 0x0FF;                                 /* 段基址 2    (1 字节) */
     p_desc->access = attribute & 0xFF;                                          /* 属性 1 */
-    p_desc->granularity = ((limit >> 16) & 0x0F) |((attribute >> 8) & 0xF0);    /* 段界限 2 + 属性 2 */
+    p_desc->granularity = ((limit >> 16) & 0x0F) | ((attribute >> 8) & 0xF0);    /* 段界限 2 + 属性 2 */
     p_desc->baseHigh = (base >> 24) & 0x0FF;                                   /* 段基址 3    (1 字节) */
 }
 

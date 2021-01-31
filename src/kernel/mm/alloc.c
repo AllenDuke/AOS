@@ -66,7 +66,7 @@ PRIVATE void init_recursively(int i,CardNode* cur,phys_page base, phys_page free
  * @param applyPages 申请页面数
  * @return 页面起始物理地址 | NO_MEM
  */
-PUBLIC phys_page alloc(phys_page applyPages) {
+PUBLIC phys_page alloc_page(phys_page applyPages) {
 //    kprintf("allocating:%d\n",applyPages);
     int i = alloc_mem(0, applyPages);
     if (i>=NR_TREE_NODE ) return NO_MEM;
@@ -82,7 +82,7 @@ PUBLIC phys_page alloc(phys_page applyPages) {
  * @param begin 要释放的内存的起始地址
  * @param size 要释放的内存的大小
  */
-PUBLIC void free(phys_page begin,phys_page size){
+PUBLIC void free_page(phys_page begin,phys_page size){
     if(begin<0||size<0) panic("mem free begin and size must be >=0\n",PANIC_ERR_NUM);
     size=to_one_bit(size);
     int i = find(begin,size);
@@ -198,5 +198,5 @@ PRIVATE int find(phys_page begin,phys_page size){
 
 
 PUBLIC void mem_dump(){
-    kprintf("totalPages:%d, freePages:%d\n",s_totalPages,s_freePages);
+    kprintf("{MM}->freePages:%d\n",s_freePages);
 }
