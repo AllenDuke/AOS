@@ -36,6 +36,7 @@ void origin_task() {
     put("rm", 2, rm, hashTable);
     put("clear", 5, clear, hashTable);
     put("proc", 4, proc, hashTable);
+    put("ps", 2, ps, hashTable);
 
     printf("{ORIGIN}->origin_task is working...\n");
 

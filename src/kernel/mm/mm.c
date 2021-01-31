@@ -57,6 +57,19 @@ PUBLIC void mm_task(void) {
             case GET_PPID:
                 mm_msg.PID = curr_mp->ppid;
                 break;
+            case GET_ALIVE_PROC: {                                 /* 返回存活的进程的pid */
+                char *pids = mm_msg.PIDS;                          /* 此时的pids是进程内的偏移量 */
+                pids = proc_vir2phys(proc_addr(mm_who), pids);  /* 换成物理地址 */
+//                kprintf("addr:%d\n",pids);
+                for (int i = 0; i < NR_PROCS; i++) {
+                    if (mmProcs[i].flags & IN_USE) {
+                        *pids = mmProcs[i].pid;
+                    } else *pids = -1;
+                    pids++;
+                }
+                break;
+            }
+
             default:
                 dump_msg("{MM}->unknown msg: ", &mm_msg);
 //                assert(0);

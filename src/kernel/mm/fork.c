@@ -67,7 +67,7 @@ PUBLIC int mm_do_fork(void) {
     /* 设置子进程信息及其内存映像，子进程继承父进程的结构（MM中的） */
     *child = *parent;
     child->ppid = proc_addr(mm_who)->pid;     /* 不要忘了父亲是谁 */
-    child->flags &= IN_USE;     /* 这个进程插槽已经被使用了，这很重要。 */
+    child->flags |= IN_USE;     /* 这个进程插槽已经被使用了，这很重要。 */
     child->aliveChildCount = 0;    /* 子进程还没有子 */
 
     /* 为子进程找到一个可用的进程号，并将其放入进程表中 */
