@@ -73,7 +73,7 @@ PUBLIC void mm_task(void) {
             }
             case ALLOC:
                 mm_msg.PAGE_ADDR = alloc_page(mm_msg.PAGE_SIZE);
-                if(mm_msg.PAGE_ADDR!=NO_MEM) curr_mp->keep+=mm_msg.PAGE_SIZE;
+                if (mm_msg.PAGE_ADDR != NO_MEM) curr_mp->keep += mm_msg.PAGE_SIZE;
                 break;
             case FREE:
                 break;
@@ -121,7 +121,7 @@ PRIVATE void mm_init() {
     phys_page totalPages = (256 * 1024) >> 3; /* todo 这里就假定 实际 是256MB */
 
     mem_init(0, totalPages);
-    phys_page initCost = FREE_BASE >> PAGE_SHIFT; /* 初始时，认为FREE_BASE以下已被内核使用 */
+    phys_page initCost = FREE_BASE >> PAGE_SHIFT;   /* 初始时，认为FREE_BASE以下已被内核使用 */
     alloc_page(initCost); /* 这里不能直接把宏当参数，这样入参会变成0 */
 
     /* 得到剩余可用的空闲内存，总内存减去程序可以使用的空间即可 */
@@ -136,11 +136,40 @@ PRIVATE void mm_init() {
 
 /* 转储进程内存影响信息 */
 PRIVATE void dump_proc_map(void) {
-    mem_dump();
-    /* 提供详细的内存使用信息。 */
     register MMProcess *target;
-    kprintf("\nPROC  --------------NAME--------------  ----BASE----  ---SIZE---\n");
+    MMProcess tmp[NR_PROCS];
+    int size = 0;
     for (target = &mmProcs[ORIGIN_PROC_NR]; target < &mmProcs[NR_PROCS]; target++) {
+        if (!(target->flags & IN_USE)) continue;    /* 空进程跳过 */
+        tmp[size++] = *target;
+    }
+
+    for (int i = 0; i < size; i++) {                /* 选择排序 */
+        int max = i;
+        for (int j = i + 1; j < size; j++) {
+            if (bytes2round_k(tmp[j].map.size) + tmp[j].keep >
+                bytes2round_k(tmp[max].map.size) + tmp[max].keep) {
+                max = j;
+                continue;
+            }
+            if (bytes2round_k(tmp[j].map.size) + tmp[j].keep <
+                bytes2round_k(tmp[max].map.size) + tmp[max].keep) {
+                continue;
+            }
+            if (tmp[j].pid < tmp[max].pid) {        /* 相等的时候 pid小的在前面 */
+                max = j;
+            }
+        }
+        if(max==i) continue;
+        MMProcess t=tmp[i];
+        tmp[i]=tmp[max];
+        tmp[max]=t;
+    }
+
+    mem_dump();
+
+    kprintf("\nPROC  --------------NAME--------------  ----BASE----  ---SIZE---\n");
+    for (target = &tmp[ORIGIN_PROC_NR]; target < &tmp[size]; target++) {
         if (!(target->flags & IN_USE)) continue;    /* 空进程跳过 */
         kprintf("%3d  %30s  %12xB  %9uK\n",
                 target->pid,
