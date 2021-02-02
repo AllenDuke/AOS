@@ -208,15 +208,16 @@ PUBLIC int aos_receive(Process *caller, int src, Message *p_msg) {
     register Process *sender, *prev;
 //    kprintf("caller:%s, src:%d \n",caller->name,src);
 
-    if (intMsgsSize > 0) /* 优先处理中断信息 */
+    if (intMsgsSize > 0)                    /* 优先处理中断信息 */
         for (int i = 0; i < intMsgsCapacity; ++i) {
-            if (intMsgs[i].to != caller->logicIndex) continue;
+            if (intMsgs[i].to != caller->pid) continue;
             caller->inBox->source = HARDWARE;
             caller->inBox->type = HARD_INT;
             caller->flags &= ~RECEIVING;
             caller->intBlocked = FALSE;
             intMsgsSize--;
-//            kprintf("%s handle a int msg\n",caller->name);
+            intMsgs[i].to=NO_TASK;
+            kprintf("%s handle a int msg\n",caller->name);
             return OK;
         }
 

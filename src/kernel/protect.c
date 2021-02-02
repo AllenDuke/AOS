@@ -69,6 +69,8 @@ GateInfo s_initGateInfos[] = {
 /* 本地函数 */
 FORWARD void init_gate_desc(GateInfo *gateInfo, u8_t desc_type, GateDescriptor *p);
 
+extern IntMsg intMsgs[100];
+
 /* 保护模式初始化 */
 PUBLIC void init_protect(void) {
 
@@ -118,6 +120,10 @@ PUBLIC void init_protect(void) {
         /* 每个进程的LDT指针作为一个描述符存放在GDT中 */
         init_segment_desc(&g_gdt[ldtI], vir2phys(proc->ldt), sizeof(proc->ldt) - 1, DA_LDT);
         proc->ldtSelector = ldtI * DESCRIPTOR_SIZE; /* 这里的ldtSelector是上面LDT指针在GDT中的偏移 */
+    }
+
+    for (int i = 0; i < 100; ++i) {
+        intMsgs[i].to=NO_TASK;
     }
 
 }

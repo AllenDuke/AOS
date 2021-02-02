@@ -3,6 +3,7 @@
 //
 
 #include "core/kernel.h"
+#include "stdio.h"
 
 PRIVATE clock_t ticks;                              /* 时钟运行的时间(滴答数)，也是开机后时钟运行的时间 */
 PRIVATE clock_t pending_ticks; /* 中断挂起的时间 */
@@ -86,13 +87,14 @@ PUBLIC void clock_task(void) {
                 break;
             default:
 //                kprintf("a bad clock request from pid:%d, type:%d\n",msg.source,msg.type);
-                dump_msg("{CLOCK}->get a bad clock request.",&msg);
+                dump_msg("{CLOCK}->get a bad clock request.", &msg);
 //                panic("#{CLOCK}-> Clock task got bad message request.\n", msg.source);
         }
-
-        /* 根据处理结果，发送回复消息 */
-        msg.type = OK;          /* 时钟驱动无可能失败的服务 */
-        sen(proc_addr(msg.source)->pid);    /* 回复 */
+        if (msg.type != HARD_INT) {
+            /* 根据处理结果，发送回复消息 */
+            msg.type = OK;          /* 时钟驱动无可能失败的服务 */
+            sen(proc_addr(msg.source)->pid);    /* 回复 */
+        }
     }
 }
 
@@ -185,13 +187,16 @@ PRIVATE int clock_handler(int irq) {
 //        kprintf("shut down delayAlarm.\n");
     }
 
-    if(is_user_proc(gp_billProc)) scheduleTicks--;
+    if (is_user_proc(gp_billProc)) scheduleTicks--;
 
     /* 用户进程调度时间到了？ */
-    if(scheduleTicks == 0 && gp_readyHeads[USER_QUEUE] != NIL_PROC) {
+    if (scheduleTicks == 0 && gp_readyHeads[USER_QUEUE] != NIL_PROC) {
         /* 重新调度 */
         lock_schedule();
         scheduleTicks = SCHEDULE_TICKS;         /* 调度时间计数重置 */
+        char buf[4];
+        sprintf(buf,"%d ",gp_curProc->pid);
+        memory2video_copy(buf,consoles[2].original_addr,7);
     }
     return ENABLE;  /* 返回ENABLE，使其再能发生时钟中断 */
 }
@@ -216,7 +221,7 @@ PRIVATE void clock_init(void) {
     get_rtc_time(&now);
     bootTime = mktime(&now);
     kprintf("{CLOCK}-> now is %d-%d-%d %d:%d:%d\n",
-           now.year, now.month, now.day, now.hour, now.minute, now.second);
+            now.year, now.month, now.day, now.hour, now.minute, now.second);
     kprintf("{CLOCK}-> boot startup time is %ld\n", bootTime);
 }
 
@@ -276,7 +281,7 @@ PRIVATE time_t mktime(RTCTime_t *p_time) {
  * 让时钟任务来调用本例程。
  */
 PRIVATE void do_clock_int(void) {
-    kprintf("i am clock int, hi brother!\n");
+
     nextAlarm = ULONG_MAX;
 }
 
@@ -286,7 +291,7 @@ PRIVATE void do_clock_int(void) {
  * 通过代价很大的消息传递去获取时间，但这个函数只允许系统任务调用，用户
  * 进程还是只能通过发送消息然后调用do_get_uptime的方式来获取。
  */
-PUBLIC clock_t clock_get_uptime(){
+PUBLIC clock_t clock_get_uptime() {
     clock_t uptime;
 
     interrupt_lock();
@@ -294,4 +299,3 @@ PUBLIC clock_t clock_get_uptime(){
     interrupt_unlock();
     return uptime;
 }
-

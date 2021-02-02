@@ -187,6 +187,7 @@ void init_screen(TTY* p_tty);
 void clear_console(Console *p_con);
 void select_console(int console_num);
 void scroll_screen(Console* p_con, int direction);
+void memory2video_copy(register u16_t *src, register unsigned int dest, unsigned int count);
 //======================================================================================================================
 
 

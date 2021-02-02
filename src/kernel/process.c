@@ -193,12 +193,12 @@ PUBLIC void interrupt(int task) {
             return;
         }
         int i = 0;
-        while (intMsgs[i].to == 0) i++; /* todo 更改0 */
+        while (intMsgs[i].to == NO_TASK) i++;
         intMsgs[i].to = p_target->pid;
         intMsgs[i].msg.source = HARDWARE;
         intMsgs[i].msg.type = HARD_INT;
         intMsgsSize++;
-        kprintf("int msg into queue.\n");
+        kprintf("int msg into queue. flag:%d\n",p_target->flags );
         return;
     }
 

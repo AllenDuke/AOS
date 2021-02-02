@@ -5,9 +5,6 @@
 #include "core/kernel.h"
 #include "../include/stdio.h"
 
-/*****************************************************************************
- *                                write
- *****************************************************************************/
 /**
  * Write to a file descriptor.
  *
@@ -17,14 +14,13 @@
  *
  * @return  On success, the number of bytes written are returned.
  *          On error, -1 is returned.
- *****************************************************************************/
-PUBLIC int write(int fd, const void *buf, int count)
-{
+ */
+PUBLIC int write(int fd, const void *buf, int count) {
     Message msg;
     msg.type = WRITE;
-    msg.FD   = fd;
-    msg.BUF  = (void*)buf;
-    msg.COUNT  = count;
+    msg.FD = fd;
+    msg.BUF = (void *) buf;
+    msg.COUNT = count;
 
     send_rec(FS_TASK, &msg);
 

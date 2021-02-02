@@ -65,8 +65,13 @@ PUBLIC void fs_task(void) {
             case STAT:
                 fs_msg.RETVAL = do_stat();
                 break;
+            case SYN_PROC_LOG:
+                do_rdwt();
+                fs_msg.type=SUSPEND_PROC;
+                kprintf("syn done\n");
+                break;
             default:
-                dump_msg("{FS}->unknown message:%s\n", &fs_msg);
+                dump_msg("{FS}->unknown message:\n", &fs_msg);
         }
 
         /* reply */

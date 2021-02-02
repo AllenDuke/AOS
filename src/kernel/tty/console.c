@@ -9,8 +9,6 @@ PRIVATE void set_video_start_addr(u32_t addr);
 
 PRIVATE void flush(Console *p_con);
 
-PRIVATE void memory2video_copy(register u16_t *src, register unsigned int dest, unsigned int count);
-
 PUBLIC void out_char(Console *p_con, char ch) {
     u8_t *p_vmem = (u8_t *) (V_MEM_BASE + p_con->cursor * 2);
 
@@ -111,7 +109,7 @@ PUBLIC void scroll_screen(Console *p_con, int direction) {
  * @param dest 目标，是显存中的相对位置
  * @param count 要复制多少个字？
  */
-PRIVATE void memory2video_copy(register u16_t *src, register unsigned int dest, unsigned int count) {
+PUBLIC void memory2video_copy(register u16_t *src, register unsigned int dest, unsigned int count) {
     /* 将一个字串（不是字符串）从核心的内存区域拷贝到视频显示器的存储器中（通俗讲就是显存）。
      * 该字串中包含替换字符码和若干属性字节 *
      */

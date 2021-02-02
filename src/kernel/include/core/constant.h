@@ -111,23 +111,27 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 //  时钟中断相关
 //----------------------------------------------------------------------------------------------------------------------
 /* 时钟, 8253 / 8254 PIT (可编程间隔定时器)参数 */
-#define HZ                100        /* 时钟频率，即时钟一秒可以发出几次中断 */
+#define HZ              100     /* 时钟频率，即时钟一秒可以发出几次中断 */
 
 #define TIMER0          0x40    /* 定时器通道0的I/O端口 */
 #define TIMER1          0x41    /* 定时器通道1的I/O端口 */
 #define TIMER2          0x42    /* 定时器通道2的I/O端口 */
 #define TIMER_MODE      0x43    /* 用于定时器模式控制的I/O端口 */
 
-#define RATE_GENERATOR            0x34                    /* 00-11-010-0 Counter0 - LSB the MSB - rate generator - binary */
-#define TIMER_FREQ                1193182L                /* clock frequency for timer in PC and AT */
+#define RATE_GENERATOR          0x34                    /* 00-11-010-0 Counter0 - LSB the MSB - rate generator - binary */
+#define TIMER_FREQ              1193182L                /* clock frequency for timer in PC and AT */
 #define TIMER_COUNT             (TIMER_FREQ / HZ)       /* initial value for counter*/
 
-#define CLOCK_ACK_BIT            0x80                    /* PS/2 clock interrupt acknowledge bit */
+#define CLOCK_ACK_BIT           0x80                    /* PS/2 clock interrupt acknowledge bit */
 
 #define ONE_TICK_MILLISECOND    (1000 / HZ)             /* 一次滴答（中断）有多少毫秒，这个值由时钟频率决定 */
 
 /* 用户进程使用时间片轮转算法，这里可以对轮转时间进行配置 */
-#define SCHEDULE_MILLISECOND    100                     /* 用户进程调度的频率（毫秒），根据喜好设置就行 */
+#ifdef LEVEL_SCHEDULE
+#define SCHEDULE_MILLISECOND    1000                     /* 用户进程调度的频率（毫秒），1s是便于观察 */
+#else   //todo 似乎是模拟器有问题，10000才是1s
+#define SCHEDULE_MILLISECOND    10000
+#endif
 #define SCHEDULE_TICKS          (SCHEDULE_MILLISECOND / ONE_TICK_MILLISECOND)  /* 用户进程调度的频率（滴答） */
 
 #define MINUTES                 60                    /* 1 分钟的秒数。 */
@@ -233,7 +237,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define CRTC_DATA_IDX_CURSOR_L        0xF        /* register index of cursor position (LSB) */
 #define V_MEM_BASE                    0xB8000    /* base of color video memory */
 #define V_MEM_SIZE                    0x8000    /* 32K: B8000H -> BFFFFH */
-#define BLANK_COLOR     0x0700	        /* 确定光标在空白屏幕上的颜色 */
+#define BLANK_COLOR     0x0700            /* 确定光标在空白屏幕上的颜色 */
 //======================================================================================================================
 
 
@@ -362,7 +366,7 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define MIN(a, b)   ((a) < (b) ? (a) : (b))
 
 /* 将内核空间中的虚拟地址转换为物理地址。其实这里的内核数据段基址还是0 */
-#define    vir2phys(addr)      ((phys_addr)(KERNEL_DATA_SEG_BASE + (vir_addr)(addr)))
+#define vir2phys(addr)      ((phys_addr)(KERNEL_DATA_SEG_BASE + (vir_addr)(addr)))
 
 #define sec2ms(s)           (s * 1000)                          /* 秒 转化为 毫秒 */
 #define tick2ms(t)          (t * ONE_TICK_MILLISECOND)          /* 滴答 转换为 毫秒 */

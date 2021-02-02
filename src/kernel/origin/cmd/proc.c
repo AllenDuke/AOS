@@ -9,8 +9,7 @@
 int proc(int argc, char *argv[]) {
     alloc(1);
     if (argv[argc - 1][0] == '&') {     /* 如果当前是后台运行，那么将输出到文件tmp_out */
-//        printf("proc running...\n");
-        while (TRUE){
+        while (TRUE) {
 
         };
     }
