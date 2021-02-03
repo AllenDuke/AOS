@@ -198,7 +198,7 @@ PUBLIC void interrupt(int task) {
         intMsgs[i].msg.source = HARDWARE;
         intMsgs[i].msg.type = HARD_INT;
         intMsgsSize++;
-        kprintf("int msg into queue. flag:%d\n",p_target->flags );
+        kprintf("int msg into queue. flag:%d\n", p_target->flags);
         return;
     }
 
@@ -277,7 +277,7 @@ PUBLIC void lock_schedule(void) {
     switching = FALSE;
 }
 
-/* 狩猎一个进程用于下次执行 */
+/* todo 进程调度是很频繁的，要减少运算量 */
 PRIVATE void hunter(void) {
 
     /* 从进程表中抓出一个作为下次运行的进程 */
@@ -293,10 +293,12 @@ PRIVATE void hunter(void) {
     }
     if ((prey = gp_readyHeads[USER_QUEUE]) != NIL_PROC) {
         gp_billProc = gp_curProc = prey;
-        //        kprintf("%s hunter, eax:%d.\n", gp_curProc->name, gp_curProc->regs.eax);
+//                kprintf("%s hunter.\n", gp_curProc->name);
 #ifdef LEVEL_SCHEDULE
-        gp_curProc->wait=0;             /* 到你了 */
-        gp_curProc->service--;          /* 得到了一次服务 */
+        gp_curProc->wait = 0;               /* 到你了 */
+        gp_curProc->service--;              /* 得到了一次服务 */
+        if (gp_curProc->service == 0)       /* 如果能撑到发生调度，说明它还要继续存活，不能延迟到level_schedule才计算 */
+            gp_curProc->service = gp_curProc->level;
         Process *p_cur;
         p_cur = gp_readyHeads[USER_QUEUE]->p_nextReady;
         while (p_cur != NIL_PROC) {     /* 遍历队列，高响应比调度相关信息 */
@@ -346,22 +348,26 @@ PRIVATE void schedule(void) {
 /* 进程调度，时间片轮转与高响应比结合 */
 PRIVATE void level_schedule(void) {
 
-    Process *head=gp_readyHeads[USER_QUEUE];
-    if(head->service==0) head->service=head->level;
-
     /* 如果没有准备好的其他用户进程，请返回。此时的就绪队列头部仍是当前被中断的用户进程 */
     if (gp_readyHeads[USER_QUEUE]->p_nextReady == NIL_PROC) return;
 
     /* 必定要更换队头 */
     Process *p_cur, *p_pre, *p_max, *p_maxPre;
-    float ratio, max;
-    max = 0;
-    p_maxPre = NIL_PROC;
+    int rInteger, rDecimal;                     /* 因为模拟器的FPU异常，所以通过最小公倍数，换算成两个整数来比较 */
+    int rMaxInteger = 0, rMaxDecimal = 0;
+    p_pre = gp_readyHeads[USER_QUEUE];
     p_cur = gp_readyHeads[USER_QUEUE]->p_nextReady;
-    while (p_cur != NIL_PROC) {                         /* 遍历就绪队列，找出响应比最高的进程 */
-        ratio = p_cur->wait / p_cur->service;
-        if (ratio > max) {
-            max = ratio;
+    int mul;
+    int wait;
+    while (p_cur != NIL_PROC) {                 /* 遍历就绪队列，找出响应比最高的进程 */
+        mul = LEAST_COMMON_MULTIPLE_LEVEL / p_cur->service;
+        wait = p_cur->wait * mul;
+        rInteger = wait / LEAST_COMMON_MULTIPLE_LEVEL;
+        rDecimal = wait % LEAST_COMMON_MULTIPLE_LEVEL;
+//        kprintf("pid:%d wait:%d rI:%d rD:%d\n", p_cur->pid, wait, rInteger, rDecimal);
+        if (rInteger > rMaxInteger || (rInteger == rMaxInteger && rDecimal > rMaxDecimal)) {
+            rMaxInteger = rInteger;
+            rMaxDecimal = rDecimal;
             p_max = p_cur;
             p_maxPre = p_pre;
         }

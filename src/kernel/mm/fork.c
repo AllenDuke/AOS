@@ -158,8 +158,8 @@ PRIVATE int do_fork(int child_nr, int pre_nr, pid_t pid) {
 
     child->level = mm_msg.LEVEL;
 #ifdef LEVEL_SCHEDULE
-    child->wait = 0.0;
-    child->service = (float) child->level;
+    child->wait = 0;
+    child->service = child->level;
 #endif
 //    kprintf("{MM}->child proc name:%s, level:%d.\n", child->name,child->level);
     return OK;  /* OK了 */

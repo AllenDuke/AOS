@@ -24,7 +24,7 @@ PUBLIC int fork() {
 }
 
 PUBLIC int fork_level(u8_t level) {
-    if (level < 1 || level > 5) return -1;
+    if (level < 1 || level > MAX_LEVEL) return -1;
 
     Message msg;
     msg.type = FORK;
