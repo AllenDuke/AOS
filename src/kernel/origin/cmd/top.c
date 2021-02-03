@@ -6,7 +6,7 @@
 #include "stdlib.h"
 #include "../origin.h"
 
-/* 打印当前存活的用户进程 */
+/* 动态显示当前存活的用户进程 */
 int top(int argc, char *argv[]) {
     int fd_stdin = open("/dev_tty2", O_RDWR);
     change_console(2);

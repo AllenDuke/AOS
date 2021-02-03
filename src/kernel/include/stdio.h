@@ -34,23 +34,43 @@ struct stat {
 };
 
 int printf(const char *fmt, ...);
+
 int sprintf(char *buf, const char *fmt, ...);
-int pprintf(int fd,const char *fmt, ...);
+
+int pprintf(int fd, const char *fmt, ...);
 
 void exit(int status);
+
 int open(const char *pathname, int flags);
+
 int close(int fd);
+
 int read(int fd, void *buf, int count);
+
 int write(int fd, const void *buf, int count);
+
 int stat(const char *path, struct stat *buf);
+
 int unlink(const char *pathname);
+
 int waitpid(int pid);
+
 int waitpid_stat(int pid, unsigned char *status);
+
 int wait();
+
 int fork();
+
 int fork_level(unsigned char level);
-int exec(const char * path);
+
+int exec(const char *path);
+
 int execl(const char *path, const char *arg, ...);
-int execv(const char *path, char * argv[]);
+
+int execv(const char *path, char *argv[]);
+
 int unlink(const char *pathname);
+
+int kill_proc(int pid);
+
 #endif //AOS_STDIO_H

@@ -82,6 +82,15 @@ PUBLIC void mm_task(void) {
             case TOP:
                 dump_proc_map();
                 break;
+            case KILL: {
+                int t = mm_who;
+                mm_who=get_logicI(mm_msg.PID);
+                curr_mp=&mmProcs[mm_who];
+                mm_do_exit();
+                mm_who=t;
+                curr_mp=&mmProcs[mm_who];
+            }
+                break;
             default:
                 dump_msg("{MM}->unknown msg: ", &mm_msg);
 //                assert(0);
