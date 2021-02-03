@@ -18,7 +18,7 @@ typedef struct s_console
 #define SCROLL_SCREEN_UP	    1  	    /* scroll forward */
 #define SCROLL_SCREEN_DOWN      -1      /* scroll backward */
 
-#define BLANK_MEM       ((u16_t *) 0)	/* 告诉mem vid copy()清空屏幕 */
+#define BLANK_MEM       ((u8_t *) 0)	/* 告诉mem vid copy()清空屏幕 */
 
 #define SCREEN_SIZE		    (80 * 25)   /* 一屏25行，一行80个字符 */
 #define SCREEN_WIDTH		80          /* 一行80个字符 */

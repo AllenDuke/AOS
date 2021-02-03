@@ -2,16 +2,18 @@
 // Created by 杜科 on 2020/12/23.
 //
 #include "core/kernel.h"
+#include "stdio.h"
 
 PRIVATE void mm_init();
-
-PRIVATE void dump_proc_map(void);
 
 /**
  * 一棵树管理 256 MB内存，一页8k，共有 32k个叶子节点，树高15，全部节点数为 64k-1个，占用空间约为 768KB
  * todo 修改为动态内存管理机制（当前假定内存为256MB） 一棵树管理 16MB，当一颗树用完时，复制出另外一个树管理接下来的16MB内存
  */
 PUBLIC CardNode nodes[NR_TREE_NODE]; //todo 这个若是定义在alloc中会触发GP异常，具体原因暂时搞不懂
+
+extern phys_page s_availablePages;
+extern phys_page s_freePages;
 
 Message mm_msg;
 u8_t *mmbuf = (u8_t *) 0xA00000; /* 10M~11M用于mm */
@@ -123,6 +125,7 @@ PRIVATE void mm_init() {
     mem_init(0, totalPages);
     phys_page initCost = FREE_BASE >> PAGE_SHIFT;   /* 初始时，认为FREE_BASE以下已被内核使用 */
     alloc_page(initCost); /* 这里不能直接把宏当参数，这样入参会变成0 */
+    s_availablePages = s_freePages;
 
     /* 得到剩余可用的空闲内存，总内存减去程序可以使用的空间即可 */
     phys_page freePages = totalPages - PROC_BASE_PAGE;
@@ -134,48 +137,69 @@ PRIVATE void mm_init() {
     in_outbox(&mm_msg, &mm_msg);
 }
 
+//MMProcess tmp[NR_PROCS];
+
 /* 转储进程内存影响信息 */
-PRIVATE void dump_proc_map(void) {
+PUBLIC void dump_proc_map(void) {
     register MMProcess *target;
-    MMProcess tmp[NR_PROCS];
-    int size = 0;
+    int size;
+//    for (target = &mmProcs[ORIGIN_PROC_NR]; target < &mmProcs[NR_PROCS]; target++) {
+//        if (!(target->flags & IN_USE)) continue;    /* 空进程跳过 */
+//        tmp[size++] = *target;
+//    }
+
+//    MMProcess t ;
+//    t = tmp[gp_curProc->logicIndex];                             /* 最前面的是当前运行的进程 */
+//    tmp[0] = tmp[mm_who];
+//    tmp[mm_who] = t;
+
+//    for (int i = 1; i < size; i++) {                /* 选择排序 */
+//        int max = i;
+//        for (int j = i + 1; j < size; j++) {
+//            if (bytes2round_k(tmp[j].map.size) + tmp[j].keep >
+//                bytes2round_k(tmp[max].map.size) + tmp[max].keep) {
+//                max = j;
+//                continue;
+//            }
+//            if (bytes2round_k(tmp[j].map.size) + tmp[j].keep <
+//                bytes2round_k(tmp[max].map.size) + tmp[max].keep) {
+//                continue;
+//            }
+//            if (tmp[j].pid < tmp[max].pid) {        /* 相等的时候 pid小的在前面 */
+//                max = j;
+//            }
+//        }
+//        if (max == i) continue;
+//        t = tmp[i];
+//        tmp[i] = tmp[max];
+//        tmp[max] = t;
+//    }
+
+    int line = 0;
+    char buf[80];
+    size = sprintf(buf, "availablePages:%d, freePages:%d, curPid:%d", s_availablePages, s_freePages, gp_curProc->pid);
+
+    memory2video_copy(buf, consoles[2].original_addr, size);
+    memory2video_copy("PROC  --------------NAME--------------  ----BASE----  ---SIZE---",
+                      consoles[2].original_addr + 80, 64);
+    target = &mmProcs[gp_curProc->logicIndex];
+    memset(buf, 0, 80);
+    size = sprintf(buf, "%3d  %30s  %12xB  %9uKB",
+                   target->pid,
+                   target->name,
+                   target->map.base,
+                   bytes2round_k(target->map.size) + target->keep * 8);
+    memory2video_copy(buf, consoles[2].original_addr + 160, size);
+    line += 3;
     for (target = &mmProcs[ORIGIN_PROC_NR]; target < &mmProcs[NR_PROCS]; target++) {
-        if (!(target->flags & IN_USE)) continue;    /* 空进程跳过 */
-        tmp[size++] = *target;
+        if (!(target->flags & IN_USE) || target->pid == gp_curProc->pid) continue;    /* 空进程跳过 */
+        memset(buf, 0, 80);
+        size = sprintf(buf, "%3d  %30s  %12xB  %9uKB",
+                       target->pid,
+                       target->name,
+                       target->map.base,
+                       bytes2round_k(target->map.size) + target->keep * 8);
+        memory2video_copy(buf, consoles[2].original_addr + 80 * line, size);
+        line++;
     }
-
-    for (int i = 0; i < size; i++) {                /* 选择排序 */
-        int max = i;
-        for (int j = i + 1; j < size; j++) {
-            if (bytes2round_k(tmp[j].map.size) + tmp[j].keep >
-                bytes2round_k(tmp[max].map.size) + tmp[max].keep) {
-                max = j;
-                continue;
-            }
-            if (bytes2round_k(tmp[j].map.size) + tmp[j].keep <
-                bytes2round_k(tmp[max].map.size) + tmp[max].keep) {
-                continue;
-            }
-            if (tmp[j].pid < tmp[max].pid) {        /* 相等的时候 pid小的在前面 */
-                max = j;
-            }
-        }
-        if(max==i) continue;
-        MMProcess t=tmp[i];
-        tmp[i]=tmp[max];
-        tmp[max]=t;
-    }
-
-    mem_dump();
-
-    kprintf("\nPROC  --------------NAME--------------  ----BASE----  ---SIZE---\n");
-    for (target = &tmp[ORIGIN_PROC_NR]; target < &tmp[size]; target++) {
-        if (!(target->flags & IN_USE)) continue;    /* 空进程跳过 */
-        kprintf("%3d  %30s  %12xB  %9uK\n",
-                target->pid,
-                target->name,
-                target->map.base,
-                bytes2round_k(target->map.size) + target->keep * 8);
-    }
-    kprintf("\n");
 }

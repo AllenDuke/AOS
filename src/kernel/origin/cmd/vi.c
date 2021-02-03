@@ -26,7 +26,7 @@ int vi(int argc, char *argv[]) {
 
     int fd_stdin = open("/dev_tty1", O_RDWR);
     int fd_stdout = open("/dev_tty1", O_RDWR);
-    chang_console(1);       /* 这里仍要切换，因为tty任务处理的当前屏幕 */
+    change_console(1);       /* 这里仍要切换，因为tty任务处理的当前屏幕 */
 
     clean_console();           /* 清屏 */
 
@@ -52,7 +52,7 @@ int vi(int argc, char *argv[]) {
     close(fd_stdin);
     close(fd_stdout);
 
-    chang_console(0);
+    change_console(0);
 
     printf("writen:%d.\n", c);
     return 0;

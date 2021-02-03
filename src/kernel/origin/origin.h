@@ -62,6 +62,4 @@ int ps(int argc, char *argv[]);
 
 int top(int argc, char *argv[]);
 
-int check_proc (int argc, char *argv[]);
-
 #endif //AOS_ORIGIN_H

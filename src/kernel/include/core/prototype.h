@@ -187,7 +187,7 @@ void init_screen(TTY* p_tty);
 void clear_console(Console *p_con);
 void select_console(int console_num);
 void scroll_screen(Console* p_con, int direction);
-void memory2video_copy(register u16_t *src, register unsigned int dest, unsigned int count);
+void memory2video_copy(register u8_t *src, register unsigned int dest, unsigned int count);
 //======================================================================================================================
 
 
@@ -229,6 +229,7 @@ int mm_do_fork(void);
 int mm_do_exit(void);
 int mm_do_exec();
 int mm_do_wait(void);
+void dump_proc_map(void);
 //======================================================================================================================
 
 

@@ -109,11 +109,11 @@ PUBLIC void scroll_screen(Console *p_con, int direction) {
  * @param dest 目标，是显存中的相对位置
  * @param count 要复制多少个字？
  */
-PUBLIC void memory2video_copy(register u16_t *src, register unsigned int dest, unsigned int count) {
+PUBLIC void memory2video_copy(register u8_t *src, register unsigned int dest, unsigned int count) {
     /* 将一个字串（不是字符串）从核心的内存区域拷贝到视频显示器的存储器中（通俗讲就是显存）。
      * 该字串中包含替换字符码和若干属性字节 *
      */
-    u16_t *video_memory = (u16_t *) (V_MEM_BASE + dest * 2);  /* 得到目标显存 todo 为什么是*2 */
+    u8_t *video_memory = (u8_t *) (V_MEM_BASE + dest * 2);  /* 得到目标显存 todo 为什么是*2 */
     unsigned int i = 0;
 
     /* 如果字串是BLANK_MEM，执行清空整个屏幕空间 */
@@ -125,8 +125,8 @@ PUBLIC void memory2video_copy(register u16_t *src, register unsigned int dest, u
         }
     } else {                            /* 移动src字串到显存，从dest相对位置开始，复制count个字 */
         while (count != 0) {             /* 只要count != 0，一直复制 */
-            *video_memory = src[i];
-            video_memory++;
+            *video_memory++ = src[i];
+            *video_memory++ = DEFAULT_CHAR_COLOR;
             i++;
             count--;
         }

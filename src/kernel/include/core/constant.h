@@ -127,8 +127,8 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 #define ONE_TICK_MILLISECOND    (1000 / HZ)             /* 一次滴答（中断）有多少毫秒，这个值由时钟频率决定 */
 
 /* 用户进程使用时间片轮转算法，这里可以对轮转时间进行配置 */
-#ifdef LEVEL_SCHEDULE
-#define SCHEDULE_MILLISECOND    1000                     /* 用户进程调度的频率（毫秒），1s是便于观察 */
+#ifdef LEVEL_SCHEDULE   //todo vbox好像也有问题 fix
+#define SCHEDULE_MILLISECOND    10000                     /* 用户进程调度的频率（毫秒），1s是便于观察 */
 #else   //todo 似乎是模拟器有问题，10000才是1s
 #define SCHEDULE_MILLISECOND    10000
 #endif

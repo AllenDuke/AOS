@@ -4,7 +4,7 @@
 
 #include "core/kernel.h"
 
-PUBLIC int chang_console(int n) {
+PUBLIC int change_console(int n) {
     if (n < 0 || n > NR_CONSOLES) return -1;
 
     Message msg;

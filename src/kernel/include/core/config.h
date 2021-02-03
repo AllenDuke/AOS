@@ -43,6 +43,6 @@
 
 //#define ENABLE_TEST /* 定义这个即开启测试 */
 
-//#define LEVEL_SCHEDULE  /* 定义这个将使用优化后的高响应比进程调度 */
+//#define LEVEL_SCHEDULE  /* 定义这个将使用优化后的高响应比进程调度，fixme 模拟器的浮点运算有问题 */
 
 #endif //AOS_CONFIG_H

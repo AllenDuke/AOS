@@ -194,9 +194,8 @@ PRIVATE int clock_handler(int irq) {
         /* 重新调度 */
         lock_schedule();
         scheduleTicks = SCHEDULE_TICKS;         /* 调度时间计数重置 */
-        char buf[4];
-        sprintf(buf,"%d ",gp_curProc->pid);
-        memory2video_copy(buf,consoles[2].original_addr,7);
+        dump_proc_map();
+//        kprintf("update.\n");
     }
     return ENABLE;  /* 返回ENABLE，使其再能发生时钟中断 */
 }
