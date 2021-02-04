@@ -7,7 +7,7 @@
 
 #include "core/constant.h"
 
-#define NR_CMD         8                    /* 预设命令数量，该值为2的次方数，利于利用位运算，加快速度 */
+#define NR_CMD         16                    /* 预设命令数量，该值为2的次方数，利于利用位运算，加快速度 */
 #define NR_CMD_TSIZE    NR_CMD*2            /* 存放cmd的HashTable的大小，冲突时线程探测，2倍是有道理的，在hash.c中有解释 */
 
 #define NR_ARGC        10                   /* 一个命令最多可以接受的参数 */
@@ -63,5 +63,7 @@ int ps(int argc, char *argv[]);
 int top(int argc, char *argv[]);
 
 int kill(int argc, char *argv[]);
+
+int help(int argc, char *argv[]);
 
 #endif //AOS_ORIGIN_H

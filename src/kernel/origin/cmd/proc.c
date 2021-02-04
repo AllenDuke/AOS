@@ -7,7 +7,7 @@
 #include "stdlib.h"
 
 int proc(int argc, char *argv[]) {
-    alloc(1);
+    alloc(get_pid());
     if (argv[argc - 1][0] == '&') {     /* 如果当前是后台运行，那么将输出到文件tmp_out */
         while (TRUE) {
 

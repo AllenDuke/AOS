@@ -15,7 +15,7 @@
 
 PRIVATE void exec_cmd(CmdResult *result, HashTableNode hashTable[]);
 
-PRIVATE void start(CmdResult *result, HashTableNode *node);
+PRIVATE void start(CmdResult *result, HashTableNode *node, HashTableNode table[]);
 
 PRIVATE void split(CmdResult *result, char *cmdBuf, int size);
 
@@ -40,6 +40,7 @@ void origin_task() {
     put("ps", 2, ps, hashTable);
     put("top", 3, top, hashTable);
     put("kill", 4, kill, hashTable);
+    put("help", 4, help, hashTable);
 
     printf("{ORIGIN}->origin_task is working...\n");
 
@@ -62,10 +63,10 @@ void origin_task() {
                 continue;
             }
             unsigned char exitStat;
-            printf("child pid:%d.\n", pid);
+//            printf("child pid:%d.\n", pid);
             waitpid_stat(pid, &exitStat);       /* 必定是origin先进入等待状态 */
 //            wait();
-            printf("child (%d) exited with status: %d.\n", pid, exitStat);
+//            printf("child (%d) exited with status: %d.\n", pid, exitStat);
             printf("$ ");
         }
     }
@@ -78,18 +79,21 @@ void origin_task() {
  */
 PRIVATE void exec_cmd(CmdResult *result, HashTableNode hashTable[]) {
     HashTableNode *node = get(result->cmd, result->cmdLen, hashTable);
-    start(result, node);
+    start(result, node, hashTable);
 }
 
 /**
  * 一个伪装的runtime
  */
-PRIVATE void start(CmdResult *result, HashTableNode *node) {
+PRIVATE void start(CmdResult *result, HashTableNode *node, HashTableNode table[]) {
     if (node == NO_NODE) {
         printf("no such cmd.\n");
         exit(-1);                               /* 子进程退出，退出状态-1 */
     }
     UserTask main = node->userTask;
+    if (main == help) {
+        result->argv[result->argc++] = table;
+    }
     int exitStat = main(result->argc, result->argv);
     exit(exitStat);
 }

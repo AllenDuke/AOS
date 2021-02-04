@@ -69,7 +69,7 @@ KernelObjs      = $(tk)/kernel.o $(tk)/main.o $(tk)/kernel_i386lib.o $(tk)/prote
                   $(tk)/read_write.o $(tk)/link.o $(tk)/fs_test.o $(tk)/tty_test.o $(tk)/exec.o \
                   $(tk)/misc.o $(tk)/origin.o $(tk)/hash.o $(tk)/pwd.o $(tk)/date.o $(tk)/echo.o \
                   $(tk)/cat.o $(tk)/touch.o $(tk)/vi.o $(tk)/clear.o $(tk)/rm.o $(tk)/proc.o $(tk)/ps.o \
-                  $(tk)/top.o $(tk)/kill.o
+                  $(tk)/top.o $(tk)/kill.o $(tk)/help.o
 
 # 内核之外所需要的库，有系统库，也有提供给用户使用的库
 LIB		        = $(l)/aos_lib.a
@@ -320,6 +320,9 @@ $(tk)/top.o: $(sk)/origin/cmd/top.c
 	$(CC) $(CFlags) -o $@ $<
 
 $(tk)/kill.o: $(sk)/origin/cmd/kill.c
+	$(CC) $(CFlags) -o $@ $<
+
+$(tk)/help.o: $(sk)/origin/cmd/help.c
 	$(CC) $(CFlags) -o $@ $<
 # ----------------------------------------------------------------------------------------------------------------------
 #   test
