@@ -48,7 +48,6 @@ void aos_main(void) {
         if (logicNum > 0)    /* 系统服务和用户进程 */
             strcpy(p_proc->name, "unused");
         p_proc->logicIndex = logicNum;
-        p_proc->pid = logicNum;/* 系统服务的pid从-NR_TASKS到-1 */
         gp_procs[logic_nr_2_index(logicNum)] = p_proc;
 
     }
@@ -61,10 +60,11 @@ void aos_main(void) {
     reg_t sysProcStackBase = (reg_t) sysProcStack;
     u8_t privilege;        /* CPU 权限 */
     u8_t rpl;               /* 段访问权限 */
-    for (logicNum = -NR_TASKS; logicNum <= NR_LAST_TASK; logicNum++) {   /* 遍历整个系统任务 */
-        p_proc = proc_addr(logicNum);                                 /* 拿到系统任务对应应该放在的进程指针 */
-        p_sysProc = &sysProcs[logic_nr_2_index(logicNum)];     /* 系统进程项 */
-        strcpy(p_proc->name, p_sysProc->name);                         /* 拷贝名称 */
+    for (logicNum = -NR_TASKS; logicNum <= NR_LAST_TASK; logicNum++) {  /* 遍历整个系统任务 */
+        p_proc = proc_addr(logicNum);                                   /* 拿到系统任务对应应该放在的进程指针 */
+        p_proc->pid = logicNum;                                         /* 系统服务的pid从-NR_TASKS到-1 */
+        p_sysProc = &sysProcs[logic_nr_2_index(logicNum)];              /* 系统进程项 */
+        strcpy(p_proc->name, p_sysProc->name);                          /* 拷贝名称 */
         /* 判断是否是系统任务 */
         if (logicNum < 0) {  /* 系统任务 */
             if (p_sysProc->stackSize > 0) {
@@ -212,7 +212,7 @@ PRIVATE void init_origin() {
     origin->pid = ORIGIN_PID;
     strcpy(origin->name, "origin");
 
-    origin->level = 5;
+    origin->level = MAX_LEVEL;
 #ifdef LEVEL_SCHEDULE
     origin->wait = 0;
     origin->service = origin->level;

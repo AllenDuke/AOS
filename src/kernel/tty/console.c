@@ -116,12 +116,11 @@ PUBLIC void memory2video_copy(register u8_t *src, register unsigned int dest, un
     u8_t *video_memory = (u8_t *) (V_MEM_BASE + dest * 2);  /* 得到目标显存 todo 为什么是*2 */
     unsigned int i = 0;
 
-    /* 如果字串是BLANK_MEM，执行清空整个屏幕空间 */
     if (src == BLANK_MEM) {
-//        blank_color = BLANK_COLOR;
-        for (; i < count; i++) {        /* 所属的整段显存 */
-            *video_memory = BLANK_COLOR;
-            video_memory++;
+        u16_t *vm=(u16_t *) video_memory;
+        for (; i < count; i++) {
+            *vm = BLANK_COLOR;
+            vm++;
         }
     } else {                            /* 移动src字串到显存，从dest相对位置开始，复制count个字 */
         while (count != 0) {             /* 只要count != 0，一直复制 */

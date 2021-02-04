@@ -84,11 +84,13 @@ PUBLIC void mm_task(void) {
                 break;
             case KILL: {
                 int t = mm_who;
-                mm_who=get_logicI(mm_msg.PID);
-                curr_mp=&mmProcs[mm_who];
-                mm_do_exit();
-                mm_who=t;
-                curr_mp=&mmProcs[mm_who];
+                mm_who = get_logicI(mm_msg.PID);
+                if (mm_who != NO_TASK) {
+                    curr_mp = &mmProcs[mm_who];
+                    mm_do_exit();
+                }
+                mm_who = t;
+                curr_mp = &mmProcs[mm_who];
             }
                 break;
             default:
@@ -150,6 +152,7 @@ PRIVATE void mm_init() {
 
 /* 转储进程内存影响信息 */
 PUBLIC void dump_proc_map(void) {
+    clear_console(&consoles[2]);
     register MMProcess *target;
     int size;
 //    for (target = &mmProcs[ORIGIN_PROC_NR]; target < &mmProcs[NR_PROCS]; target++) {
@@ -191,15 +194,20 @@ PUBLIC void dump_proc_map(void) {
     memory2video_copy(buf, consoles[2].original_addr, size);
     memory2video_copy("PROC  --------------NAME--------------  ----BASE----  ---SIZE---",
                       consoles[2].original_addr + 80, 64);
-    target = &mmProcs[gp_curProc->logicIndex];
-    memset(buf, 0, 80);
-    size = sprintf(buf, "%3d  %30s  %12xB  %9uKB",
-                   target->pid,
-                   target->name,
-                   target->map.base,
-                   bytes2round_k(target->map.size) + target->keep * 8);
-    memory2video_copy(buf, consoles[2].original_addr + 160, size);
-    line += 3;
+    line += 2;
+
+    if (is_user_proc(gp_curProc)) {
+        target = &mmProcs[gp_curProc->logicIndex];
+        memset(buf, 0, 80);
+        size = sprintf(buf, "%3d  %30s  %12xB  %9uKB",
+                       target->pid,
+                       target->name,
+                       target->map.base,
+                       bytes2round_k(target->map.size) + target->keep * 8);
+        memory2video_copy(buf, consoles[2].original_addr + 160, size);
+        line++;
+    }
+
     for (target = &mmProcs[ORIGIN_PROC_NR]; target < &mmProcs[NR_PROCS]; target++) {
         if (!(target->flags & IN_USE) || target->pid == gp_curProc->pid) continue;    /* 空进程跳过 */
         memset(buf, 0, 80);

@@ -281,25 +281,24 @@ PUBLIC void lock_schedule(void) {
 PRIVATE void hunter(void) {
 
     /* 从进程表中抓出一个作为下次运行的进程 */
-    register Process *prey;      /* 准备运行的进程 */
-    if ((prey = gp_readyHeads[TASK_QUEUE]) != NIL_PROC) {
-        gp_curProc = prey;
+    register Process *p_cur;      /* 准备运行的进程 */
+    if ((p_cur = gp_readyHeads[TASK_QUEUE]) != NIL_PROC) {
+        gp_curProc = p_cur;
 //        kprintf("%s hunter\n", gp_curProc->name);
         return;
     }
-    if ((prey = gp_readyHeads[SERVER_QUEUE]) != NIL_PROC) {
-        gp_curProc = prey;
+    if ((p_cur = gp_readyHeads[SERVER_QUEUE]) != NIL_PROC) {
+        gp_curProc = p_cur;
         return;
     }
-    if ((prey = gp_readyHeads[USER_QUEUE]) != NIL_PROC) {
-        gp_billProc = gp_curProc = prey;
+    if ((p_cur = gp_readyHeads[USER_QUEUE]) != NIL_PROC) {
+        gp_billProc = gp_curProc = p_cur;
 //                kprintf("%s hunter.\n", gp_curProc->name);
 #ifdef LEVEL_SCHEDULE
         gp_curProc->wait = 0;               /* 到你了 */
         gp_curProc->service--;              /* 得到了一次服务 */
         if (gp_curProc->service == 0)       /* 如果能撑到发生调度，说明它还要继续存活，不能延迟到level_schedule才计算 */
             gp_curProc->service = gp_curProc->level;
-        Process *p_cur;
         p_cur = gp_readyHeads[USER_QUEUE]->p_nextReady;
         while (p_cur != NIL_PROC) {     /* 遍历队列，高响应比调度相关信息 */
             p_cur->wait++;              /* 其他的要等待一次调度 */
@@ -310,8 +309,8 @@ PRIVATE void hunter(void) {
     }
 
     /* 咳咳，本次狩猎失败了，那么只能狩猎 IDLE 待机进程了 */
-    prey = proc_addr(IDLE_TASK);
-    gp_billProc = gp_curProc = prey;
+    p_cur = proc_addr(IDLE_TASK);
+    gp_billProc = gp_curProc = p_cur;
     /* 本例程只负责狩猎，狩猎到一个可以执行的进程，而进程执行完毕后的删除或更改在队列中的位置
      * 这种事情我们安排在其他地方去做。
      */
