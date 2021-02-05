@@ -7,7 +7,7 @@
 #include "stdlib.h"
 
 int proc(int argc, char *argv[]) {
-    alloc(get_pid());
+    alloc(get_pid());                   /* fork后父子共享这段内存 todo copy on write */
     if (argv[argc - 1][0] == '&') {     /* 如果当前是后台运行，那么将输出到文件tmp_out */
         while (TRUE) {
 

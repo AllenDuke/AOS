@@ -296,12 +296,12 @@ PRIVATE void hunter(void) {
 //                kprintf("%s hunter.\n", gp_curProc->name);
 #ifdef LEVEL_SCHEDULE
         gp_curProc->wait = 0;               /* 到你了 */
-        gp_curProc->service--;              /* 得到了一次服务 */
+        gp_curProc->service >>= 1;          /* 得到了一次服务 */
         if (gp_curProc->service == 0)       /* 如果能撑到发生调度，说明它还要继续存活，不能延迟到level_schedule才计算 */
             gp_curProc->service = gp_curProc->level;
         p_cur = gp_readyHeads[USER_QUEUE]->p_nextReady;
-        while (p_cur != NIL_PROC) {     /* 遍历队列，高响应比调度相关信息 */
-            p_cur->wait++;              /* 其他的要等待一次调度 */
+        while (p_cur != NIL_PROC) {         /* 遍历队列，高响应比调度相关信息 */
+            if (p_cur->wait != MAX_WAIT) p_cur->wait++;              /* 其他的要等待一次调度 */
             p_cur = p_cur->p_nextReady;
         }
 #endif
@@ -352,18 +352,28 @@ PRIVATE void level_schedule(void) {
 
     /* 必定要更换队头 */
     Process *p_cur, *p_pre, *p_max, *p_maxPre;
-    int rInteger, rDecimal;                     /* 因为模拟器的FPU异常，所以通过最小公倍数，换算成两个整数来比较 */
-    int rMaxInteger = 0, rMaxDecimal = 0;
+    u32_t rInteger, rDecimal;                     /* 因为模拟器的FPU异常，所以通过最小公倍数，换算成两个整数来比较 */
+    u32_t rMaxInteger = 0, rMaxDecimal = 0;
     p_pre = gp_readyHeads[USER_QUEUE];
     p_cur = gp_readyHeads[USER_QUEUE]->p_nextReady;
-    int mul;
-    int wait;
+    u32_t wait;
+    u8_t t;
     while (p_cur != NIL_PROC) {                 /* 遍历就绪队列，找出响应比最高的进程 */
-        mul = LEAST_COMMON_MULTIPLE_LEVEL / p_cur->service;
-        wait = p_cur->wait * mul;
-        rInteger = wait / LEAST_COMMON_MULTIPLE_LEVEL;
-        rDecimal = wait % LEAST_COMMON_MULTIPLE_LEVEL;
-//        kprintf("pid:%d wait:%d rI:%d rD:%d\n", p_cur->pid, wait, rInteger, rDecimal);
+        /* 将计算 wait/service */
+        wait = p_cur->wait;
+        t = p_cur->service;
+        while (t != MAX_LEVEL) {                /* 化为同一个低 */
+            t <<= 1;
+            if ((wait & 0x8000000) == 0) wait <<= 1;
+            else {                              /* 如果最高位是1 */
+                wait=MAX_WAIT;
+                break;
+            }
+        }
+        rInteger = wait >> (LEVEL_BIT - 1);     /* 商 */
+        rDecimal = wait & (MAX_LEVEL - 1);      /* 余数 */
+//        kprintf("pid:%d wait:%d rwait:%d rI:%d rD:%d rMI:%d rMD:%d\n", p_cur->pid, p_cur->wait, wait, rInteger,
+//                rDecimal,rMaxInteger,rMaxDecimal);
         if (rInteger > rMaxInteger || (rInteger == rMaxInteger && rDecimal > rMaxDecimal)) {
             rMaxInteger = rInteger;
             rMaxDecimal = rDecimal;
@@ -378,6 +388,8 @@ PRIVATE void level_schedule(void) {
     p_maxPre->p_nextReady = p_max->p_nextReady;
     p_max->p_nextReady = gp_readyHeads[USER_QUEUE];
     gp_readyHeads[USER_QUEUE] = p_max;
+//    kprintf("max pid:%d wait:%d rMI:%d rMD:%d\n", p_max->pid, p_max->wait, rMaxDecimal, rMaxDecimal);
+//    kprintf("1 pid:%d wait:%d\n", 1,proc_addr(1)->wait);
 
     /* 切换进程，高相应比信息的更新，在hunter中进行。 */
     hunter();

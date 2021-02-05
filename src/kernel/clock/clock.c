@@ -219,9 +219,9 @@ PRIVATE void clock_init(void) {
     RTCTime_t now;
     get_rtc_time(&now);
     bootTime = mktime(&now);
-    kprintf("{CLOCK}-> now is %d-%d-%d %d:%d:%d\n",
+    kprintf("{CLOCK}-> current date is %d-%d-%d %d:%d:%d\n",
             now.year, now.month, now.day, now.hour, now.minute, now.second);
-    kprintf("{CLOCK}-> boot startup time is %ld\n", bootTime);
+//    kprintf("{CLOCK}-> boot startup time is %ld\n", bootTime);
 }
 
 /* 获取时钟运行时间(tick) */

@@ -57,6 +57,11 @@ void origin_task() {
         if (pid == 0) {
             exec_cmd(&cmdResult, hashTable);
         } else {
+            if (pid == -1) {
+                printf("fork err!\n");
+                printf("$ ");
+                continue;
+            }
             if (cmdResult.argv[cmdResult.argc - 1][0] == '&') {
                 printf("child pid:%d.\n", pid);
                 printf("$ ");
@@ -120,23 +125,22 @@ PRIVATE void split(CmdResult *result, char *cmdBuf, int size) {
     cmdBuf[r++] = 0;                                /* 设置这个空格或者末尾位成为 0 */
 
     int argL = r;                                   /* main函数的入参 */
-    unsigned char level = 1;                        /* 默认的level=1 */
+    unsigned char level = 0;
 
     while (cmdBuf[r] == ' ' && r < size) r++;       /* 跳过空格 */
     /* 如果cmd输入的接下来的一个参数是-l且-l接着一个[1,5]的u8_t，那么它成为level，否则当它们是main函数的入参 */
     if (r + 1 < size && cmdBuf[r] == '-' && cmdBuf[r + 1] == 'l') {
         r += 2;
         while (cmdBuf[r] == ' ' && r < size) r++;   /* 跳过空格 */
-        if (r < size) {
-            level = cmdBuf[r];
-            if (level >= '1' && level <= '5') {
-                level = level - '0';
-                argL = r + 1;   /* 这里才是main函数的入参起始 */
-//                printf("found -l %d.\n",result->level);
-            }
+        while (cmdBuf[r] != ' ' && r < size) {
+            level *= 10;
+            level += cmdBuf[r] - '0';
+            r++;
+            argL = r + 1;   /* 这里才是main函数的入参起始 */
         }
-//        printf("found -l.\n");
-    }
+//                printf("found -l %d.\n",result->level);
+
+    } else level = 1;                               /* 默认的level=1 */
 
     result->level = level;
 

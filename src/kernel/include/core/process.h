@@ -45,9 +45,9 @@ typedef struct process_s {
     bool_t intHeld;                 /* 被置位，当目标进程有一条中断消息被繁忙的系统调用挂起保留了 */
     struct process_s *p_nextHeld;   /* 被挂起保留的中断过程队列 */
 
-    /* 高响应比调度相关 todo 利用两个整形变量，最小公倍数来进行响应比计算 */
-    u8_t level;                     /* 用户进程等级，分为1~5，越大越高，fork时指定 */
-    u8_t wait;                     /* 进程的等待时间(就绪时但未被调度，以调度次数为单位) */
+    /* 高响应比调度相关 利用两个整形变量，最小公倍数来进行响应比计算 */
+    u8_t level;                     /* 用户进程等级，分为1~MAX_LEVEL，越大越高，fork时指定 */
+    u32_t wait;                     /* 进程的等待时间(就绪时但未被调度，以调度次数为单位) */
     u8_t service;                  /* 作业要求服务时间(以调度次数为单位)，初始时为level次，不够再续 */
 
     /* 时间相关 */
@@ -69,6 +69,7 @@ typedef struct process_s {
     struct file_desc *filp[NR_FILES]; /* 文件描述符指针数组，指向打开的文件s */
 
     char name[32];                  /* 这个没啥好说的，就是进程的名称，记得起个好名字哦 */
+
 } Process;
 
 

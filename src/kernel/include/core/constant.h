@@ -173,9 +173,11 @@ void assertion_failure(char *exp, char *file, char *base_file, int line);
 /* 魔数，它是一个不存在的进程逻辑编号，用于表示任何进程receive(ANY, msg_buf) 表示接收任何进程的消息 */
 #define ANY                 0x3ea
 
-//todo 因为调度频繁，考虑将MAX_LEVEL换成2的次方数，通过位运算来加快运算
-#define MAX_LEVEL                       5       /* 用户的最大等级，与下面的一起修改 */
-#define LEAST_COMMON_MULTIPLE_LEVEL     60      /* 1~MAX_LEVEL的最小公倍数，用于计算响应比，因为模拟器的FPU异常 */
+//todo 因为调度频繁，考虑将MAX_LEVEL换成2的次方数，通过位运算来加快运算 1 2 4 8 16 32 64 128
+#define MAX_LEVEL                       128       /* 用户的最大等级，与下面的一起修改 */
+/* 1~MAX_LEVEL的最小公倍数，用于计算响应比，因为模拟器的FPU异常 */
+#define LEVEL_BIT                   8
+#define MAX_WAIT                        0xFFFFFFFF
 
 /* 系统任务数量 */
 #ifdef ENABLE_TEST

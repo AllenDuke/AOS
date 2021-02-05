@@ -9,7 +9,7 @@
 int help(int argc, char *argv[]) {
 
     HashTableNode *table=(HashTableNode *)argv[argc-1];
-    printf("the cmd you can use as follow:\n");
+    printf("the cmd you can use as follows:\n");
     for (int i = 0; i < NR_CMD_TSIZE; ++i) {
         if(table[i].keyHashVal==0)continue;
         printf("%s\n",table[i].cmdName);

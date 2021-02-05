@@ -37,6 +37,7 @@ void aos_main(void) {
     } else {
         kprintf("kernel file begin:%d, end:%d.\n", kernel_base, kernel_base + kernel_limit);
     }
+    kprintf("\n                                  A O S v1.0                                   \n");
 
     /**
      * 进程表的所有表项都被标志为空闲;
