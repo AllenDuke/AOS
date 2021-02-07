@@ -34,7 +34,7 @@ PUBLIC int new_mem_map(int child_nr, int pre_nr) {
     );
     init_segment_desc(&proc->ldt[DS_LDT_INDEX],
                       proc->map.base,
-                      (proc->map.size - 1) >> LIMIT_4K_SHIFT,
+                      (proc->map.size - 1) >> LIMIT_4K_SHIFT,   //todo 让它可以访问全部空间
                       DA_32 | DA_LIMIT_4K | DA_DRW | USER_PRIVILEGE << 5
     );
 

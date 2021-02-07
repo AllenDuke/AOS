@@ -14,7 +14,7 @@ typedef struct card_node_s {            /* 可能对齐，12字节*/
     phys_page base;
     phys_page len;
 
-    /* 最高位0表示不可全部借出 1 位可全部借出 低31位表示下标（用于free时快速查找，不用遍历树） */
+    /* 最高位0表示不可全部借出 1 位可全部借出 低31位表示下标（用于free时快速查找，不用遍历树，空间换时间） */
     u32_t available_i;                  /* 符号位 TRUE为辖下可用，可全部借出，FALSE为不可全部借出 */
 } CardNode;
 

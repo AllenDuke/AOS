@@ -62,7 +62,6 @@ PUBLIC int mm_do_exit(void) {
 //    free_page_by_detail(exit_proc->map.base >> PAGE_SHIFT, bytes2round_k(exit_proc->map.size) >> 3);
 
     exit_proc->bornedNode = NIL_CARD_NODE;
-    //todo 优化free_page
     for (int i = 0; exit_proc->allocCount > 0 && i < MAX_ALLOC; i++) {
         if (exit_proc->allocPages[i] == NIL_CARD_NODE) continue;
         free_page(exit_proc->allocPages[i]);

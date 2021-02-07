@@ -44,3 +44,9 @@ AOS.img设置到机器的软盘控制器中，将boot.bin写入AOS.img的引导�
 然后将loader.bin加载到内存当中，接着跳转到loader.bin所处的内存地址，执行其上的指令，就可以跨越512字节的限制了(所以我们可以把很多
 指令放在loader.bin中)。
 
+## 启动
+1. 在32位红帽下 make all
+2. 在安装了boch的64位deepin下 make updebug ，注意bochsrc的配置。
+
+或者使用oracle的VB启动。
+
