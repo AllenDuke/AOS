@@ -14,6 +14,6 @@ PUBLIC int kill_proc(int pid) {
 
     send_rec(MM_TASK, &msg);
 
-    return 1;
+    return msg.PID == NO_TASK ? -1 : msg.PID;
 //    assert(msg.type == SYSCALL_RET);
 }

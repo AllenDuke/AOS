@@ -11,6 +11,8 @@ int kill(int argc, char *argv[]) {
         return -1;
     }
     int pid = *argv[1] - '0';
-    kill_proc(pid);
+    if(kill_proc(pid)==-1){
+        printf("no such proc!\n");
+    };
     return 0;
 }

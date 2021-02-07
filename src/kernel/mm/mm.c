@@ -73,9 +73,23 @@ PUBLIC void mm_task(void) {
                 }
                 break;
             }
-            case ALLOC:
-                mm_msg.PAGE_ADDR = alloc_page(mm_msg.PAGE_SIZE);
-                if (mm_msg.PAGE_ADDR != NO_MEM) curr_mp->keep += mm_msg.PAGE_SIZE;
+            case ALLOC: {
+                /* todo 实际上，它是访问不到的，还需要修改进程的段描述符 */
+                mm_msg.PAGE_ADDR = NO_MEM;
+                CardNode *node = NIL_CARD_NODE;
+                if (curr_mp->allocCount != MAX_ALLOC)       /* 可以去申请 */
+                    node = alloc_page(mm_msg.PAGE_SIZE);
+                if (node != NIL_CARD_NODE) {                /* 申请成功 */
+                    curr_mp->keep += mm_msg.PAGE_SIZE;
+                    curr_mp->allocCount++;
+                    for (int i = 0; i < MAX_ALLOC; ++i) {
+                        if (curr_mp->allocPages[i] != NIL_CARD_NODE) continue;
+                        curr_mp->allocPages[i] = node;      /* 找到一个槽位放置 */
+                        break;
+                    }
+                    mm_msg.PAGE_ADDR = node->base;          /* 设置回复 */
+                }
+            }
                 break;
             case FREE:
                 break;
@@ -88,7 +102,7 @@ PUBLIC void mm_task(void) {
                 if (mm_who != NO_TASK) {
                     curr_mp = &mmProcs[mm_who];
                     mm_do_exit();
-                }
+                } else mm_msg.PID = NO_TASK;
                 mm_who = t;
                 curr_mp = &mmProcs[mm_who];
             }
@@ -127,6 +141,9 @@ PRIVATE void mm_init() {
     for (proc_nr = 1; proc_nr < NR_PROCS; proc_nr++) {
         rmp = &mmProcs[proc_nr];
         rmp->ppid = NO_TASK;
+//        for (int i = 0; i < MAX_ALLOC; i++) {
+//            rmp->allocPages[i] = NIL_CARD_NODE;
+//        }
     }
 
 //    phys_page totalPages = gp_bootParam->memorySize >> 2; /* memorySize的单位是KB */

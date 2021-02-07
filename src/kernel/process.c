@@ -340,9 +340,11 @@ PRIVATE void schedule(void) {
     gp_readyTails[USER_QUEUE] = gp_readyTails[USER_QUEUE]->p_nextReady;
     gp_readyHeads[USER_QUEUE] = p_tmp;
     gp_readyTails[USER_QUEUE]->p_nextReady = NIL_PROC;  /* 队尾没有后继进程 */
-    /* 汉特儿 */
+
     hunter();
 }
+
+
 
 /* 进程调度，时间片轮转与高响应比结合 */
 PRIVATE void level_schedule(void) {
@@ -352,7 +354,7 @@ PRIVATE void level_schedule(void) {
 
     /* 必定要更换队头 */
     Process *p_cur, *p_pre, *p_max, *p_maxPre;
-    u32_t rInteger, rDecimal;                     /* 因为模拟器的FPU异常，所以通过最小公倍数，换算成两个整数来比较 */
+    u32_t rInteger, rDecimal;                   /* 因为模拟器的FPU异常，所以通过最小公倍数，换算成两个整数来比较 */
     u32_t rMaxInteger = 0, rMaxDecimal = 0;
     p_pre = gp_readyHeads[USER_QUEUE];
     p_cur = gp_readyHeads[USER_QUEUE]->p_nextReady;
@@ -366,7 +368,7 @@ PRIVATE void level_schedule(void) {
             t <<= 1;
             if ((wait & 0x8000000) == 0) wait <<= 1;
             else {                              /* 如果最高位是1 */
-                wait=MAX_WAIT;
+                wait = MAX_WAIT;
                 break;
             }
         }
@@ -389,7 +391,6 @@ PRIVATE void level_schedule(void) {
     p_max->p_nextReady = gp_readyHeads[USER_QUEUE];
     gp_readyHeads[USER_QUEUE] = p_max;
 //    kprintf("max pid:%d wait:%d rMI:%d rMD:%d\n", p_max->pid, p_max->wait, rMaxDecimal, rMaxDecimal);
-//    kprintf("1 pid:%d wait:%d\n", 1,proc_addr(1)->wait);
 
     /* 切换进程，高相应比信息的更新，在hunter中进行。 */
     hunter();

@@ -38,8 +38,9 @@ PUBLIC int mm_do_fork(void) {
      * 先进行内存分配是为了防止内存不足导致失败可以没
      * 有任何后果，因为新的进程表项还没有进行分配。
      */
-    child_base = alloc_page(bytes2round_k(parent->map.size) >> 3) << PAGE_SHIFT;
-    if (child_base == NO_MEM) return ENOMEM;     /* 空间分配失败... */
+    CardNode *node = alloc_page(bytes2round_k(parent->map.size) >> 3);
+    if (node == NIL_CARD_NODE) return ENOMEM;     /* 空间分配失败... */
+    child_base = node->base << PAGE_SHIFT;
 //    kprintf("{MM}->childBase:%d, size:%d  \n", child_base, parent->map.size);
 
     /**
