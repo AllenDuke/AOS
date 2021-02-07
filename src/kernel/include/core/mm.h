@@ -13,8 +13,9 @@
 typedef struct card_node_s {            /* 可能对齐，12字节*/
     phys_page base;
     phys_page len;
-    //todo 用int，其中正数代表空闲，负数代表借出，绝对值位所处下标（用于free时快速查找，不用遍历树）
-    bool_t available;                   /* TRUE为辖下可用，可全部借出，FALSE为不可全部借出 */
+
+    /* 最高位0表示不可全部借出 1 位可全部借出 低31位表示下标（用于free时快速查找，不用遍历树） */
+    u32_t available_i;                  /* 符号位 TRUE为辖下可用，可全部借出，FALSE为不可全部借出 */
 } CardNode;
 
 #define NIL_CARD_NODE (CardNode*) 0

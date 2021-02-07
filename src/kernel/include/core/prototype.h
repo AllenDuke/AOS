@@ -328,6 +328,8 @@ void mem_init(phys_page base, phys_page freePages);
 
 CardNode *alloc_page(phys_page applyPages);
 
+void free_page(CardNode *node);
+
 void free_page_by_detail(phys_page begin, phys_page size);
 
 void mem_dump();

@@ -41,7 +41,6 @@ PUBLIC int mm_do_fork(void) {
     CardNode *node = alloc_page(bytes2round_k(parent->map.size) >> 3);
     if (node == NIL_CARD_NODE) return ENOMEM;     /* 空间分配失败... */
     child_base = node->base << PAGE_SHIFT;
-//    kprintf("{MM}->childBase:%d, size:%d  \n", child_base, parent->map.size);
 
     /**
      * 如果要进行FORK操作的是起源进程，那么复制可以从内核的基地址（挂载点）开始，
@@ -70,6 +69,7 @@ PUBLIC int mm_do_fork(void) {
     child->ppid = proc_addr(mm_who)->pid;       /* 不要忘了父亲是谁 */
     child->flags |= IN_USE;                     /* 这个进程插槽已经被使用了，这很重要。 */
     child->aliveChildCount = 0;                 /* 子进程还没有子 */
+    child->bornedNode = node;
 
     /* 为子进程找到一个可用的进程号，并将其放入进程表中 */
     do {

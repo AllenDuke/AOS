@@ -58,11 +58,15 @@ PUBLIC int mm_do_exit(void) {
     send_rec(FS_TASK, &msg2fs);
 
     /* 释放退出进程所占的内存 */
-    free_page_by_detail(exit_proc->map.base >> PAGE_SHIFT, bytes2round_k(exit_proc->map.size) >> 3);
+    free_page(exit_proc->bornedNode);
+//    free_page_by_detail(exit_proc->map.base >> PAGE_SHIFT, bytes2round_k(exit_proc->map.size) >> 3);
+
+    exit_proc->bornedNode = NIL_CARD_NODE;
     //todo 优化free_page
     for (int i = 0; exit_proc->allocCount > 0 && i < MAX_ALLOC; i++) {
         if (exit_proc->allocPages[i] == NIL_CARD_NODE) continue;
-        free_page_by_detail(exit_proc->allocPages[i]->base, exit_proc->allocPages[i]->len);
+        free_page(exit_proc->allocPages[i]);
+//        free_page_by_detail(exit_proc->allocPages[i]->base, exit_proc->allocPages[i]->len);
         exit_proc->allocPages[i] = NIL_CARD_NODE;
         exit_proc->allocCount--;
     }

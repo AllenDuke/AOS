@@ -50,7 +50,7 @@ PUBLIC void mem_init(phys_page base, phys_page freePages) {
 PRIVATE void init_recursively(int i, CardNode *cur, phys_page base, phys_page freePages) {
     cur->base = base;
     cur->len = freePages;
-    cur->available = TRUE;
+    cur->available_i = 0x80000000 | i;
     if (freePages > 1) { /* 注意，因为这里用到了递归，所以应当适当增大mm的栈，而且这里会耗点时间来计算 */
         int l = 2 * i + 1;
         int r = 2 * i + 2;
@@ -67,7 +67,7 @@ PRIVATE void init_recursively(int i, CardNode *cur, phys_page base, phys_page fr
  * @param applyPages 申请页面数
  * @return 页面起始物理地址 | NO_MEM
  */
-PUBLIC CardNode * alloc_page(phys_page applyPages) {
+PUBLIC CardNode *alloc_page(phys_page applyPages) {
 //    kprintf("allocating:%d\n",applyPages);
     int i = alloc_mem(0, applyPages);
     if (i >= NR_TREE_NODE) return NIL_CARD_NODE;
@@ -76,6 +76,15 @@ PUBLIC CardNode * alloc_page(phys_page applyPages) {
     false_up(i);
     s_freePages -= nodes[i].len;
     return &nodes[i];
+}
+
+PUBLIC void free_page(CardNode *node) {
+    if (node == NIL_CARD_NODE) panic("mem free begin and size must be >=0\n", PANIC_ERR_NUM);
+    int i = (node->available_i & 0x7FFFFFFF);
+    change_down(i, TRUE);
+    if (i == 0) return;
+    check_bro_true_up(i);
+    s_freePages += nodes[i].len;
 }
 
 /**
@@ -121,7 +130,8 @@ PRIVATE phys_page to_one_bit(phys_page size) {
  * @return 合适的节点 | NIL_CARD_NODE
  */
 PRIVATE int alloc_mem(int i, phys_page applyPages) {
-    if (i >= NR_TREE_NODE || nodes[i].len < applyPages || (nodes[i].len == applyPages && nodes[i].available == FALSE)) {
+    if (i >= NR_TREE_NODE || nodes[i].len < applyPages ||
+        (nodes[i].len == applyPages && (nodes[i].available_i & 0x80000000) == 0)) {
         return NR_TREE_NODE;
     }
 //    kprintf("cur i:%d, base:%d, len:%d\n",i,nodes[i].base,nodes[i].len);
@@ -140,7 +150,7 @@ PRIVATE int alloc_mem(int i, phys_page applyPages) {
         return right;
     }
 
-    if (nodes[i].available == TRUE) return i;
+    if ((nodes[i].available_i & 0x80000000) != 0) return i;
     return NR_TREE_NODE;
 
 }
@@ -148,7 +158,9 @@ PRIVATE int alloc_mem(int i, phys_page applyPages) {
 /* 从当前节点开始，向下修改所有节点为 available=val */
 PRIVATE void change_down(int i, bool_t val) {
     if (i >= NR_TREE_NODE) return;
-    nodes[i].available = val;
+    if (val)
+        nodes[i].available_i |= 0x80000000;
+    else nodes[i].available_i &= 0x7FFFFFFF;
     change_down(2 * i + 1, val);
     change_down(2 * i + 2, val);
 }
@@ -159,7 +171,7 @@ PRIVATE void change_down(int i, bool_t val) {
  */
 PRIVATE void false_up(int i) {
     if (i < 0) panic("array index err.\n", i);
-    nodes[i].available = FALSE;
+    nodes[i].available_i &= 0x7FFFFFFF;
     if (i == 0) return;
     false_up((i - 1) >> 1);
 }
@@ -170,11 +182,11 @@ PRIVATE void false_up(int i) {
  */
 PRIVATE void check_bro_true_up(int i) {
     if (i >= NR_TREE_NODE) return;
-    nodes[i].available = TRUE;
+    nodes[i].available_i |= 0x80000000;
     if (i == 0) return;
     int pi = (i - 1) >> 1;
-    if (i == 2 * pi + 1 && nodes[2 * pi + 2].available == FALSE) return;
-    if (i == 2 * pi + 2 && nodes[2 * pi + 1].available == FALSE) return;
+    if (i == 2 * pi + 1 && (nodes[2 * pi + 2].available_i & 0x80000000) == 0) return;
+    if (i == 2 * pi + 2 && (nodes[2 * pi + 1].available_i & 0x80000000) == 0) return;
     check_bro_true_up(pi);
 }
 
