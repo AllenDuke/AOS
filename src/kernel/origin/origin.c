@@ -53,6 +53,10 @@ void origin_task() {
         cmdBuf[r] = 0;
         CmdResult cmdResult;
         split(&cmdResult, cmdBuf, r);
+        if (cmdResult.cmdLen == 0) {
+            printf("$ ");
+            continue;
+        }
         int pid = fork_level(cmdResult.level);
         if (pid == 0) {
             exec_cmd(&cmdResult, hashTable);

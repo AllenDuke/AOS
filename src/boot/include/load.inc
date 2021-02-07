@@ -5,10 +5,10 @@
 ;      2、这是个物理地址而非仅仅是个偏移，如果 -Ttext 的值为 0x328000，则它的值也应该是 0x328000。
 KERNEL_ENTRY_POINT_PHY_ADDR     equ 0x100000
 
-; 页目录开始地址:		1M
-PAGE_DIR_BASE		equ	0x100000
-; 页表开始地址:		1M + 4K
-PAGE_TABLE_BASE		equ	0x101000
+; 页目录开始地址:		4M 根据内核大小调整
+PAGE_DIR_BASE		equ	0x400000
+; 页表开始地址:		4M + 4K
+PAGE_TABLE_BASE		equ	0x401000
 
 ; LOADER.BIN 被加载的位置　--- 段地址
 LOADER_SEG        equ     0x9000

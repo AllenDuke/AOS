@@ -16,7 +16,7 @@ extern phys_page s_availablePages;
 extern phys_page s_freePages;
 
 Message mm_msg;
-u8_t *mmbuf = (u8_t *) 0xA00000; /* 10M~11M用于mm */
+u8_t *mmbuf = (u8_t *) 0xB00000; /* 11M~12M用于mm */
 const int MMBUF_SIZE = 0x100000;
 
 /* 这里只管理用户进程，但index和process.h中的是相同的 */

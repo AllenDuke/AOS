@@ -4,7 +4,7 @@
 
 #include "core/kernel.h"
 
-u8_t *fsbuf = (u8_t *) 0x900000;  /* 9M~10M用于文件系统 */
+u8_t *fsbuf = (u8_t *) 0xA00000;  /* 10M~11M用于文件系统 */
 const int FSBUF_SIZE = 0x100000;
 
 Message fs_msg;
