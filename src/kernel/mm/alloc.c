@@ -209,7 +209,6 @@ PRIVATE int find(phys_page begin, phys_page size) {
     return i;
 }
 
-
 PUBLIC void mem_dump() {
     kprintf("{MM}->availablePages:%d, freePages:%d\n", s_availablePages, s_freePages);
 }

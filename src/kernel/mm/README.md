@@ -1,4 +1,7 @@
-# 关于进程wait exit的通知机制
+## 结构
+![mm-arch](../../../img/mm-arch.png)
+
+## 关于进程wait exit的通知机制
 1. 初始时，只有一个用户进程origin，之后所有的用户进程形成一棵树，而origin即为根节点。
 2. origin接收用户输入，然后fork出一个子进程，由这个子进程去exec这条cmd。针对这个子进程，origin会调用waitpid_stat等待子进程执行结束，
 如果cmd中有参数 &，表示子进程以后台方式进行，子进程的输出将写入tmp_out文件，而origin将不等待这个子进程。实际上，waitpid_stat的调用者如果

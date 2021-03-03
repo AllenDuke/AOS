@@ -10,9 +10,15 @@ int kill(int argc, char *argv[]) {
         printf("arg err!\n");
         return -1;
     }
-    int pid = *argv[1] - '0';
-    if(kill_proc(pid)==-1){
-        printf("no such proc!\n");
+    int pid = 0;
+    char *nums = argv[1];
+//    printf("pid :%s\n",nums);
+    while (*nums != 0) {
+        pid = pid * 10 + (*nums - '0');
+        nums++;
+    }
+    if (kill_proc(pid) == -1) {
+        printf("no such proc:%d !\n",pid);
     };
     return 0;
 }

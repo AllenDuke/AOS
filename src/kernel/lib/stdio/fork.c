@@ -38,19 +38,35 @@ PRIVATE bool_t is_one_bit(u8_t num) {
     return TRUE;
 }
 
+/* fixme 这如果放在fork_level中，会出现异常 */
+PRIVATE u8_t levelMap[LEVEL_BIT + 1] = {0, 1, 2, 4, 8, 16, 32, 64, 128};
+
 /**
  * 用于高响应比调度，
- * @param level 它应该是 1 2 4 8 16 32 64 128
+ * @param level 它应该是 1~8。最后会被映射成为：
+ * 1 -> 1,
+ * 2 -> 2,
+ * 3 -> 4,
+ * 4 -> 8,
+ * 5 -> 16,
+ * 6 -> 32,
+ * 7 -> 64,
+ * 8 -> 128
+ * 这样映射是为了利用位运算了加快响应比的计算
  * @return
  */
 PUBLIC int fork_level(u8_t level) {
-//    printf("level:%d\n",level);
-    if (level < 1 || level > MAX_LEVEL) return -1;
-    if (!is_one_bit(level)) return -1;
+    if (level < 1 || level > LEVEL_BIT) return -1;
+
+//    if (level < 1 || level > MAX_LEVEL) return -1;
+//    if (!is_one_bit(level)) return -1;
 
     Message msg;
     msg.type = FORK;
-    msg.LEVEL = level;
+    msg.LEVEL = levelMap[level];
+//    msg.LEVEL = level;
+
+//    printf("level:%d\n", msg.LEVEL);
 
     send_rec(MM_TASK, &msg);
 //    assert(msg.type == SYSCALL_RET); /* assert位于ring0，不能使用 */

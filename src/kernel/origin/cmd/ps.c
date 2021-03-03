@@ -9,14 +9,13 @@
 /* 打印当前存活的用户进程 */
 int ps(int argc, char *argv[]) {
     printf("PID\n");
-    char ids[32];
+    int ids[32];
     char *pids = ids;
 //    printf("addr:%d\n", pids);
     get_alive_proc(pids);
     for (int i = 0; i < 32; ++i) {
-        if (*pids == -1) continue;
-        printf("%d\n", *pids);
-        pids++;
+        if (ids[i] == -1) continue;
+        printf("%d\n", ids[i]);
     }
     return 0;
 }
