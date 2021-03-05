@@ -91,6 +91,7 @@ PUBLIC void in_process(u32_t key, TTY *p_tty) {
         put_key(p_tty, key);
     } else {
         int raw_code = key & MASK_RAW;
+//        kprintf("raw_code:%d.\n", raw_code);
         switch (raw_code) {
             case ENTER:
                 put_key(p_tty, '\n');
@@ -98,15 +99,24 @@ PUBLIC void in_process(u32_t key, TTY *p_tty) {
             case BACKSPACE:
                 put_key(p_tty, '\b');
                 break;
+                // todo 处理vi是光标上下左右移动
             case UP:
                 if ((key & FLAG_SHIFT_L) || (key & FLAG_SHIFT_R)) {    /* Shift + Up 上滚5行 */
                     scroll_screen(p_tty->p_console, SCROLL_SCREEN_UP);
+                } else {
+
                 }
                 break;
             case DOWN:
                 if ((key & FLAG_SHIFT_L) || (key & FLAG_SHIFT_R)) {    /* Shift + Down */
                     scroll_screen(p_tty->p_console, SCROLL_SCREEN_DOWN);
+                } else {
+
                 }
+                break;
+            case LEFT:
+                break;
+            case RIGHT:
                 break;
             case F1:
             case F2:
@@ -157,13 +167,12 @@ PRIVATE void tty_dev_write(TTY *tty) {
         if (tty->tty_left_cnt) {
             if (ch >= ' ' && ch <= '~') { /* printable */
                 out_char(tty->p_console, ch);
-                void * p = tty->tty_req_buf +
-                           tty->tty_trans_cnt;
-                phys_copy((void *)proc_vir2phys(proc_addr(TTY_TASK), &ch),p,  1);
+                void *p = tty->tty_req_buf +
+                          tty->tty_trans_cnt;
+                phys_copy((void *) proc_vir2phys(proc_addr(TTY_TASK), &ch), p, 1);
                 tty->tty_trans_cnt++;
                 tty->tty_left_cnt--;
-            }
-            else if (ch == '\b' && tty->tty_trans_cnt) {
+            } else if (ch == '\b' && tty->tty_trans_cnt) {
                 out_char(tty->p_console, ch);
                 tty->tty_trans_cnt--;
                 tty->tty_left_cnt++;
@@ -239,7 +248,7 @@ PRIVATE void tty_do_write(TTY *tty, Message *msg) {
 
     while (i) {
         int bytes = MIN(TTY_OUT_BUF_LEN, i);
-        phys_copy((void *) p,proc_vir2phys(proc_addr(TTY_TASK), buf), bytes);
+        phys_copy((void *) p, proc_vir2phys(proc_addr(TTY_TASK), buf), bytes);
         for (j = 0; j < bytes; j++)
             out_char(tty->p_console, buf[j]);
         i -= bytes;

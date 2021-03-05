@@ -1,6 +1,4 @@
-/**
- * 该文件包含一些内核调试转储例程
- */
+
 #include "core/kernel.h"
 
 FORWARD char *proc_name(int proc_nr);
@@ -50,6 +48,7 @@ PRIVATE inline char *proc_name(int proc_nr) {
     return proc_addr(proc_nr)->name;
 }
 
+/* 打印Message */
 PUBLIC void dump_msg(const char *title, Message *m) {
     int packed = 0;
     kprintf("{%s}<0x%x>{%ssrc:%s(%d),%stype:%d,%s(0x%x, 0x%x, 0x%x, 0x%x, 0x%x, 0x%x)%s}%s",  //, (0x%x, 0x%x, 0x%x)}",

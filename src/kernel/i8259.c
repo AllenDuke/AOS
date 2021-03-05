@@ -4,8 +4,6 @@
 
 #include "../include/core/kernel.h"
 
-
-/* 本地函数声明 */
 FORWARD int default_irq_handler (int irq);
 
 /* 初始化中断 */

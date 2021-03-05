@@ -44,6 +44,7 @@ PUBLIC int keyboard_handler(int irq) {
         kbInPut.count++;
     }
     if (initCount >= 1) { /* todo 初始时，莫名其妙产生的一次键盘中断 */
+//        kprintf("scanCode:%d.\n",scanCode);
 //        ready(proc_addr(TTY_TASK));
 //        aos_unpark(TTY_TASK);
           interrupt(TTY_TASK);

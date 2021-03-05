@@ -364,7 +364,7 @@ PRIVATE void level_schedule(void) {
         /* 将计算 wait/service */
         wait = p_cur->wait;
         t = p_cur->service;
-        while (t != MAX_LEVEL) {                /* 化为同一个低 */
+        while (t != MAX_LEVEL) {                /* 化为同一个底 */
             t <<= 1;
             if ((wait & 0x8000000) == 0) wait <<= 1;
             else {                              /* 如果最高位是1 */

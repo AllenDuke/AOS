@@ -1,12 +1,6 @@
 //
 // Created by 杜科 on 2020/10/16.
 //
-/**
- * 异常处理
- *
- * 该文件的入口点是：
- *  - exception_handler:         异常公共处理例程，所有例程都会被中断到这
- */
 
 #include "core/kernel.h"
 
